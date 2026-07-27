@@ -305,6 +305,7 @@ const state = {
   reviewRating: 5,
   serverSearch: "",
   apiReviews: [],
+  paymentReturnNotice: null,
   lastEdited: "virtual"
 };
 
@@ -362,6 +363,16 @@ function getProject(projectId = state.selectedProjectId) {
 
 function requiresServerSelection(project) {
   return Boolean(project && project.id !== "standoff-2");
+}
+
+function getOrderServerLabel(project, server) {
+  if (!project || !server || project.id === "standoff-2") return server;
+  const serverIndex = project.servers.indexOf(server);
+  if (serverIndex < 0) return server;
+  const readableName = project.id === "black-russia"
+    ? server.charAt(0).toUpperCase() + server.slice(1).toLowerCase()
+    : server;
+  return `${serverIndex + 1} | ${readableName}`;
 }
 
 function saveNavigationSession() {
@@ -455,6 +466,65 @@ function restoreNavigationSession() {
       // Ignore unavailable session storage.
     }
   }
+}
+
+function applyPaymentReturnRoute() {
+  const url = new URL(window.location.href);
+  const startParam = String(
+    tg?.initDataUnsafe?.start_param ||
+    url.searchParams.get("tgWebAppStartParam") ||
+    ""
+  ).toLowerCase();
+  const requestedScreen = String(url.searchParams.get("screen") || "").toLowerCase();
+  const paymentResult = String(url.searchParams.get("payment") || "").toLowerCase();
+  const shouldOpenOrders = requestedScreen === "orders" ||
+    startParam.startsWith("payment_") ||
+    ["success", "paid", "return", "failed", "cancelled"].includes(paymentResult);
+
+  if (!shouldOpenOrders) return;
+
+  const noticeByResult = {
+    success: {
+      type: "success",
+      title: "Оплата принята",
+      text: "Проверяем подтверждение платёжной системы и обновляем статус заказа."
+    },
+    paid: {
+      type: "success",
+      title: "Оплата принята",
+      text: "Проверяем подтверждение платёжной системы и обновляем статус заказа."
+    },
+    failed: {
+      type: "error",
+      title: "Оплата не завершена",
+      text: "Заказ сохранён. Вы сможете повторить оплату после подключения платёжной системы."
+    },
+    cancelled: {
+      type: "error",
+      title: "Оплата отменена",
+      text: "Заказ сохранён в истории и не потеряется."
+    },
+    return: {
+      type: "pending",
+      title: "Проверяем оплату",
+      text: "Статус изменится после подтверждения от платёжной системы."
+    }
+  };
+  const startResult = startParam.replace(/^payment_/, "");
+  const resolvedResult = paymentResult || startResult;
+
+  state.route = "orders";
+  state.history = [];
+  state.paymentReturnNotice = noticeByResult[resolvedResult] || {
+    type: "pending",
+    title: "Ваш заказ сохранён",
+    text: "Актуальный статус заказа отображается в этом разделе."
+  };
+
+  ["screen", "payment", "order", "tgWebAppStartParam"].forEach((name) => {
+    url.searchParams.delete(name);
+  });
+  window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
 function getStoredJSON(key, fallback) {
@@ -964,6 +1034,19 @@ function orderCard(order) {
 
 function renderOrders() {
   const orders = getLocalOrders();
+  const paymentNotice = state.paymentReturnNotice
+    ? `
+      <div class="payment-return-notice is-${escapeHTML(state.paymentReturnNotice.type)}" role="status">
+        <span class="payment-return-notice-icon">${icon(
+          state.paymentReturnNotice.type === "error" ? "info" : "shield-check"
+        )}</span>
+        <span>
+          <strong>${escapeHTML(state.paymentReturnNotice.title)}</strong>
+          <small>${escapeHTML(state.paymentReturnNotice.text)}</small>
+        </span>
+      </div>
+    `
+    : "";
   return `
     <section class="screen orders-screen">
       <header class="screen-header orders-hero">
@@ -971,6 +1054,7 @@ function renderOrders() {
         <h1>Ваши заказы</h1>
         <p>Актуальные статусы заказов на этом устройстве</p>
       </header>
+      ${paymentNotice}
       ${!orders.length ? `
         <div class="glass-card empty-state orders-empty-state">
           <div class="empty-icon">${icon("receipt")}</div>
@@ -1568,7 +1652,7 @@ async function submitPurchase(form) {
   const price = calculatePrice(project, amount, promoCode);
   const payload = {
     game: project.name,
-    server: state.selectedServer,
+    server: getOrderServerLabel(project, state.selectedServer),
     nickname: form.elements.nickname.value.trim(),
     promo: promoCode,
     amount_kk: Number(amount.toFixed(2)),
@@ -1599,6 +1683,7 @@ async function submitPurchase(form) {
 
   try {
     let paymentUrl = "";
+    let createdOrder = null;
     if (API_BASE_URL) {
       const response = await apiRequest("/api/create-order", {
         method: "POST",
@@ -1609,6 +1694,7 @@ async function submitPurchase(form) {
       if (!response.ok || !data.ok) {
         throw new Error(data.error || `Ошибка сервера: ${response.status}`);
       }
+      createdOrder = data;
       paymentUrl = data.payment_url || "";
     } else if (tg?.sendData && tg.initData) {
       tg.sendData(JSON.stringify(payload));
@@ -1616,7 +1702,7 @@ async function submitPurchase(form) {
 
     const orders = getLocalOrders();
     orders.unshift({
-      id: Math.random().toString(16).slice(2, 6).toUpperCase(),
+      id: createdOrder?.order_id || Math.random().toString(16).slice(2, 6).toUpperCase(),
       game: project.name,
       server: state.selectedServer,
       amount: `${amount.toLocaleString("ru-RU")} ${project.unit}`,
@@ -1629,7 +1715,14 @@ async function submitPurchase(form) {
     setStoredJSON("alexey-store-orders", orders);
     haptic("medium");
     if (paymentUrl) {
-      showToast("Заказ создан — открываем оплату");
+      state.history = [];
+      state.paymentReturnNotice = {
+        type: "pending",
+        title: "Ожидаем оплату",
+        text: "После оплаты вы вернётесь в этот раздел, а статус обновит сервер."
+      };
+      navigate("orders", { replace: true });
+      showToast("Заказ сохранён — открываем оплату");
       openExternal(paymentUrl);
     } else {
       showToast("Заказ создан и готов к оплате");
@@ -1962,6 +2055,7 @@ async function checkAccess() {
 
 initializeTelegram();
 restoreNavigationSession();
+applyPaymentReturnRoute();
 renderHeaderProfile();
 render();
 loadRemoteReviews();
