@@ -4,9 +4,10 @@ const API_BASE_URL = "https://api.platinov.com";
 const REVIEWS_API_BASE_URL = "";
 const SUPPORT_URL = "https://t.me/PlatinovBot";
 const SELL_MANAGER_URL = "https://t.me/PlatinovBot";
-const REVIEWS_TELEGRAM_URL = "https://t.me/PlatinovBot";
-const REVIEWS_VK_URL = "https://vk.com";
+const REVIEWS_TELEGRAM_URL = "https://t.me/+TZeEFqDDYyhkOTEy";
+const REVIEWS_VK_URL = "https://vk.ru/wall866011657_25";
 const ACCESS_RESTRICTED_TEXT = "Оформить заказ можно вручную.";
+const MAX_ORDER_TOTAL_RUB = 250000;
 const PROMO_CODES = {
   START5: 5,
   BONUS7: 7,
@@ -25,6 +26,8 @@ let apiAccessToken = (() => {
     return "";
   }
 })();
+let telegramAvatarObjectUrl = "";
+let telegramAvatarLoadPromise = null;
 
 function setApiAccessToken(token) {
   apiAccessToken = token || "";
@@ -78,67 +81,94 @@ async function apiRequest(path, options = {}, allowRetry = true) {
   return response;
 }
 
+async function loadTelegramAvatar() {
+  const directPhotoUrl = tg?.initDataUnsafe?.user?.photo_url || "";
+  if (directPhotoUrl) return directPhotoUrl;
+  if (telegramAvatarObjectUrl) return telegramAvatarObjectUrl;
+  if (!API_BASE_URL || !tg?.initData) return "";
+  if (telegramAvatarLoadPromise) return telegramAvatarLoadPromise;
+
+  telegramAvatarLoadPromise = (async () => {
+    const response = await apiRequest("/api/profile/avatar");
+    if (response.status === 404) return "";
+    if (!response.ok) {
+      throw new Error(`Не удалось загрузить Telegram-аватар: ${response.status}`);
+    }
+    const avatarBlob = await response.blob();
+    if (!avatarBlob.size || !avatarBlob.type.startsWith("image/")) return "";
+    telegramAvatarObjectUrl = URL.createObjectURL(avatarBlob);
+    return telegramAvatarObjectUrl;
+  })()
+    .catch((error) => {
+      console.warn("Telegram avatar loading error", error);
+      return "";
+    })
+    .finally(() => {
+      telegramAvatarLoadPromise = null;
+    });
+
+  return telegramAvatarLoadPromise;
+}
+
+async function hydrateTelegramAvatar() {
+  const avatarUrl = await loadTelegramAvatar();
+  if (!avatarUrl) return;
+  renderHeaderProfile();
+  if (state.route === "profile") render();
+}
+
 const PROJECTS = [
   {
     id: "black-russia",
     name: "BLACK RUSSIA",
     shortName: "Black Russia",
     unit: "кк",
-    priceLabel: "от 40 ₽ / кк",
+    priceLabel: "100 ₽ / кк",
     color: "red",
     logo: "black-russia.png",
     amountStep: 1,
+    defaultAmount: 3,
     quickAmounts: [10, 20, 50, 100],
-    tariffs: [
-      { from: 100, price: 40 },
-      { from: 10, price: 45 },
-      { from: 1, price: 50 }
-    ]
+    tariffs: [{ from: 1, price: 100 }]
   },
   {
     id: "gta-5-rp",
     name: "GTA 5 RP",
     shortName: "GTA 5 RP",
     unit: "кк",
-    priceLabel: "от 800 ₽ / кк",
+    priceLabel: "1000 ₽ / кк",
     color: "orange",
     logo: "gta5rp.png",
     amountStep: 1,
+    defaultAmount: 3,
     quickAmounts: [10, 20, 50, 100],
-    tariffs: [
-      { from: 50, price: 800 },
-      { from: 10, price: 900 },
-      { from: 5, price: 950 },
-      { from: 1, price: 1000 }
-    ]
+    tariffs: [{ from: 1, price: 1000 }]
   },
   {
     id: "matreshka-rp",
     name: "MATRESHKA RP",
     shortName: "Matreshka RP",
     unit: "кк",
-    priceLabel: "от 70 ₽ / кк",
+    priceLabel: "190 ₽ / кк",
     color: "purple",
     logo: "matreshka.png",
     amountStep: 1,
+    defaultAmount: 3,
     quickAmounts: [10, 20, 50, 100],
-    tariffs: [
-      { from: 100, price: 70 },
-      { from: 10, price: 80 },
-      { from: 1, price: 100 }
-    ]
+    tariffs: [{ from: 1, price: 190 }]
   },
   {
     id: "standoff-2",
     name: "STANDOFF 2",
     shortName: "Standoff 2",
     unit: "G",
-    priceLabel: "от 15 ₽ / 1000G",
+    priceLabel: "175 ₽ / 250G",
     color: "blue",
     logo: "standoff.png",
-    amountStep: 1000,
-    quickAmounts: [1000, 5000, 10000, 50000],
-    tariffs: [{ from: 1000, price: 15, per: 1000 }]
+    amountStep: 250,
+    defaultAmount: 250,
+    quickAmounts: [250, 500, 1000, 2500],
+    tariffs: [{ from: 250, price: 175, per: 250 }]
   }
 ];
 
@@ -231,22 +261,22 @@ const REVIEW_INITIALS = [
 const REVIEW_SOURCES = ["Telegram", "Сайт", "Telegram", "VK", "Сайт"];
 const REVIEW_VARIANTS = {
   "black-russia": [
-    { amount: "10 кк", price: "450 ₽" },
-    { amount: "20 кк", price: "900 ₽" },
-    { amount: "50 кк", price: "2 250 ₽" },
-    { amount: "100 кк", price: "4 000 ₽" }
+    { amount: "10 кк", price: "1 000 ₽" },
+    { amount: "20 кк", price: "2 000 ₽" },
+    { amount: "50 кк", price: "5 000 ₽" },
+    { amount: "100 кк", price: "10 000 ₽" }
   ],
   "matreshka-rp": [
-    { amount: "10 кк", price: "800 ₽" },
-    { amount: "20 кк", price: "1 600 ₽" },
-    { amount: "50 кк", price: "4 000 ₽" },
-    { amount: "100 кк", price: "7 000 ₽" }
+    { amount: "10 кк", price: "1 900 ₽" },
+    { amount: "20 кк", price: "3 800 ₽" },
+    { amount: "50 кк", price: "9 500 ₽" },
+    { amount: "100 кк", price: "19 000 ₽" }
   ],
   "gta-5-rp": [
     { amount: "1 кк", price: "1 000 ₽" },
-    { amount: "5 кк", price: "4 750 ₽" },
-    { amount: "10 кк", price: "9 000 ₽" },
-    { amount: "50 кк", price: "40 000 ₽" }
+    { amount: "5 кк", price: "5 000 ₽" },
+    { amount: "10 кк", price: "10 000 ₽" },
+    { amount: "50 кк", price: "50 000 ₽" }
   ]
 };
 
@@ -359,6 +389,19 @@ function formatMoney(value) {
 
 function getProject(projectId = state.selectedProjectId) {
   return PROJECTS.find((project) => project.id === projectId);
+}
+
+function getTradeWording(project = getProject()) {
+  const isStandoff = project?.id === "standoff-2";
+  return {
+    buyAction: isStandoff ? "Купить голду" : "Купить вирты",
+    sellAction: isStandoff ? "Продать голду" : "Продать вирты",
+    purchaseTitle: isStandoff ? "Покупка голды" : "Покупка виртов",
+    amountLabel: isStandoff ? "Количество голды" : "Количество виртов",
+    sellMessage: isStandoff
+      ? "Здравствуйте! Хочу продать голду."
+      : "Здравствуйте! Хочу продать вирты."
+  };
 }
 
 function requiresServerSelection(project) {
@@ -649,10 +692,10 @@ function renderHome() {
         <p class="hero-text">Выгодный курс, быстрая выдача и поддержка 24/7.</p>
         <div class="hero-actions">
           <button class="primary-button" type="button" data-start-action="buy">
-            Купить валюту <span class="button-arrow">${icon("arrow-right")}</span>
+            Купить вирты <span class="button-arrow">${icon("arrow-right")}</span>
           </button>
           <button class="secondary-button" type="button" data-start-action="sell">
-            Продать валюту
+            Продать вирты
           </button>
         </div>
       </div>
@@ -697,9 +740,9 @@ function renderHome() {
 
 function renderProjectSelection() {
   const modeText = state.preferredAction === "sell"
-    ? "Выберите проект, валюту которого хотите продать"
+    ? "Выберите проект для продажи виртов"
     : state.preferredAction === "buy"
-      ? "Выберите проект для покупки валюты"
+      ? "Выберите проект для покупки виртов"
       : "Выберите игру, затем подходящее действие";
   return `
     <section class="screen order-flow order-project-step">
@@ -717,6 +760,7 @@ function renderActionSelection() {
   const project = getProject();
   if (!project) return renderProjectSelection();
   const requiresServer = requiresServerSelection(project);
+  const wording = getTradeWording(project);
   return `
     <section class="screen order-flow order-action-step">
       <header class="screen-header order-step-header">
@@ -737,7 +781,7 @@ function renderActionSelection() {
         <button class="select-card order-action-card order-action-buy ${state.preferredAction === "buy" ? "is-featured" : ""}" type="button" data-action="buy">
           <span class="select-icon">${icon("arrow-down")}</span>
           <span class="select-copy">
-            <strong>Купить валюту</strong>
+            <strong>${wording.buyAction}</strong>
             <small>${requiresServer ? "Выберите сервер и оформите заказ" : "Укажите данные и оформите заказ"}</small>
           </span>
           <span class="select-chevron">${icon("chevron-right")}</span>
@@ -745,7 +789,7 @@ function renderActionSelection() {
         <button class="select-card order-action-card order-action-sell ${state.preferredAction === "sell" ? "is-featured" : ""}" type="button" data-action="sell">
           <span class="select-icon">${icon("arrow-up-right")}</span>
           <span class="select-copy">
-            <strong>Продать валюту</strong>
+            <strong>${wording.sellAction}</strong>
             <small>Передайте данные менеджеру и получите расчёт</small>
           </span>
           <span class="select-chevron">${icon("chevron-right")}</span>
@@ -799,17 +843,24 @@ function getPromoPercent(code = "") {
   return PROMO_CODES[String(code).trim().toUpperCase()] || 0;
 }
 
-function calculateStandoffPrice(amount, promoPercent = 0) {
-  const pricePerThousand = 15;
-  const subtotal = (amount / 1000) * pricePerThousand;
+function calculateStandoffPrice(project, amount, promoPercent = 0) {
+  const tariff = project.tariffs[0];
+  const subtotal = (amount / tariff.per) * tariff.price;
   const discount = subtotal * promoPercent / 100;
   return {
     total: Math.max(0, subtotal - discount),
     subtotal,
     discount,
     promoPercent,
-    unitPrice: pricePerThousand
+    unitPrice: tariff.price
   };
+}
+
+function formatRateLabel(project, unitPrice) {
+  if (project.id === "standoff-2") {
+    return `${unitPrice} ₽ за ${project.tariffs[0].per}G`;
+  }
+  return `${unitPrice} ₽ за кк`;
 }
 
 function calculatePrice(project, amount, promoCode = "") {
@@ -818,7 +869,7 @@ function calculatePrice(project, amount, promoCode = "") {
   }
   const promoPercent = getPromoPercent(promoCode);
   if (project.id === "standoff-2") {
-    return calculateStandoffPrice(amount, promoPercent);
+    return calculateStandoffPrice(project, amount, promoPercent);
   }
   let subtotal = 0;
   let unitPrice = 0;
@@ -851,16 +902,27 @@ function calculateAmountFromMoney(project, money, promoCode = "") {
   return money / (tariffs.at(-1).price * multiplier);
 }
 
+function getMaxOrderAmount(project, promoCode = "") {
+  const amount = calculateAmountFromMoney(
+    project,
+    MAX_ORDER_TOTAL_RUB,
+    promoCode
+  );
+  const step = Number(project?.amountStep) || 1;
+  return Math.floor((amount + Number.EPSILON) / step) * step;
+}
+
 function renderPurchaseForm() {
   const project = getProject();
   if (!project || !state.selectedServer) return renderServerSelection();
-  const defaultAmount = project.quickAmounts[0];
+  const wording = getTradeWording(project);
+  const defaultAmount = project.defaultAmount ?? project.quickAmounts[0];
   const price = calculatePrice(project, defaultAmount);
   return `
     <section class="screen order-flow order-form-step order-buy-step">
       <header class="screen-header order-step-header">
         <p class="eyebrow">Оформление</p>
-        <h1>Покупка валюты</h1>
+        <h1>${wording.purchaseTitle}</h1>
         <p>Проверьте данные перед переходом к оплате</p>
       </header>
       <div class="glass-card summary-card selected-game-card"
@@ -873,14 +935,16 @@ function renderPurchaseForm() {
         <span class="summary-tag">Покупка</span>
       </div>
       <form class="glass-card form-card form-grid order-form-section" id="buyForm" novalidate>
-        <div class="field-group form-field">
-          <label for="buyNickname">Игровой ник</label>
-          <input class="field-control" id="buyNickname" name="nickname" required maxlength="40"
-            autocomplete="off" placeholder="Например, Alex_Walker">
-        </div>
+        ${project.id === "standoff-2" ? "" : `
+          <div class="field-group form-field">
+            <label for="buyNickname">Игровой ник</label>
+            <input class="field-control" id="buyNickname" name="nickname" required maxlength="40"
+              autocomplete="off" placeholder="Например, Alex_Walker">
+          </div>
+        `}
         <div class="dual-inputs">
           <div class="field-group form-field">
-            <label for="buyAmount">Количество валюты</label>
+            <label for="buyAmount">${wording.amountLabel}</label>
             <div class="amount-wrap">
               <input class="field-control" id="buyAmount" name="amount" type="number" required
                 min="${project.amountStep}" step="${project.amountStep}" value="${defaultAmount}">
@@ -890,7 +954,8 @@ function renderPurchaseForm() {
           <div class="field-group form-field">
             <label for="moneyAmount">Сумма оплаты</label>
             <div class="amount-wrap">
-              <input class="field-control" id="moneyAmount" type="number" min="1" step="1"
+              <input class="field-control" id="moneyAmount" type="number" min="1"
+                max="${MAX_ORDER_TOTAL_RUB}" step="1"
                 value="${Math.round(price.total)}" inputmode="decimal">
               <span class="amount-unit">₽</span>
             </div>
@@ -898,8 +963,8 @@ function renderPurchaseForm() {
         </div>
         <div class="field-group form-field">
           <div class="quick-row" aria-label="Быстрый выбор количества">
-            ${project.quickAmounts.map((amount, index) => `
-              <button class="quick-chip amount-preset ${index === 0 ? "is-active" : ""}" type="button" data-quick-amount="${amount}">
+            ${project.quickAmounts.map((amount) => `
+              <button class="quick-chip amount-preset ${amount === defaultAmount ? "is-active" : ""}" type="button" data-quick-amount="${amount}">
                 ${amount.toLocaleString("ru-RU")} ${escapeHTML(project.unit)}
               </button>
             `).join("")}
@@ -908,7 +973,7 @@ function renderPurchaseForm() {
         <div class="price-box order-summary">
           <div class="price-details">
             <span>К оплате</span>
-            <small id="rateLabel">${project.id === "standoff-2" ? `${price.unitPrice} ₽ за 1000G` : `${price.unitPrice} ₽ за кк`}</small>
+            <small id="rateLabel">${formatRateLabel(project, price.unitPrice)}</small>
             <small class="price-discount" id="discountLabel"></small>
           </div>
           <strong id="totalPrice">${formatMoney(price.total)}</strong>
@@ -950,11 +1015,12 @@ function renderPurchaseForm() {
 function renderSellForm() {
   const project = getProject();
   if (!project || !state.selectedServer) return renderServerSelection();
+  const wording = getTradeWording(project);
   return `
     <section class="screen order-flow order-form-step order-sell-step">
       <header class="screen-header order-step-header">
         <p class="eyebrow">Продажа</p>
-        <h1>Продать валюту</h1>
+        <h1>${wording.sellAction}</h1>
         <p>Оставьте данные — менеджер уточнит курс и способ расчёта</p>
       </header>
       <div class="glass-card summary-card selected-game-card"
@@ -967,13 +1033,15 @@ function renderSellForm() {
         <span class="summary-tag">Продажа</span>
       </div>
       <form class="glass-card form-card form-grid order-form-section" id="sellForm" novalidate>
+        ${project.id === "standoff-2" ? "" : `
+          <div class="field-group form-field">
+            <label for="sellNickname">Игровой ник</label>
+            <input class="field-control" id="sellNickname" name="nickname" required maxlength="40"
+              autocomplete="off" placeholder="Ваш ник в игре">
+          </div>
+        `}
         <div class="field-group form-field">
-          <label for="sellNickname">Игровой ник</label>
-          <input class="field-control" id="sellNickname" name="nickname" required maxlength="40"
-            autocomplete="off" placeholder="Ваш ник в игре">
-        </div>
-        <div class="field-group form-field">
-          <label for="sellAmount">Количество валюты</label>
+          <label for="sellAmount">${wording.amountLabel}</label>
           <div class="amount-wrap">
             <input class="field-control" id="sellAmount" name="amount" type="number" required
               min="${project.amountStep}" step="${project.amountStep}" placeholder="0">
@@ -1242,7 +1310,7 @@ function getTelegramUser() {
       username: user.username ? `@${user.username}` : "username не указан",
       id: user.id,
       initial: (user.first_name || "T").charAt(0).toLocaleUpperCase("ru"),
-      photoUrl: user.photo_url || null
+      photoUrl: user.photo_url || telegramAvatarObjectUrl || null
     };
   }
   return {
@@ -1278,6 +1346,7 @@ function getHeaderProfileData() {
   const photoUrl =
     siteUser?.avatarUrl ||
     telegramUser?.photo_url ||
+    telegramAvatarObjectUrl ||
     null;
 
   return {
@@ -1404,42 +1473,44 @@ function renderProfile() {
 
 function renderInfo() {
   return `
-    <section class="screen">
-      <header class="screen-header">
-        <p class="eyebrow">Документы</p>
-        <h1>О сервисе</h1>
-        <p>Как проходит заказ, правила доставки и условия использования mini-app.</p>
-      </header>
-      <div class="legal-stack">
-        <article class="glass-card legal-card">
-          <h3>Как проходит заказ</h3>
-          <p>Выберите игру, сервер, количество валюты и способ получения. После оформления заказ передаётся в обработку, а данные проверяются менеджером.</p>
-          <p>Для заказа потребуются игровой ник, сервер, объём и способ получения: трейдом или через игровой банк.</p>
-        </article>
-        <article class="glass-card legal-card">
-          <h3>Оплата и доставка</h3>
-          <p>Товар является цифровым, физическая доставка не осуществляется. Передача выполняется внутри выбранной игры на указанном сервере.</p>
-        </article>
-        <article class="glass-card legal-card">
-          <h3>Возврат и отмена</h3>
-          <p>Заказ можно отменить до начала выполнения. После передачи цифрового товара возврат невозможен, кроме случаев ошибки со стороны сервиса. Если заказ нельзя выполнить по техническим причинам, предлагается возврат или другой способ исполнения.</p>
-        </article>
-        <article class="glass-card legal-card">
-          <h3>Политика конфиденциальности</h3>
-          <p>Для оформления заказа могут использоваться Telegram username и технические данные Telegram, игровой ник, игра, сервер, объём, промокод, способ получения и номер игрового банковского счёта.</p>
-          <p>Данные используются для обработки заказа, поддержки, улучшения сервиса и предотвращения злоупотреблений. Передача третьим лицам допускается только в объёме, необходимом для платежей, исполнения закона или защиты сервиса.</p>
-        </article>
-        <article class="glass-card legal-card">
-          <h3>Пользовательское соглашение</h3>
-          <ul>
-            <li>Указывайте корректные данные и проверяйте параметры заказа.</li>
-            <li>Не используйте сервис в противоправных целях и не нарушайте его работу.</li>
-            <li>Сервис не отвечает за ошибки пользователя в нике, сервере и способе получения.</li>
-            <li>Сервис не отвечает за сбои Telegram, платёжных систем и игровых платформ.</li>
-          </ul>
-        </article>
-        <button class="primary-button" type="button" data-external="support">Связаться с поддержкой</button>
-      </div>
+    <section class="screen info-screen">
+      <article class="info-orb-card">
+        <div class="info-orb-copy">
+          <p class="eyebrow">Документы</p>
+          <h1>О сервисе</h1>
+          <p>Юридические документы PLATINOV SHOP.</p>
+        </div>
+
+        <div class="info-document-list" aria-label="Документы сервиса">
+          <a
+            class="info-document-button"
+            href="documents/PLATINOV_Privacy_Policy_2026-07-28_v3.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="info-document-icon">${icon("shield-check")}</span>
+            <span class="info-document-copy">
+              <strong>Политика конфиденциальности</strong>
+              <small>Открыть PDF</small>
+            </span>
+            <span class="info-document-arrow">${icon("arrow-up-right")}</span>
+          </a>
+
+          <a
+            class="info-document-button"
+            href="documents/PLATINOV_User_Agreement_2026-07-28_v3.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="info-document-icon">${icon("receipt")}</span>
+            <span class="info-document-copy">
+              <strong>Пользовательское соглашение</strong>
+              <small>Открыть PDF</small>
+            </span>
+            <span class="info-document-arrow">${icon("arrow-up-right")}</span>
+          </a>
+        </div>
+      </article>
     </section>
   `;
 }
@@ -1570,19 +1641,25 @@ function updatePrice() {
   const promoInput = document.getElementById("buyPromo");
   const project = getProject();
   if (!input || !project) return;
-  const amount = Number(input.value);
+  let amount = Number(input.value);
   const promoCode = promoInput?.value || "";
-  const price = calculatePrice(project, amount, promoCode);
+  let price = calculatePrice(project, amount, promoCode);
+  if (price.total > MAX_ORDER_TOTAL_RUB) {
+    amount = getMaxOrderAmount(project, promoCode);
+    input.value = Number(amount.toFixed(2)).toString();
+    price = calculatePrice(project, amount, promoCode);
+  }
   const totalNode = document.getElementById("totalPrice");
   const rateNode = document.getElementById("rateLabel");
   const discountNode = document.getElementById("discountLabel");
   const promoStatus = document.getElementById("promoStatus");
-  if (moneyInput) moneyInput.value = price.total > 0 ? Math.round(price.total) : "";
+  if (moneyInput) {
+    moneyInput.value = price.total > 0 ? Math.round(price.total) : "";
+    moneyInput.setCustomValidity("");
+  }
   if (totalNode) totalNode.textContent = formatMoney(price.total);
   if (rateNode) {
-    rateNode.textContent = project.id === "standoff-2"
-      ? `${price.unitPrice} ₽ за 1000G`
-      : `${price.unitPrice} ₽ за кк`;
+    rateNode.textContent = formatRateLabel(project, price.unitPrice);
   }
   if (discountNode) {
     discountNode.textContent = price.discount > 0
@@ -1614,17 +1691,21 @@ function updateAmountFromMoney() {
   const promoInput = document.getElementById("buyPromo");
   const project = getProject();
   if (!amountInput || !moneyInput || !project) return;
-  const amount = calculateAmountFromMoney(project, Number(moneyInput.value), promoInput?.value || "");
+  const enteredMoney = Number(moneyInput.value);
+  const money = Math.min(MAX_ORDER_TOTAL_RUB, Math.max(0, enteredMoney));
+  if (enteredMoney > MAX_ORDER_TOTAL_RUB) {
+    moneyInput.value = String(MAX_ORDER_TOTAL_RUB);
+  }
+  moneyInput.setCustomValidity("");
+  const amount = calculateAmountFromMoney(project, money, promoInput?.value || "");
   amountInput.value = amount > 0 ? Number(amount.toFixed(2)).toString() : "";
   const price = calculatePrice(project, amount, promoInput?.value || "");
   const totalNode = document.getElementById("totalPrice");
   const rateNode = document.getElementById("rateLabel");
   const discountNode = document.getElementById("discountLabel");
-  if (totalNode) totalNode.textContent = formatMoney(Number(moneyInput.value) || 0);
+  if (totalNode) totalNode.textContent = formatMoney(money);
   if (rateNode) {
-    rateNode.textContent = project.id === "standoff-2"
-      ? `${price.unitPrice} ₽ за 1000G`
-      : `${price.unitPrice} ₽ за кк`;
+    rateNode.textContent = formatRateLabel(project, price.unitPrice);
   }
   if (discountNode) {
     discountNode.textContent = price.discount > 0
@@ -1650,10 +1731,17 @@ async function submitPurchase(form) {
   const amount = Number(form.elements.amount.value);
   const promoCode = form.elements.promo.value.trim().toUpperCase();
   const price = calculatePrice(project, amount, promoCode);
+  if (price.total > MAX_ORDER_TOTAL_RUB) {
+    const moneyInput = document.getElementById("moneyAmount");
+    moneyInput?.setCustomValidity("Максимальная сумма заказа — 250 000 ₽");
+    moneyInput?.reportValidity();
+    haptic("medium");
+    return;
+  }
   const payload = {
     game: project.name,
     server: getOrderServerLabel(project, state.selectedServer),
-    nickname: form.elements.nickname.value.trim(),
+    nickname: form.elements.nickname?.value.trim() || "",
     promo: promoCode,
     amount_kk: Number(amount.toFixed(2)),
     delivery_type: state.deliveryType === "bank" ? "Банком" : "Трейдом",
@@ -1740,14 +1828,15 @@ async function submitPurchase(form) {
 function submitSale(form) {
   if (!validateForm(form)) return;
   const project = getProject();
-  const nickname = form.elements.nickname.value.trim();
+  const wording = getTradeWording(project);
+  const nickname = form.elements.nickname?.value.trim() || "";
   const amount = Number(form.elements.amount.value);
   const comment = form.elements.comment.value.trim();
   const message = [
-    "Здравствуйте! Хочу продать игровую валюту.",
+    wording.sellMessage,
     `Игра: ${project.name}`,
     `Сервер: ${state.selectedServer}`,
-    `Ник: ${nickname}`,
+    ...(nickname ? [`Ник: ${nickname}`] : []),
     `Количество: ${amount.toLocaleString("ru-RU")} ${project.unit}`,
     `Комментарий: ${comment || "—"}`
   ].join("\n");
@@ -2058,6 +2147,7 @@ restoreNavigationSession();
 applyPaymentReturnRoute();
 renderHeaderProfile();
 render();
+hydrateTelegramAvatar();
 loadRemoteReviews();
 checkAccess();
 

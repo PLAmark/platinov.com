@@ -7169,6 +7169,8 @@ body {
 .support-screen .support-hero .online-badge {
   margin-bottom: 7px;
   font-size: 11px;
+  font-weight: 760;
+  line-height: 1.2;
 }
 
 .support-screen .support-hero .online-badge::before {
@@ -11108,4 +11110,584 @@ body:has(.order-buy-step) {
   height: 100%;
   border-radius: inherit;
   object-fit: cover;
+}
+
+/* v141: compact legal hub in Platinov Deep Blue Orb Glass */
+.info-screen {
+  min-height: auto;
+}
+
+.info-orb-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 22px 18px 18px;
+  border: 1px solid var(--platinov-orb-glass-border);
+  border-radius: 22px;
+  color: #f7fbff;
+  background: var(--platinov-orb-glass);
+  box-shadow: var(--platinov-orb-glass-shadow);
+  -webkit-backdrop-filter: blur(8px) saturate(115%) !important;
+  backdrop-filter: blur(8px) saturate(115%) !important;
+}
+
+.info-orb-card::before {
+  position: absolute;
+  z-index: -1;
+  top: -88px;
+  right: -66px;
+  width: 220px;
+  height: 220px;
+  border: 1px solid rgba(193, 227, 255, 0.12);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 38% 38%,
+      rgba(158, 219, 255, 0.2),
+      rgba(72, 154, 246, 0.07) 42%,
+      transparent 72%
+    );
+  content: "";
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.info-orb-card::after {
+  position: absolute;
+  z-index: -1;
+  right: 86px;
+  bottom: -72px;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(88, 177, 255, 0.1), transparent 70%);
+  content: "";
+  pointer-events: none;
+}
+
+.info-orb-copy {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 20px;
+}
+
+.info-orb-copy .eyebrow {
+  margin-bottom: 8px;
+}
+
+.info-orb-copy h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(28px, 8vw, 34px);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.info-orb-copy > p:last-child {
+  margin: 9px 0 0;
+  color: #afc4dc;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.info-document-list {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 10px;
+}
+
+.info-document-button {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: 12px;
+  min-height: 68px;
+  padding: 10px 13px 10px 11px;
+  border: 1px solid rgba(174, 218, 255, 0.13);
+  border-radius: 16px;
+  color: #f7fbff;
+  text-decoration: none;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.08),
+      rgba(100, 181, 255, 0.035)
+    ),
+    rgba(7, 39, 78, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 8px 18px rgba(1, 16, 40, 0.12);
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 180ms ease,
+    border-color 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.info-document-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  color: #78c7ff;
+  background: rgba(70, 159, 238, 0.12);
+}
+
+.info-document-icon .ui-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.info-document-copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.info-document-copy strong {
+  overflow-wrap: anywhere;
+  color: #f7fbff;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.info-document-copy small {
+  color: #9fb8d4;
+  font-size: 11px;
+}
+
+.info-document-arrow {
+  display: grid;
+  color: rgba(170, 205, 245, 0.76);
+  place-items: center;
+}
+
+.info-document-arrow .ui-icon {
+  width: 19px;
+  height: 19px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .info-document-button:hover {
+    border-color: rgba(183, 224, 255, 0.23);
+    background:
+      linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.12),
+        rgba(100, 181, 255, 0.055)
+      ),
+      rgba(9, 47, 92, 0.56);
+    transform: translateY(-1px);
+  }
+}
+
+.info-document-button:active {
+  transform: scale(0.985);
+}
+
+.info-document-button:focus-visible {
+  outline: 2px solid rgba(121, 197, 255, 0.72);
+  outline-offset: 2px;
+}
+
+@media (max-width: 350px) {
+  .info-orb-card {
+    padding: 19px 15px 15px;
+  }
+
+  .info-document-button {
+    grid-template-columns: 36px minmax(0, 1fr) 20px;
+    gap: 10px;
+    padding-right: 11px;
+    padding-left: 9px;
+  }
+
+  .info-document-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .info-document-copy strong {
+    font-size: 13px;
+  }
+}
+
+/* v143: give the gold sell CTA the same brightness as the blue purchase CTA */
+.screen:has(.hero) .hero-actions .secondary-button {
+  border-color: rgba(255, 227, 153, 0.46);
+  color: #211500;
+  background: linear-gradient(135deg, #ffc13b 0%, #efa31c 100%);
+  box-shadow:
+    0 8px 18px rgba(225, 145, 15, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .screen:has(.hero) .hero-actions .secondary-button:hover {
+    border-color: rgba(255, 237, 190, 0.56);
+    background: linear-gradient(135deg, #ffca4d 0%, #f5ad28 100%);
+    box-shadow:
+      0 9px 20px rgba(225, 145, 15, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.26);
+  }
+}
+
+/* v144: keep the trust panel aligned and unclipped on wide screens */
+@media (min-width: 620px) {
+  .trust-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .trust-grid .trust-item {
+    width: auto;
+    height: auto;
+    min-height: 78px;
+    align-items: center;
+    flex-direction: row;
+    gap: 11px;
+    padding: 13px 16px;
+  }
+
+  .trust-grid .trust-item span:last-child {
+    min-width: 0;
+    line-height: 1.25;
+  }
+
+  .trust-grid > .trust-item:nth-of-type(n) {
+    border-right: 1px solid rgba(169, 211, 246, 0.11);
+    border-bottom: 0;
+  }
+
+  .trust-grid > .trust-item:nth-of-type(4) {
+    border-right: 0;
+  }
+}
+
+/* v149: Platinov Deep Blue Orb Glass across the orders screen */
+.orders-screen .orders-hero,
+.orders-screen .order-card,
+.orders-screen .payment-return-notice,
+.orders-screen .orders-empty-state {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--platinov-orb-glass-border);
+  background: var(--platinov-orb-glass);
+  box-shadow: var(--platinov-orb-glass-shadow);
+  -webkit-backdrop-filter: blur(8px) saturate(115%);
+  backdrop-filter: blur(8px) saturate(115%);
+}
+
+.orders-screen .orders-hero {
+  background:
+    radial-gradient(
+      circle at 96% 4%,
+      rgba(181, 226, 255, 0.16),
+      transparent 32%
+    ),
+    var(--platinov-orb-glass);
+}
+
+.orders-screen .orders-hero .eyebrow {
+  color: #66abff;
+  font-size: 9.6px;
+}
+
+.orders-screen .orders-hero .eyebrow::before {
+  background: #53aeff;
+}
+
+.reviews-screen .reviews-hero .eyebrow {
+  color: #66abff;
+  font-family: inherit;
+  font-size: 9.6px;
+  font-weight: 760;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+}
+
+.reviews-screen .reviews-hero .eyebrow::before {
+  background: #53aeff;
+}
+
+.orders-screen .orders-hero::after,
+.orders-screen .order-card::before,
+.orders-screen .orders-empty-state::before {
+  position: absolute;
+  z-index: 0;
+  border: 1px solid rgba(196, 228, 255, 0.11);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(181, 226, 255, 0.15),
+    transparent 68%
+  );
+  content: "";
+  opacity: 0.46;
+  pointer-events: none;
+}
+
+.orders-screen .orders-hero::after {
+  top: -76px;
+  right: -56px;
+  width: 178px;
+  height: 178px;
+}
+
+.orders-screen .order-card::before {
+  top: -66px;
+  right: -56px;
+  width: 150px;
+  height: 150px;
+  opacity: 0.34;
+}
+
+.orders-screen .orders-empty-state::before {
+  right: -64px;
+  bottom: -82px;
+  width: 170px;
+  height: 170px;
+  opacity: 0.32;
+}
+
+.orders-screen .orders-hero > *,
+.orders-screen .order-card > *,
+.orders-screen .orders-empty-state > * {
+  position: relative;
+  z-index: 1;
+}
+
+.orders-screen .payment-return-notice {
+  border-color: rgba(205, 232, 255, 0.13);
+  background:
+    linear-gradient(
+      125deg,
+      rgba(255, 255, 255, 0.08),
+      rgba(255, 255, 255, 0.018) 50%,
+      rgba(74, 157, 255, 0.07)
+    ),
+    rgba(8, 28, 57, 0.54);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.orders-screen .orders-hero > p:last-child,
+.orders-screen .order-id,
+.orders-screen .order-server,
+.orders-screen .order-bottom,
+.orders-screen .orders-empty-state p,
+.orders-screen .payment-return-notice small {
+  color: #afc4dc;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .orders-screen .order-card:hover {
+    border-color: rgba(205, 232, 255, 0.23);
+    background:
+      linear-gradient(
+        125deg,
+        rgba(255, 255, 255, 0.14),
+        rgba(255, 255, 255, 0.035) 46%,
+        rgba(74, 157, 255, 0.11)
+      ),
+      rgba(10, 35, 69, 0.65);
+    box-shadow: var(--platinov-orb-glass-shadow);
+    transform: translateY(-1px);
+  }
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+  .orders-screen .orders-hero::after,
+  .orders-screen .order-card::before,
+  .orders-screen .orders-empty-state::before {
+    display: none;
+    content: none;
+  }
+}
+
+/* v158: Platinov Deep Blue Orb Glass across the reviews screen */
+.reviews-screen .reviews-hero,
+.reviews-screen .review-card,
+.reviews-screen .empty-state,
+.reviews-screen .reviews-more-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--platinov-orb-glass-border);
+  background: var(--platinov-orb-glass);
+  box-shadow: var(--platinov-orb-glass-shadow);
+  -webkit-backdrop-filter: blur(8px) saturate(115%);
+  backdrop-filter: blur(8px) saturate(115%);
+}
+
+.reviews-screen .reviews-hero {
+  background:
+    radial-gradient(
+      circle at 96% 4%,
+      rgba(181, 226, 255, 0.16),
+      transparent 32%
+    ),
+    var(--platinov-orb-glass);
+}
+
+.reviews-screen .reviews-hero::after,
+.reviews-screen .review-card::before,
+.reviews-screen .empty-state::before {
+  position: absolute;
+  z-index: 0;
+  border: 1px solid rgba(196, 228, 255, 0.11);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(181, 226, 255, 0.15),
+    transparent 68%
+  );
+  content: "";
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.reviews-screen .reviews-hero::after {
+  top: -76px;
+  right: -56px;
+  width: 178px;
+  height: 178px;
+}
+
+.reviews-screen .review-card::before {
+  top: -70px;
+  right: -58px;
+  width: 154px;
+  height: 154px;
+  opacity: 0.3;
+}
+
+.reviews-screen .empty-state::before {
+  right: -64px;
+  bottom: -82px;
+  width: 170px;
+  height: 170px;
+  opacity: 0.3;
+}
+
+.reviews-screen .reviews-hero > *,
+.reviews-screen .review-card > *,
+.reviews-screen .empty-state > * {
+  position: relative;
+  z-index: 1;
+}
+
+.reviews-screen .reviews-actions .ghost-button,
+.reviews-screen .filter-chip {
+  border-color: rgba(205, 232, 255, 0.13);
+  color: #bdd0e5;
+  background:
+    linear-gradient(
+      125deg,
+      rgba(255, 255, 255, 0.08),
+      rgba(255, 255, 255, 0.018) 50%,
+      rgba(74, 157, 255, 0.07)
+    ),
+    rgba(8, 28, 57, 0.54);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.reviews-screen .filter-chip.is-active {
+  border-color: rgba(190, 226, 255, 0.2);
+  color: #ffffff;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(83, 176, 255, 0.92),
+      rgba(36, 119, 220, 0.9)
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 8px 18px rgba(11, 73, 156, 0.16);
+}
+
+.reviews-screen .review-details {
+  border: 1px solid rgba(205, 232, 255, 0.075);
+  background:
+    linear-gradient(
+      125deg,
+      rgba(255, 255, 255, 0.04),
+      rgba(74, 157, 255, 0.025)
+    ),
+    rgba(4, 22, 46, 0.24);
+}
+
+.reviews-screen .reviews-more-button {
+  color: #ffffff;
+  background:
+    linear-gradient(
+      125deg,
+      rgba(255, 255, 255, 0.12),
+      rgba(255, 255, 255, 0.025) 48%,
+      rgba(74, 157, 255, 0.11)
+    ),
+    rgba(8, 28, 57, 0.58);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .reviews-screen .review-card:hover,
+  .reviews-screen .reviews-more-button:hover {
+    border-color: rgba(205, 232, 255, 0.23);
+    background:
+      linear-gradient(
+        125deg,
+        rgba(255, 255, 255, 0.14),
+        rgba(255, 255, 255, 0.035) 46%,
+        rgba(74, 157, 255, 0.11)
+      ),
+      rgba(10, 35, 69, 0.65);
+    box-shadow: var(--platinov-orb-glass-shadow);
+    transform: translateY(-1px);
+  }
+
+  .reviews-screen .filter-chip:not(.is-active):hover,
+  .reviews-screen .reviews-actions .ghost-button:hover {
+    border-color: rgba(205, 232, 255, 0.21);
+    color: #eef7ff;
+    background:
+      linear-gradient(
+        125deg,
+        rgba(255, 255, 255, 0.11),
+        rgba(74, 157, 255, 0.075)
+      ),
+      rgba(10, 35, 69, 0.6);
+  }
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+  .reviews-screen .reviews-hero::after,
+  .reviews-screen .review-card::before,
+  .reviews-screen .empty-state::before {
+    display: none;
+    content: none;
+  }
+}
+
+/* v159: improve the reviews hero supporting-copy contrast */
+.reviews-screen .reviews-hero .muted {
+  color: #b9cee5;
+  opacity: 1;
+}
+
+/* v160: match the review details panel to the secondary review buttons */
+.reviews-screen .review-details {
+  border-color: rgba(205, 232, 255, 0.13);
+  background:
+    linear-gradient(
+      125deg,
+      rgba(255, 255, 255, 0.08),
+      rgba(255, 255, 255, 0.018) 50%,
+      rgba(74, 157, 255, 0.07)
+    ),
+    rgba(8, 28, 57, 0.54);
 }
