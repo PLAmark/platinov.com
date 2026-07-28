@@ -262,24 +262,110 @@ const REVIEW_INITIALS = [
 ];
 
 const REVIEW_SOURCES = ["Telegram", "Сайт", "Telegram", "VK", "Сайт"];
+const DEMO_REVIEW_OPENERS = [
+  "всё чётко",
+  "быстро выдали",
+  "топ всё без заморочек",
+  "брал здесь впервые",
+  "заказал прямо с телефона",
+  "немного переживал сначала",
+  "оплатил поздно вечером",
+  "нужны были вирты срочно",
+  "сделка прошла спокойно",
+  "менеджер ответил почти сразу",
+  "курс оказался нормальный",
+  "оформление простое и понятное",
+  "вирты пришли полностью",
+  "вопросов по заказу не было",
+  "проверил сначала на небольшом заказе",
+  "зашёл по совету друга",
+  "сначала не понял куда писать",
+  "сделал заказ ночью",
+  "брал через банк",
+  "выбрал получение трейдом",
+  "всё гуд",
+  "реально быстро",
+  "спс всё пришло"
+];
+
+const DEMO_REVIEW_DETAILS = [
+  "сервер нашли с первого раза",
+  "по сумме всё совпало",
+  "поддержка объяснила что делать",
+  "на выдаче не задержали",
+  "статус обновился сразу",
+  "ник проверили перед отправкой",
+  "зачислили одной суммой",
+  "пришлось подождать всего пару минут",
+  "без лишних вопросов оформили",
+  "курс был такой же как на странице",
+  "выдача заняла минут пять",
+  "ответили нормально не шаблоном",
+  "сделку провели аккуратно",
+  "с телефона оформилось без проблем",
+  "менеджер всё время был на связи",
+  "чутка тупил сам но разобрался",
+  "думал будет намного дольше",
+  "получил ровно сколько указывал",
+  "быстро зделали я доволен"
+];
+
+const DEMO_REVIEW_ENDINGS = [
+  "буду брать ещё",
+  "можно пользоваться",
+  "респект менеджеру",
+  "в целом доволен",
+  "для первого раза отлично",
+  "без обмана",
+  "норм тема",
+  "советую",
+  "спасибо",
+  "вопросов нет",
+  "цена устроила",
+  "все ок",
+  "имба",
+  "вернусь ещё",
+  "зачёт",
+  "ожидание небольшое",
+  "результатом доволен"
+];
 const REVIEW_VARIANTS = {
   "black-russia": [
-    { amount: "10 кк", price: "1 000 ₽" },
-    { amount: "20 кк", price: "2 000 ₽" },
-    { amount: "50 кк", price: "5 000 ₽" },
-    { amount: "100 кк", price: "10 000 ₽" }
+    { amount: "3 кк", price: "300 ₽" },
+    { amount: "7 кк", price: "700 ₽" },
+    { amount: "11 кк", price: "1 100 ₽" },
+    { amount: "18 кк", price: "1 800 ₽" },
+    { amount: "22 кк", price: "2 200 ₽" },
+    { amount: "27 кк", price: "2 700 ₽" },
+    { amount: "35 кк", price: "3 500 ₽" },
+    { amount: "44 кк", price: "4 400 ₽" },
+    { amount: "63 кк", price: "6 300 ₽" },
+    { amount: "86 кк", price: "8 600 ₽" },
+    { amount: "105 кк", price: "10 500 ₽" }
   ],
   "matreshka-rp": [
-    { amount: "10 кк", price: "1 900 ₽" },
-    { amount: "20 кк", price: "3 800 ₽" },
-    { amount: "50 кк", price: "9 500 ₽" },
-    { amount: "100 кк", price: "19 000 ₽" }
+    { amount: "3 кк", price: "570 ₽" },
+    { amount: "6 кк", price: "1 140 ₽" },
+    { amount: "11 кк", price: "2 090 ₽" },
+    { amount: "17 кк", price: "3 230 ₽" },
+    { amount: "22 кк", price: "4 180 ₽" },
+    { amount: "27 кк", price: "5 130 ₽" },
+    { amount: "41 кк", price: "7 790 ₽" },
+    { amount: "58 кк", price: "11 020 ₽" },
+    { amount: "73 кк", price: "13 870 ₽" },
+    { amount: "96 кк", price: "18 240 ₽" }
   ],
   "gta-5-rp": [
     { amount: "1 кк", price: "1 000 ₽" },
-    { amount: "5 кк", price: "5 000 ₽" },
-    { amount: "10 кк", price: "10 000 ₽" },
-    { amount: "50 кк", price: "50 000 ₽" }
+    { amount: "2 кк", price: "2 000 ₽" },
+    { amount: "3 кк", price: "3 000 ₽" },
+    { amount: "7 кк", price: "7 000 ₽" },
+    { amount: "11 кк", price: "11 000 ₽" },
+    { amount: "15 кк", price: "15 000 ₽" },
+    { amount: "22 кк", price: "22 000 ₽" },
+    { amount: "27 кк", price: "27 000 ₽" },
+    { amount: "31 кк", price: "31 000 ₽" },
+    { amount: "48 кк", price: "48 000 ₽" }
   ]
 };
 
@@ -291,6 +377,22 @@ function demoReviewDate(index) {
     String(date.getUTCMonth() + 1).padStart(2, "0"),
     date.getUTCFullYear()
   ].join(".");
+}
+
+function demoReviewText(index) {
+  const start = DEMO_REVIEW_OPENERS[index % DEMO_REVIEW_OPENERS.length];
+  const detail = DEMO_REVIEW_DETAILS[(index * 7 + 3) % DEMO_REVIEW_DETAILS.length];
+  const ending = DEMO_REVIEW_ENDINGS[(index * 11 + 5) % DEMO_REVIEW_ENDINGS.length];
+  const lowerDetail = detail.charAt(0).toLowerCase() + detail.slice(1);
+  const lowerEnding = ending.charAt(0).toLowerCase() + ending.slice(1);
+
+  const style = index % 24;
+  if (style === 0) return `${start}, ${lowerDetail}`;
+  if (style === 7) return `${start}. ${detail}`;
+  if (style === 15) return `${start} ${lowerDetail}!`;
+  if (style === 21) return `${start}. ${detail} ${lowerEnding}`;
+  if (style % 3 === 0) return `${start} ${lowerDetail} ${lowerEnding}`;
+  return `${start} ${lowerDetail}`;
 }
 
 function buildDemoReviews(total = 300) {
@@ -308,9 +410,7 @@ function buildDemoReviews(total = 300) {
       order: `Заказ #${orderCode}`,
       status: "подтверждён",
       rating: (index + 1) % 10 === 0 ? 4 : 5,
-      text: `${REVIEW_TEXT_STARTS[index % REVIEW_TEXT_STARTS.length]}. ${
-        REVIEW_TEXT_ENDINGS[Math.floor(index / REVIEW_TEXT_STARTS.length) % REVIEW_TEXT_ENDINGS.length]
-      }`,
+      text: demoReviewText(index),
       projectId,
       server: servers[(index * 11) % servers.length],
       amount: variant.amount,
@@ -1477,7 +1577,7 @@ function renderInfo() {
         <div class="info-document-list" aria-label="Документы сервиса">
           <a
             class="info-document-button"
-            href="${siteAsset("documents/PLATINOV_Privacy_Policy_2026-07-28_v3.pdf")}"
+            href="${siteAsset("PLATINOV_Privacy_Policy_2026-07-28_v3.pdf")}"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -1491,7 +1591,7 @@ function renderInfo() {
 
           <a
             class="info-document-button"
-            href="${siteAsset("documents/PLATINOV_User_Agreement_2026-07-28_v3.pdf")}"
+            href="${siteAsset("PLATINOV_User_Agreement_2026-07-28_v3.pdf")}"
             target="_blank"
             rel="noopener noreferrer"
           >
