@@ -8,11 +8,12 @@ const REVIEWS_TELEGRAM_URL = "https://t.me/+TZeEFqDDYyhkOTEy";
 const REVIEWS_VK_URL = "https://vk.ru/wall866011657_25";
 const ACCESS_RESTRICTED_TEXT = "Оформить заказ можно вручную.";
 const MAX_ORDER_TOTAL_RUB = 250000;
-const PROMO_CODES = {
-  START5: 5,
-  BONUS7: 7,
-  VIP10: 10
-};
+const SITE_ROOT = window.location.protocol === "file:" ? "" : "/";
+
+function siteAsset(path) {
+  return `${SITE_ROOT}${String(path).replace(/^\/+/, "")}`;
+}
+
 const REVIEW_ENDPOINTS = {
   list: "/api/reviews",
   create: "/api/reviews/create"
@@ -28,6 +29,8 @@ let apiAccessToken = (() => {
 })();
 let telegramAvatarObjectUrl = "";
 let telegramAvatarLoadPromise = null;
+let promoQuoteTimer = 0;
+let promoQuoteSequence = 0;
 
 function setApiAccessToken(token) {
   apiAccessToken = token || "";
@@ -839,19 +842,14 @@ function renderServerSelection() {
   `;
 }
 
-function getPromoPercent(code = "") {
-  return PROMO_CODES[String(code).trim().toUpperCase()] || 0;
-}
-
-function calculateStandoffPrice(project, amount, promoPercent = 0) {
+function calculateStandoffPrice(project, amount) {
   const tariff = project.tariffs[0];
   const subtotal = (amount / tariff.per) * tariff.price;
-  const discount = subtotal * promoPercent / 100;
   return {
-    total: Math.max(0, subtotal - discount),
+    total: subtotal,
     subtotal,
-    discount,
-    promoPercent,
+    discount: 0,
+    promoPercent: 0,
     unitPrice: tariff.price
   };
 }
@@ -863,50 +861,45 @@ function formatRateLabel(project, unitPrice) {
   return `${unitPrice} ₽ за кк`;
 }
 
-function calculatePrice(project, amount, promoCode = "") {
+function calculatePrice(project, amount) {
   if (!project || !Number.isFinite(amount) || amount <= 0) {
     return { total: 0, subtotal: 0, discount: 0, promoPercent: 0, unitPrice: 0 };
   }
-  const promoPercent = getPromoPercent(promoCode);
   if (project.id === "standoff-2") {
-    return calculateStandoffPrice(project, amount, promoPercent);
+    return calculateStandoffPrice(project, amount);
   }
   let subtotal = 0;
   let unitPrice = 0;
   const tariff = project.tariffs.find((item) => amount >= item.from) || project.tariffs.at(-1);
   unitPrice = tariff.price;
   subtotal = amount * tariff.price;
-  const discount = subtotal * promoPercent / 100;
   return {
-    total: Math.max(0, subtotal - discount),
+    total: subtotal,
     subtotal,
-    discount,
-    promoPercent,
+    discount: 0,
+    promoPercent: 0,
     unitPrice
   };
 }
 
-function calculateAmountFromMoney(project, money, promoCode = "") {
+function calculateAmountFromMoney(project, money) {
   if (!project || !Number.isFinite(money) || money <= 0) return 0;
-  const multiplier = 1 - getPromoPercent(promoCode) / 100;
-  if (multiplier <= 0) return 0;
   if (project.id === "standoff-2") {
     const tariff = project.tariffs[0];
-    return money / (tariff.price * multiplier) * tariff.per;
+    return money / tariff.price * tariff.per;
   }
   const tariffs = project.tariffs.slice().sort((a, b) => b.from - a.from);
   for (const tariff of tariffs) {
-    const amount = money / (tariff.price * multiplier);
+    const amount = money / tariff.price;
     if (amount >= tariff.from) return amount;
   }
-  return money / (tariffs.at(-1).price * multiplier);
+  return money / tariffs.at(-1).price;
 }
 
-function getMaxOrderAmount(project, promoCode = "") {
+function getMaxOrderAmount(project) {
   const amount = calculateAmountFromMoney(
     project,
-    MAX_ORDER_TOTAL_RUB,
-    promoCode
+    MAX_ORDER_TOTAL_RUB
   );
   const step = Number(project?.amountStep) || 1;
   return Math.floor((amount + Number.EPSILON) / step) * step;
@@ -1484,7 +1477,7 @@ function renderInfo() {
         <div class="info-document-list" aria-label="Документы сервиса">
           <a
             class="info-document-button"
-            href="documents/PLATINOV_Privacy_Policy_2026-07-28_v3.pdf"
+            href="${siteAsset("documents/PLATINOV_Privacy_Policy_2026-07-28_v3.pdf")}"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -1498,7 +1491,7 @@ function renderInfo() {
 
           <a
             class="info-document-button"
-            href="documents/PLATINOV_User_Agreement_2026-07-28_v3.pdf"
+            href="${siteAsset("documents/PLATINOV_User_Agreement_2026-07-28_v3.pdf")}"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -1635,6 +1628,104 @@ function chooseServer(server) {
   navigate(state.action === "sell" ? "sell" : "buy");
 }
 
+function invalidatePromoQuote() {
+  promoQuoteSequence += 1;
+  window.clearTimeout(promoQuoteTimer);
+  promoQuoteTimer = 0;
+}
+
+function schedulePromoQuote(project, amount, promoCode) {
+  invalidatePromoQuote();
+  const normalizedCode = String(promoCode).trim().toUpperCase();
+  if (!normalizedCode || !project || !Number.isFinite(amount) || amount <= 0) return;
+
+  const promoStatus = document.getElementById("promoStatus");
+  if (!tg?.initData) {
+    if (promoStatus) {
+      promoStatus.textContent = "Проверка промокода доступна при открытии через Telegram";
+      promoStatus.className = "promo-status is-warning";
+    }
+    return;
+  }
+
+  const requestId = promoQuoteSequence;
+  if (promoStatus) {
+    promoStatus.textContent = "Проверяем промокод…";
+    promoStatus.className = "promo-status";
+  }
+  promoQuoteTimer = window.setTimeout(() => {
+    void requestPromoQuote(project, amount, normalizedCode, requestId);
+  }, 420);
+}
+
+async function requestPromoQuote(project, amount, promoCode, requestId) {
+  try {
+    const response = await apiRequest("/api/quote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        game: project.name,
+        amount_kk: Number(amount.toFixed(2)),
+        promo: promoCode
+      })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || `Ошибка сервера: ${response.status}`);
+    }
+
+    const currentPromo = document.getElementById("buyPromo")?.value.trim().toUpperCase();
+    const currentAmount = Number(document.getElementById("buyAmount")?.value);
+    if (
+      requestId !== promoQuoteSequence ||
+      currentPromo !== promoCode ||
+      Math.abs(currentAmount - amount) > 0.0001
+    ) {
+      return;
+    }
+
+    const total = Number(data.amount_rub);
+    const discount = Number(data.discount_rub);
+    const promoPercent = Number(data.promo_percent);
+    const unitPrice = Number(data.unit_price_rub);
+    if (![total, discount, promoPercent, unitPrice].every(Number.isFinite)) {
+      throw new Error("Сервер вернул некорректный расчёт");
+    }
+
+    const moneyInput = document.getElementById("moneyAmount");
+    const totalNode = document.getElementById("totalPrice");
+    const rateNode = document.getElementById("rateLabel");
+    const discountNode = document.getElementById("discountLabel");
+    const promoStatus = document.getElementById("promoStatus");
+
+    if (moneyInput) moneyInput.value = Math.round(total);
+    if (totalNode) totalNode.textContent = formatMoney(total);
+    if (rateNode) rateNode.textContent = formatRateLabel(project, unitPrice);
+    if (discountNode) {
+      discountNode.textContent = data.promo_valid && discount > 0
+        ? `Скидка ${promoPercent}%: −${formatMoney(discount)}`
+        : "";
+      discountNode.classList.toggle("is-visible", data.promo_valid && discount > 0);
+    }
+    if (promoStatus) {
+      promoStatus.textContent = data.promo_valid
+        ? `Промокод активирован: скидка ${promoPercent}%`
+        : "Промокод не найден — заказ будет без скидки";
+      promoStatus.className = data.promo_valid
+        ? "promo-status is-success"
+        : "promo-status is-warning";
+    }
+  } catch (error) {
+    if (requestId !== promoQuoteSequence) return;
+    const promoStatus = document.getElementById("promoStatus");
+    if (promoStatus) {
+      promoStatus.textContent = "Не удалось проверить промокод. Попробуйте ещё раз";
+      promoStatus.className = "promo-status is-warning";
+    }
+    console.error(error);
+  }
+}
+
 function updatePrice() {
   const input = document.getElementById("buyAmount");
   const moneyInput = document.getElementById("moneyAmount");
@@ -1643,11 +1734,11 @@ function updatePrice() {
   if (!input || !project) return;
   let amount = Number(input.value);
   const promoCode = promoInput?.value || "";
-  let price = calculatePrice(project, amount, promoCode);
+  let price = calculatePrice(project, amount);
   if (price.total > MAX_ORDER_TOTAL_RUB) {
-    amount = getMaxOrderAmount(project, promoCode);
+    amount = getMaxOrderAmount(project);
     input.value = Number(amount.toFixed(2)).toString();
-    price = calculatePrice(project, amount, promoCode);
+    price = calculatePrice(project, amount);
   }
   const totalNode = document.getElementById("totalPrice");
   const rateNode = document.getElementById("rateLabel");
@@ -1662,24 +1753,17 @@ function updatePrice() {
     rateNode.textContent = formatRateLabel(project, price.unitPrice);
   }
   if (discountNode) {
-    discountNode.textContent = price.discount > 0
-      ? `Скидка ${price.promoPercent}%: −${formatMoney(price.discount)}`
-      : "";
-    discountNode.classList.toggle("is-visible", price.discount > 0);
+    discountNode.textContent = "";
+    discountNode.classList.remove("is-visible");
   }
   if (promoStatus) {
     const normalizedCode = promoCode.trim().toUpperCase();
     promoStatus.className = "promo-status";
     if (!normalizedCode) {
       promoStatus.textContent = "";
-    } else if (price.promoPercent) {
-      promoStatus.textContent = `Промокод активирован: скидка ${price.promoPercent}%`;
-      promoStatus.classList.add("is-success");
-    } else {
-      promoStatus.textContent = "Промокод не найден — заказ будет без скидки";
-      promoStatus.classList.add("is-warning");
     }
   }
+  schedulePromoQuote(project, amount, promoCode);
   document.querySelectorAll("[data-quick-amount]").forEach((button) => {
     button.classList.toggle("is-active", Number(button.dataset.quickAmount) === amount);
   });
@@ -1697,9 +1781,9 @@ function updateAmountFromMoney() {
     moneyInput.value = String(MAX_ORDER_TOTAL_RUB);
   }
   moneyInput.setCustomValidity("");
-  const amount = calculateAmountFromMoney(project, money, promoInput?.value || "");
+  const amount = calculateAmountFromMoney(project, money);
   amountInput.value = amount > 0 ? Number(amount.toFixed(2)).toString() : "";
-  const price = calculatePrice(project, amount, promoInput?.value || "");
+  const price = calculatePrice(project, amount);
   const totalNode = document.getElementById("totalPrice");
   const rateNode = document.getElementById("rateLabel");
   const discountNode = document.getElementById("discountLabel");
@@ -1708,11 +1792,10 @@ function updateAmountFromMoney() {
     rateNode.textContent = formatRateLabel(project, price.unitPrice);
   }
   if (discountNode) {
-    discountNode.textContent = price.discount > 0
-      ? `Включена скидка ${price.promoPercent}%`
-      : "";
-    discountNode.classList.toggle("is-visible", price.discount > 0);
+    discountNode.textContent = "";
+    discountNode.classList.remove("is-visible");
   }
+  schedulePromoQuote(project, amount, promoInput?.value || "");
   document.querySelectorAll("[data-quick-amount]").forEach((button) => {
     button.classList.remove("is-active");
   });
@@ -1730,7 +1813,7 @@ async function submitPurchase(form) {
   const project = getProject();
   const amount = Number(form.elements.amount.value);
   const promoCode = form.elements.promo.value.trim().toUpperCase();
-  const price = calculatePrice(project, amount, promoCode);
+  const price = calculatePrice(project, amount);
   if (price.total > MAX_ORDER_TOTAL_RUB) {
     const moneyInput = document.getElementById("moneyAmount");
     moneyInput?.setCustomValidity("Максимальная сумма заказа — 250 000 ₽");
@@ -1788,14 +1871,18 @@ async function submitPurchase(form) {
       tg.sendData(JSON.stringify(payload));
     }
 
+    const confirmedTotal = Number(createdOrder?.amount_rub);
+    const orderTotal = Number.isFinite(confirmedTotal)
+      ? confirmedTotal
+      : price.total;
     const orders = getLocalOrders();
     orders.unshift({
       id: createdOrder?.order_id || Math.random().toString(16).slice(2, 6).toUpperCase(),
       game: project.name,
       server: state.selectedServer,
       amount: `${amount.toLocaleString("ru-RU")} ${project.unit}`,
-      total: formatMoney(price.total),
-      totalValue: price.total,
+      total: formatMoney(orderTotal),
+      totalValue: orderTotal,
       status: "Ожидает оплаты",
       statusClass: "waiting",
       date: new Date().toLocaleDateString("ru-RU")
