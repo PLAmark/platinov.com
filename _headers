@@ -4,6 +4,12 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Content-Security-Policy: default-src 'self'; script-src 'self' https://telegram.org; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://api.platinov.com; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'
 
+/
+  Cache-Control: no-cache, must-revalidate
+
+/index.html
+  Cache-Control: no-cache, must-revalidate
+
 /*.pdf
   Content-Type: application/pdf
   Content-Disposition: inline
