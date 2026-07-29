@@ -11784,3 +11784,24 @@ body:has(.order-buy-step) {
     font-size: 13px;
   }
 }
+
+/* v168: keep the iOS / Telegram safe area below the compact glass dock */
+:root {
+  --bottom-dock-safe: clamp(
+    0px,
+    max(
+      env(safe-area-inset-bottom, 0px),
+      var(--tg-safe-area-inset-bottom, 0px),
+      var(--tg-content-safe-area-inset-bottom, 0px)
+    ),
+    40px
+  );
+}
+
+html .bottom-nav {
+  bottom: calc(7px + var(--bottom-dock-safe));
+  height: 56px;
+  min-height: 56px;
+  margin-bottom: 0;
+  padding: 4px;
+}

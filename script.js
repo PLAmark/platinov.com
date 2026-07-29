@@ -2316,7 +2316,7 @@ function initializeTelegram() {
   try {
     tg.setHeaderColor("#2A9FF0");
     tg.setBackgroundColor("#2A9FF0");
-    tg.setBottomBarColor?.("#0f1628");
+    tg.setBottomBarColor?.("#235FD8");
   } catch {
     // Older Telegram versions may not support color setters.
   }
