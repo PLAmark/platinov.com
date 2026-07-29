@@ -11691,3 +11691,96 @@ body:has(.order-buy-step) {
     ),
     rgba(8, 28, 57, 0.54);
 }
+
+/* v167: unauthenticated Telegram profile state */
+.profile-screen .profile-card.profile-auth-card {
+  min-height: 0;
+  padding: 18px;
+}
+
+.profile-auth-prompt {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px 14px;
+  align-items: center;
+}
+
+.profile-auth-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid rgba(184, 220, 255, 0.18);
+  border-radius: 16px;
+  color: #ffffff;
+  background: rgba(48, 142, 235, 0.42);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.profile-auth-icon .ui-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.profile-auth-copy {
+  min-width: 0;
+}
+
+.profile-auth-copy h2 {
+  margin: 0 0 4px;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 730;
+  line-height: 1.15;
+}
+
+.profile-auth-copy p {
+  margin: 0;
+  color: #b5cae1;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.profile-auth-button {
+  grid-column: 1 / -1;
+  display: flex;
+  width: 100%;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 2px;
+  border-radius: 14px;
+}
+
+.profile-auth-button .ui-icon {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 350px) {
+  .profile-screen .profile-card.profile-auth-card {
+    padding: 16px;
+  }
+
+  .profile-auth-prompt {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 11px;
+  }
+
+  .profile-auth-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+  }
+
+  .profile-auth-copy h2 {
+    font-size: 16px;
+  }
+
+  .profile-auth-button {
+    font-size: 13px;
+  }
+}

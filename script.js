@@ -3,6 +3,7 @@
 const API_BASE_URL = "https://api.platinov.com";
 const REVIEWS_API_BASE_URL = "";
 const SUPPORT_URL = "https://t.me/PlatinovBot";
+const TELEGRAM_AUTH_URL = "https://t.me/PlatinovBot?startapp=profile";
 const SELL_MANAGER_URL = "https://t.me/PlatinovBot";
 const REVIEWS_TELEGRAM_URL = "https://t.me/+TZeEFqDDYyhkOTEy";
 const REVIEWS_VK_URL = "https://vk.ru/wall866011657_25";
@@ -1403,15 +1404,17 @@ function getTelegramUser() {
       username: user.username ? `@${user.username}` : "username не указан",
       id: user.id,
       initial: (user.first_name || "T").charAt(0).toLocaleUpperCase("ru"),
-      photoUrl: user.photo_url || telegramAvatarObjectUrl || null
+      photoUrl: user.photo_url || telegramAvatarObjectUrl || null,
+      isAuthenticated: true
     };
   }
   return {
-    name: "Алексей",
-    username: "@demo_user",
-    id: "demo",
-    initial: "А",
-    photoUrl: null
+    name: "Гость",
+    username: "",
+    id: "",
+    initial: "Г",
+    photoUrl: null,
+    isAuthenticated: false
   };
 }
 
@@ -1511,15 +1514,29 @@ function renderProfile() {
         <h1>Профиль</h1>
         <p>Ваши данные и быстрый доступ к сервису</p>
       </header>
-      <div class="glass-card profile-card">
-        <div class="profile-main">
-          ${profileAvatar}
-          <div class="profile-copy">
-            <h2>${escapeHTML(user.name)}</h2>
-            <p>${escapeHTML(user.username)}</p>
-            <span class="profile-id">ID: ${escapeHTML(user.id)}</span>
+      <div class="glass-card profile-card ${user.isAuthenticated ? "" : "profile-auth-card"}">
+        ${user.isAuthenticated ? `
+          <div class="profile-main">
+            ${profileAvatar}
+            <div class="profile-copy">
+              <h2>${escapeHTML(user.name)}</h2>
+              <p>${escapeHTML(user.username)}</p>
+              <span class="profile-id">ID: ${escapeHTML(user.id)}</span>
+            </div>
           </div>
-        </div>
+        ` : `
+          <div class="profile-auth-prompt">
+            <span class="profile-auth-icon">${icon("user")}</span>
+            <div class="profile-auth-copy">
+              <h2>Авторизуйтесь через Telegram</h2>
+              <p>Откройте mini-app в Telegram, чтобы загрузить ваш профиль.</p>
+            </div>
+            <button class="primary-button profile-auth-button" type="button" data-external="telegram-auth">
+              <span>Авторизоваться через Telegram</span>
+              ${icon("arrow-up-right")}
+            </button>
+          </div>
+        `}
       </div>
       <div class="stats-grid">
         <div class="glass-card stat-card stat-card-bonus">
@@ -2210,6 +2227,7 @@ document.addEventListener("click", (event) => {
   if (externalButton) {
     const urls = {
       support: SUPPORT_URL,
+      "telegram-auth": TELEGRAM_AUTH_URL,
       "reviews-telegram": REVIEWS_TELEGRAM_URL,
       "reviews-vk": REVIEWS_VK_URL
     };
@@ -2220,6 +2238,12 @@ document.addEventListener("click", (event) => {
 
   if (event.target.closest("[data-copy-referral]")) {
     const user = getTelegramUser();
+    if (!user.isAuthenticated) {
+      openExternal(TELEGRAM_AUTH_URL);
+      showToast("Откройте mini-app через Telegram");
+      haptic();
+      return;
+    }
     const referral = `${window.location.origin}${window.location.pathname}?ref=${encodeURIComponent(user.id)}`;
     navigator.clipboard?.writeText(referral)
       .then(() => showToast("Реферальная ссылка скопирована"))
