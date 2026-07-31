@@ -11946,3 +11946,41 @@ html .bottom-nav {
   width: 150%;
   height: 150%;
 }
+
+/* v177: prevent Chromium glass-layer repaint bands around checkout fields */
+.order-flow.order-form-step .order-step-header,
+.order-flow.order-form-step .selected-game-card,
+.order-flow.order-form-step .order-form-section {
+  contain: paint;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.order-flow.order-form-step .form-field .field-control {
+  filter: none;
+  transform: none;
+  will-change: auto;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .order-flow.order-form-step .form-field .field-control:hover {
+    border-color: rgba(133, 203, 255, 0.28);
+    background:
+      linear-gradient(
+        125deg,
+        rgba(255, 255, 255, 0.075),
+        rgba(255, 255, 255, 0.012) 54%,
+        rgba(74, 157, 255, 0.055)
+      ),
+      rgba(7, 31, 62, 0.58);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+}
+
+.order-flow.order-form-step .form-field .field-control:focus {
+  border-color: rgba(133, 203, 255, 0.46);
+  background: rgba(8, 35, 69, 0.72);
+  box-shadow:
+    0 0 0 3px rgba(72, 169, 248, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
