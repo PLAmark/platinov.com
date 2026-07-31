@@ -11565,13 +11565,6 @@ body:has(.order-buy-step) {
   line-height: 1.08;
 }
 
-.payment-placeholder-lead {
-  margin: 0 0 16px;
-  color: #b6cce2;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
 .payment-placeholder-summary {
   display: grid;
   overflow: hidden;

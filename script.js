@@ -1963,7 +1963,6 @@ function openPaymentPlaceholder(project, amount, total) {
           </div>
           <button class="close-button" type="button" aria-label="Закрыть">${icon("x")}</button>
         </div>
-        <p class="payment-placeholder-lead">Платёжный модуль подключается. Ниже показан полный состав заказа, реального списания сейчас не будет.</p>
         <div class="payment-placeholder-summary" aria-label="Состав заказа">
           <div><span>Товар</span><strong>${escapeHTML(wording.buyAction)} · ${escapeHTML(project.name)}</strong></div>
           ${project.id === "standoff-2" ? "" : `<div><span>Сервер</span><strong>${escapeHTML(serverLabel)}</strong></div>`}
