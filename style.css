@@ -11984,3 +11984,19 @@ html .bottom-nav {
     0 0 0 3px rgba(72, 169, 248, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
+
+/* v178: wide-screen Chromium repaint fix for every order-flow glass surface */
+@media (min-width: 620px) and (hover: hover) and (pointer: fine) {
+  html .order-flow .order-step-header,
+  html .order-flow .selected-game-card,
+  html .order-flow .order-action-card,
+  html .order-flow .server-search .search-input,
+  html .order-flow .server-row,
+  html .order-flow .order-form-section,
+  html .order-flow .empty-state {
+    contain: paint;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    will-change: auto;
+  }
+}
