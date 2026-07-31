@@ -9,6 +9,7 @@ const REVIEWS_TELEGRAM_URL = "https://t.me/+TZeEFqDDYyhkOTEy";
 const REVIEWS_VK_URL = "https://vk.ru/wall866011657_25";
 const ACCESS_RESTRICTED_TEXT = "Оформить заказ можно вручную.";
 const MAX_ORDER_TOTAL_RUB = 250000;
+const PAYMENT_PLACEHOLDER_ENABLED = true;
 const SITE_ROOT = window.location.protocol === "file:" ? "" : "/";
 
 function siteAsset(path) {
@@ -506,6 +507,27 @@ function getTradeWording(project = getProject()) {
       ? "Здравствуйте! Хочу продать голду."
       : "Здравствуйте! Хочу продать вирты."
   };
+}
+
+function updatePurchaseSummary(project, amount, total) {
+  if (!project) return;
+  const normalizedAmount = Number.isFinite(Number(amount)) && Number(amount) > 0
+    ? Number(amount)
+    : 0;
+  const normalizedTotal = Number.isFinite(Number(total)) && Number(total) > 0
+    ? Number(total)
+    : 0;
+  const wording = getTradeWording(project);
+  const productLabel = document.getElementById("productLabel");
+  const paymentButtonLabel = document.querySelector("#buyForm .payment-button-label");
+  if (productLabel) {
+    productLabel.textContent = `Товар: ${wording.buyAction.toLowerCase()} · ${normalizedAmount.toLocaleString("ru-RU")} ${project.unit}`;
+  }
+  if (paymentButtonLabel) {
+    paymentButtonLabel.textContent = normalizedTotal > 0
+      ? `Оплатить ${formatMoney(normalizedTotal)}`
+      : "Оплатить";
+  }
 }
 
 function requiresServerSelection(project) {
@@ -1063,7 +1085,8 @@ function renderPurchaseForm() {
         </div>
         <div class="price-box order-summary">
           <div class="price-details">
-            <span>К оплате</span>
+            <span>Стоимость заказа</span>
+            <small id="productLabel">Товар: ${wording.buyAction.toLowerCase()} · ${defaultAmount.toLocaleString("ru-RU")} ${escapeHTML(project.unit)}</small>
             <small id="rateLabel">${formatRateLabel(project, price.unitPrice)}</small>
             <small class="price-discount" id="discountLabel"></small>
           </div>
@@ -1096,8 +1119,10 @@ function renderPurchaseForm() {
           <span><strong>Данные защищены.</strong> Мы не запрашиваем пароль от игрового аккаунта.</span>
         </div>
         <button class="primary-button order-submit-button" type="submit">
-          Перейти к оплате <span class="button-arrow">${icon("arrow-right")}</span>
+          <span class="payment-button-label">Оплатить ${formatMoney(price.total)}</span>
+          <span class="button-arrow">${icon("arrow-right")}</span>
         </button>
+        <p class="payment-placeholder-caption">Платёжный модуль подключается. Списания пока не производятся.</p>
       </form>
     </section>
   `;
@@ -1814,6 +1839,7 @@ async function requestPromoQuote(project, amount, promoCode, requestId) {
 
     if (moneyInput) moneyInput.value = Math.round(total);
     if (totalNode) totalNode.textContent = formatMoney(total);
+    updatePurchaseSummary(project, amount, total);
     if (rateNode) rateNode.textContent = formatRateLabel(project, unitPrice);
     if (discountNode) {
       discountNode.textContent = data.promo_valid && discount > 0
@@ -1863,6 +1889,7 @@ function updatePrice() {
     moneyInput.setCustomValidity("");
   }
   if (totalNode) totalNode.textContent = formatMoney(price.total);
+  updatePurchaseSummary(project, amount, price.total);
   if (rateNode) {
     rateNode.textContent = formatRateLabel(project, price.unitPrice);
   }
@@ -1902,6 +1929,7 @@ function updateAmountFromMoney() {
   const rateNode = document.getElementById("rateLabel");
   const discountNode = document.getElementById("discountLabel");
   if (totalNode) totalNode.textContent = formatMoney(money);
+  updatePurchaseSummary(project, amount, money);
   if (rateNode) {
     rateNode.textContent = formatRateLabel(project, price.unitPrice);
   }
@@ -1920,6 +1948,38 @@ function validateForm(form) {
   form.reportValidity();
   haptic("medium");
   return false;
+}
+
+function openPaymentPlaceholder(project, amount, total) {
+  const wording = getTradeWording(project);
+  const serverLabel = getOrderServerLabel(project, state.selectedServer);
+  modalRoot.innerHTML = `
+    <div class="modal-backdrop" data-close-modal>
+      <section class="modal-sheet payment-placeholder-modal" role="dialog" aria-modal="true" aria-labelledby="paymentPlaceholderTitle">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">Проверка заказа</p>
+            <h2 id="paymentPlaceholderTitle">Оплата временно недоступна</h2>
+          </div>
+          <button class="close-button" type="button" aria-label="Закрыть">${icon("x")}</button>
+        </div>
+        <p class="payment-placeholder-lead">Платёжный модуль подключается. Ниже показан полный состав заказа, реального списания сейчас не будет.</p>
+        <div class="payment-placeholder-summary" aria-label="Состав заказа">
+          <div><span>Товар</span><strong>${escapeHTML(wording.buyAction)} · ${escapeHTML(project.name)}</strong></div>
+          ${project.id === "standoff-2" ? "" : `<div><span>Сервер</span><strong>${escapeHTML(serverLabel)}</strong></div>`}
+          <div><span>Количество</span><strong>${Number(amount).toLocaleString("ru-RU")} ${escapeHTML(project.unit)}</strong></div>
+          <div><span>Цена</span><strong>${escapeHTML(formatRateLabel(project, calculatePrice(project, amount).unitPrice))}</strong></div>
+          <div class="payment-placeholder-total"><span>К оплате</span><strong>${formatMoney(total)}</strong></div>
+        </div>
+        <div class="inline-note payment-placeholder-note">
+          <span class="inline-note-icon">${icon("info")}</span>
+          <span>Это демонстрационная кнопка. После подключения API здесь откроется защищённая платёжная форма.</span>
+        </div>
+        <button class="primary-button payment-placeholder-close" type="button">Понятно</button>
+      </section>
+    </div>
+  `;
+  modalRoot.querySelector(".payment-placeholder-close")?.focus();
 }
 
 async function submitPurchase(form) {
@@ -1959,6 +2019,16 @@ async function submitPurchase(form) {
     form.elements.bank_account.addEventListener("input", () => {
       form.elements.bank_account.setCustomValidity("");
     }, { once: true });
+    return;
+  }
+
+  if (PAYMENT_PLACEHOLDER_ENABLED) {
+    const displayedTotal = Number(document.getElementById("moneyAmount")?.value);
+    const placeholderTotal = Number.isFinite(displayedTotal) && displayedTotal > 0
+      ? Math.min(MAX_ORDER_TOTAL_RUB, displayedTotal)
+      : price.total;
+    haptic("medium");
+    openPaymentPlaceholder(project, amount, placeholderTotal);
     return;
   }
 
@@ -2022,7 +2092,7 @@ async function submitPurchase(form) {
     console.error(error);
     showToast(`Не удалось создать заказ: ${error.message}`);
     submitButton.disabled = false;
-    submitButton.innerHTML = `Перейти к оплате <span class="button-arrow">${icon("arrow-right")}</span>`;
+    submitButton.innerHTML = `<span class="payment-button-label">Оплатить ${formatMoney(price.total)}</span><span class="button-arrow">${icon("arrow-right")}</span>`;
   }
 }
 
@@ -2279,7 +2349,11 @@ app.addEventListener("submit", (event) => {
 });
 
 modalRoot.addEventListener("click", (event) => {
-  if (event.target.matches(".modal-backdrop") || event.target.closest(".close-button")) {
+  if (
+    event.target.matches(".modal-backdrop") ||
+    event.target.closest(".close-button") ||
+    event.target.closest(".payment-placeholder-close")
+  ) {
     closeModal();
     return;
   }
