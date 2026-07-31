@@ -2,7 +2,7 @@
 
 const API_BASE_URL = "https://api.platinov.com";
 const REVIEWS_API_BASE_URL = "";
-const SUPPORT_URL = "https://t.me/PlatinovBot";
+const SUPPORT_URL = "https://t.me/PlatinovSupport";
 const TELEGRAM_AUTH_URL = "https://t.me/PlatinovBot?startapp=profile";
 const SELL_MANAGER_URL = "https://t.me/PlatinovBot";
 const REVIEWS_TELEGRAM_URL = "https://t.me/+TZeEFqDDYyhkOTEy";
@@ -777,11 +777,10 @@ function projectCards(context = "home") {
     <button class="project-card project-${project.color} ${state.selectedProjectId === project.id ? "is-selected" : ""}"
       type="button" data-project="${project.id}" data-context="${context}"
       style="--project-art: url('${escapeHTML(project.logo)}')"
-      aria-label="${actionLabel}: ${escapeHTML(project.name)}, ${escapeHTML(project.priceLabel)}">
+      aria-label="${actionLabel}: ${escapeHTML(project.name)}">
       ${projectLogo(project)}
       <span class="project-card-copy">
         <span class="project-name">${escapeHTML(project.name)}</span>
-        <span class="project-price">${escapeHTML(project.priceLabel)}</span>
       </span>
       <span class="project-card-chevron" aria-hidden="true">${icon("chevron-right")}</span>
     </button>
@@ -810,7 +809,7 @@ function renderHome() {
             <h2>Выберите игру</h2>
           </div>
         </div>
-        <div class="project-grid">${projectCards("home")}</div>
+        <div class="project-grid project-grid-home">${projectCards("home")}</div>
       </section>
 
       <section class="section">
@@ -877,9 +876,7 @@ function renderActionSelection() {
         ${projectLogo(project)}
         <div class="summary-copy">
           <strong>${escapeHTML(project.name)}</strong>
-          <span>${escapeHTML(project.priceLabel)}</span>
         </div>
-        <span class="summary-tag">${escapeHTML(project.unit)}</span>
       </div>
       <div class="choice-stack">
         <button class="select-card order-action-card order-action-buy ${state.preferredAction === "buy" ? "is-featured" : ""}" type="button" data-action="buy">
@@ -1594,7 +1591,7 @@ function renderInfo() {
         <div class="info-document-list" aria-label="Документы сервиса">
           <a
             class="info-document-button"
-            href="${siteAsset("PLATINOV_Privacy_Policy_2026-07-28_v3.pdf")}"
+            href="${siteAsset("PLATINOV_Privacy_Policy_2026-07-28_v3.pdf?v=175")}"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -1608,7 +1605,7 @@ function renderInfo() {
 
           <a
             class="info-document-button"
-            href="${siteAsset("PLATINOV_User_Agreement_2026-07-28_v3.pdf")}"
+            href="${siteAsset("PLATINOV_User_Agreement_2026-07-28_v3.pdf?v=175")}"
             target="_blank"
             rel="noopener noreferrer"
           >
