@@ -4,12 +4,14 @@ const API_BASE_URL = "https://api.platinov.com";
 const REVIEWS_API_BASE_URL = "";
 const SUPPORT_URL = "https://t.me/PlatinovSupport";
 const TELEGRAM_AUTH_URL = "https://t.me/PlatinovBot?startapp=profile";
-const SELL_MANAGER_URL = "https://t.me/PlatinovBot";
+const SELL_MANAGER_URL = SUPPORT_URL;
 const REVIEWS_TELEGRAM_URL = "https://t.me/+TZeEFqDDYyhkOTEy";
 const REVIEWS_VK_URL = "https://vk.ru/wall866011657_25";
 const ACCESS_RESTRICTED_TEXT = "Оформить заказ можно вручную.";
 const MAX_ORDER_TOTAL_RUB = 250000;
 const PAYMENT_PLACEHOLDER_ENABLED = true;
+// Temporarily disabled while the acquiring flow is under bank review.
+const SELLING_ENABLED = false;
 const SITE_ROOT = window.location.protocol === "file:" ? "" : "/";
 
 function siteAsset(path) {
@@ -451,7 +453,7 @@ const RESTORABLE_ROUTES = new Set([
   "action",
   "servers",
   "buy",
-  "sell",
+  ...(SELLING_ENABLED ? ["sell"] : []),
   "orders",
   "reviews",
   "raffle",
@@ -501,6 +503,10 @@ function getTradeWording(project = getProject()) {
   return {
     buyAction: isStandoff ? "Купить голду" : "Купить вирты",
     sellAction: isStandoff ? "Продать голду" : "Продать вирты",
+    productName: "Вирты",
+    productDefinition: isStandoff
+      ? "(голда - внутриигровая виртуальная валюта)"
+      : "(вирты - внутриигровая виртуальная валюта)",
     purchaseTitle: isStandoff ? "Покупка голды" : "Покупка виртов",
     amountLabel: isStandoff ? "Количество голды" : "Количество виртов",
     sellMessage: isStandoff
@@ -519,9 +525,13 @@ function updatePurchaseSummary(project, amount, total) {
     : 0;
   const wording = getTradeWording(project);
   const productLabel = document.getElementById("productLabel");
+  const quantityLabel = document.getElementById("quantityLabel");
   const paymentButtonLabel = document.querySelector("#buyForm .payment-button-label");
   if (productLabel) {
-    productLabel.textContent = `Товар: ${wording.buyAction.toLowerCase()} · ${normalizedAmount.toLocaleString("ru-RU")} ${project.unit}`;
+    productLabel.textContent = `Товар: ${wording.productName}`;
+  }
+  if (quantityLabel) {
+    quantityLabel.textContent = `Количество: ${normalizedAmount.toLocaleString("ru-RU")} ${project.unit}`;
   }
   if (paymentButtonLabel) {
     paymentButtonLabel.textContent = normalizedTotal > 0
@@ -568,10 +578,11 @@ function restoreNavigationSession() {
     if (!saved || typeof saved !== "object") return;
 
     const project = PROJECTS.find((item) => item.id === saved.selectedProjectId) || null;
-    const preferredAction = ["buy", "sell"].includes(saved.preferredAction)
+    const availableActions = SELLING_ENABLED ? ["buy", "sell"] : ["buy"];
+    const preferredAction = availableActions.includes(saved.preferredAction)
       ? saved.preferredAction
       : null;
-    let action = ["buy", "sell"].includes(saved.action) ? saved.action : null;
+    let action = availableActions.includes(saved.action) ? saved.action : null;
     let selectedServer = typeof saved.selectedServer === "string"
       ? saved.selectedServer
       : null;
@@ -815,13 +826,15 @@ function renderHome() {
       <div class="hero">
         <h1>Игровая валюта — быстро и безопасно</h1>
         <p class="hero-text">Выгодный курс, быстрая выдача и поддержка 24/7.</p>
-        <div class="hero-actions">
+        <div class="hero-actions ${SELLING_ENABLED ? "" : "hero-actions-single"}">
           <button class="primary-button" type="button" data-start-action="buy">
             Купить вирты <span class="button-arrow">${icon("arrow-right")}</span>
           </button>
-          <button class="secondary-button" type="button" data-start-action="sell">
-            Продать вирты
-          </button>
+          ${SELLING_ENABLED ? `
+            <button class="secondary-button" type="button" data-start-action="sell">
+              Продать вирты
+            </button>
+          ` : ""}
         </div>
       </div>
 
@@ -909,14 +922,16 @@ function renderActionSelection() {
           </span>
           <span class="select-chevron">${icon("chevron-right")}</span>
         </button>
-        <button class="select-card order-action-card order-action-sell ${state.preferredAction === "sell" ? "is-featured" : ""}" type="button" data-action="sell">
-          <span class="select-icon">${icon("arrow-up-right")}</span>
-          <span class="select-copy">
-            <strong>${wording.sellAction}</strong>
-            <small>Передайте данные менеджеру и получите расчёт</small>
-          </span>
-          <span class="select-chevron">${icon("chevron-right")}</span>
-        </button>
+        ${SELLING_ENABLED ? `
+          <button class="select-card order-action-card order-action-sell ${state.preferredAction === "sell" ? "is-featured" : ""}" type="button" data-action="sell">
+            <span class="select-icon">${icon("arrow-up-right")}</span>
+            <span class="select-copy">
+              <strong>${wording.sellAction}</strong>
+              <small>Передайте данные менеджеру и получите расчёт</small>
+            </span>
+            <span class="select-chevron">${icon("chevron-right")}</span>
+          </button>
+        ` : ""}
       </div>
     </section>
   `;
@@ -979,6 +994,13 @@ function formatRateLabel(project, unitPrice) {
     return `${unitPrice} ₽ за ${project.tariffs[0].per}G`;
   }
   return `${unitPrice} ₽ за кк`;
+}
+
+function formatUnitPriceLabel(project, unitPrice) {
+  if (project.id === "standoff-2") {
+    return `Цена за ${project.tariffs[0].per}G: ${formatMoney(unitPrice)}`;
+  }
+  return `Цена за 1 кк: ${formatMoney(unitPrice)}`;
 }
 
 function calculatePrice(project, amount) {
@@ -1086,8 +1108,9 @@ function renderPurchaseForm() {
         <div class="price-box order-summary">
           <div class="price-details">
             <span>Стоимость заказа</span>
-            <small id="productLabel">Товар: ${wording.buyAction.toLowerCase()} · ${defaultAmount.toLocaleString("ru-RU")} ${escapeHTML(project.unit)}</small>
-            <small id="rateLabel">${formatRateLabel(project, price.unitPrice)}</small>
+            <small id="productLabel">Товар: ${escapeHTML(wording.productName)}</small>
+            <small id="quantityLabel">Количество: ${defaultAmount.toLocaleString("ru-RU")} ${escapeHTML(project.unit)}</small>
+            <small id="rateLabel">${formatUnitPriceLabel(project, price.unitPrice)}</small>
             <small class="price-discount" id="discountLabel"></small>
           </div>
           <strong id="totalPrice">${formatMoney(price.total)}</strong>
@@ -1700,6 +1723,14 @@ function closeModal() {
 }
 
 function render() {
+  if (!SELLING_ENABLED) {
+    if (state.preferredAction === "sell") state.preferredAction = null;
+    if (state.action === "sell") state.action = null;
+    state.history = state.history.filter((route) => route !== "sell");
+    if (state.route === "sell") {
+      state.route = state.selectedProjectId ? "action" : "home";
+    }
+  }
   const renderers = {
     home: renderHome,
     projects: renderProjectSelection,
@@ -1732,6 +1763,14 @@ app.addEventListener(
 );
 
 function startAction(action) {
+  if (action === "sell") {
+    if (!SELLING_ENABLED) {
+      showToast("Продажа временно недоступна");
+      return;
+    }
+    openExternal(SUPPORT_URL);
+    return;
+  }
   state.preferredAction = action;
   state.action = null;
   state.selectedProjectId = null;
@@ -1745,10 +1784,22 @@ function chooseProject(projectId) {
   state.selectedServer = null;
   state.action = null;
   state.serverSearch = "";
+  if (state.preferredAction) {
+    chooseAction(state.preferredAction);
+    return;
+  }
   navigate("action");
 }
 
 function chooseAction(action) {
+  if (action === "sell") {
+    if (!SELLING_ENABLED) {
+      showToast("Продажа временно недоступна");
+      return;
+    }
+    openExternal(SUPPORT_URL);
+    return;
+  }
   state.action = action;
   state.serverSearch = "";
   const project = getProject();
@@ -1840,7 +1891,7 @@ async function requestPromoQuote(project, amount, promoCode, requestId) {
     if (moneyInput) moneyInput.value = Math.round(total);
     if (totalNode) totalNode.textContent = formatMoney(total);
     updatePurchaseSummary(project, amount, total);
-    if (rateNode) rateNode.textContent = formatRateLabel(project, unitPrice);
+    if (rateNode) rateNode.textContent = formatUnitPriceLabel(project, unitPrice);
     if (discountNode) {
       discountNode.textContent = data.promo_valid && discount > 0
         ? `Скидка ${promoPercent}%: −${formatMoney(discount)}`
@@ -1891,7 +1942,7 @@ function updatePrice() {
   if (totalNode) totalNode.textContent = formatMoney(price.total);
   updatePurchaseSummary(project, amount, price.total);
   if (rateNode) {
-    rateNode.textContent = formatRateLabel(project, price.unitPrice);
+    rateNode.textContent = formatUnitPriceLabel(project, price.unitPrice);
   }
   if (discountNode) {
     discountNode.textContent = "";
@@ -1931,7 +1982,7 @@ function updateAmountFromMoney() {
   if (totalNode) totalNode.textContent = formatMoney(money);
   updatePurchaseSummary(project, amount, money);
   if (rateNode) {
-    rateNode.textContent = formatRateLabel(project, price.unitPrice);
+    rateNode.textContent = formatUnitPriceLabel(project, price.unitPrice);
   }
   if (discountNode) {
     discountNode.textContent = "";
@@ -1964,7 +2015,13 @@ function openPaymentPlaceholder(project, amount, total) {
           <button class="close-button" type="button" aria-label="Закрыть">${icon("x")}</button>
         </div>
         <div class="payment-placeholder-summary" aria-label="Состав заказа">
-          <div><span>Товар</span><strong>${escapeHTML(wording.buyAction)} · ${escapeHTML(project.name)}</strong></div>
+          <div>
+            <span>Товар</span>
+            <div class="payment-placeholder-product">
+              <strong>${escapeHTML(wording.productName)} · ${escapeHTML(project.name)}</strong>
+              <small>${escapeHTML(wording.productDefinition)}</small>
+            </div>
+          </div>
           ${project.id === "standoff-2" ? "" : `<div><span>Сервер</span><strong>${escapeHTML(serverLabel)}</strong></div>`}
           <div><span>Количество</span><strong>${Number(amount).toLocaleString("ru-RU")} ${escapeHTML(project.unit)}</strong></div>
           <div><span>Цена</span><strong>${escapeHTML(formatRateLabel(project, calculatePrice(project, amount).unitPrice))}</strong></div>

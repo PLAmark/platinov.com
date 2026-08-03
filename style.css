@@ -11365,6 +11365,11 @@ body:has(.order-buy-step) {
   }
 }
 
+/* v186: temporary purchase-only mode during acquiring review */
+.hero-actions.hero-actions-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 /* v149: Platinov Deep Blue Orb Glass across the orders screen */
 .orders-screen .orders-hero,
 .orders-screen .order-card,
@@ -11600,6 +11605,19 @@ body:has(.order-buy-step) {
   line-height: 1.35;
   text-align: right;
   overflow-wrap: anywhere;
+}
+
+.payment-placeholder-product {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  text-align: right;
+}
+
+.payment-placeholder-product small {
+  color: #91abc6;
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .payment-placeholder-summary .payment-placeholder-total {
