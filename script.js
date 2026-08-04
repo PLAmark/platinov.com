@@ -7,6 +7,9 @@ const TELEGRAM_AUTH_URL = "https://t.me/PlatinovBot?startapp=profile";
 const SELL_MANAGER_URL = SUPPORT_URL;
 const REVIEWS_TELEGRAM_URL = "https://t.me/+TZeEFqDDYyhkOTEy";
 const REVIEWS_VK_URL = "https://vk.ru/wall866011657_25";
+const VK_BUY_URL = "https://vk.ru/platinov_shop";
+const VK_SELL_URL = "https://vk.ru/platinov_sell";
+const TELEGRAM_BUY_URL = "https://t.me/platinov_shop";
 const ACCESS_RESTRICTED_TEXT = "Оформить заказ можно вручную.";
 const MAX_ORDER_TOTAL_RUB = 250000;
 const PAYMENT_PLACEHOLDER_ENABLED = true;
@@ -206,228 +209,7 @@ PROJECTS.forEach((project) => {
   project.servers = SERVERS[project.id] || [];
 });
 
-const REVIEW_PROJECT_SEQUENCE = [
-  "black-russia",
-  "matreshka-rp",
-  "black-russia",
-  "gta-5-rp",
-  "black-russia",
-  "black-russia",
-  "matreshka-rp",
-  "black-russia",
-  "black-russia",
-  "black-russia"
-];
-
-const REVIEW_TEXT_STARTS = [
-  "всё чётко",
-  "быстро выдали",
-  "топ, всё быстро и легко",
-  "оплатил и получил через пару минут",
-  "спасибо, всё нормально",
-  "сделка прошла спокойно",
-  "получил без лишних вопросов",
-  "всё пришло как договаривались",
-  "первый раз покупал здесь, всё хорошо",
-  "менеджер быстро ответил",
-  "курс хороший, выдача быстрая",
-  "оформление простое и понятное",
-  "валюту получил полностью",
-  "никаких проблем с заказом",
-  "всё сделали аккуратно"
-];
-
-const REVIEW_TEXT_ENDINGS = [
-  "Спасибо менеджеру.",
-  "Сервер нашли сразу.",
-  "Буду обращаться ещё.",
-  "По времени вышло совсем недолго.",
-  "Поддержка была на связи.",
-  "Получал банком, всё прошло нормально.",
-  "Трейдом передали без задержек.",
-  "Цена совпала с расчётом.",
-  "После оплаты долго ждать не пришлось.",
-  "Ник и сервер проверили перед выдачей.",
-  "Инструкция была понятной.",
-  "Заказ оформили с телефона без проблем.",
-  "Статус заказа обновился быстро.",
-  "Всё количество пришло сразу.",
-  "Удобно, что можно выбрать способ получения.",
-  "Ответили спокойно и по делу.",
-  "Первый заказ оставил хорошее впечатление.",
-  "За такую скорость отдельный плюс.",
-  "Сделка заняла меньше десяти минут.",
-  "Результатом доволен."
-];
-
-const REVIEW_INITIALS = [
-  "А", "М", "Д", "К", "Р", "И", "С", "Н", "В", "Е",
-  "Т", "П", "Г", "Л", "О", "Ф", "Я", "Б", "Ю", "З"
-];
-
-const REVIEW_SOURCES = ["Telegram", "Сайт", "Telegram", "VK", "Сайт"];
-const DEMO_REVIEW_OPENERS = [
-  "всё чётко",
-  "быстро выдали",
-  "топ всё без заморочек",
-  "брал здесь впервые",
-  "заказал прямо с телефона",
-  "немного переживал сначала",
-  "оплатил поздно вечером",
-  "нужны были вирты срочно",
-  "сделка прошла спокойно",
-  "менеджер ответил почти сразу",
-  "курс оказался нормальный",
-  "оформление простое и понятное",
-  "вирты пришли полностью",
-  "вопросов по заказу не было",
-  "проверил сначала на небольшом заказе",
-  "зашёл по совету друга",
-  "сначала не понял куда писать",
-  "сделал заказ ночью",
-  "брал через банк",
-  "выбрал получение трейдом",
-  "всё гуд",
-  "реально быстро",
-  "спс всё пришло"
-];
-
-const DEMO_REVIEW_DETAILS = [
-  "сервер нашли с первого раза",
-  "по сумме всё совпало",
-  "поддержка объяснила что делать",
-  "на выдаче не задержали",
-  "статус обновился сразу",
-  "ник проверили перед отправкой",
-  "зачислили одной суммой",
-  "пришлось подождать всего пару минут",
-  "без лишних вопросов оформили",
-  "курс был такой же как на странице",
-  "выдача заняла минут пять",
-  "ответили нормально не шаблоном",
-  "сделку провели аккуратно",
-  "с телефона оформилось без проблем",
-  "менеджер всё время был на связи",
-  "чутка тупил сам но разобрался",
-  "думал будет намного дольше",
-  "получил ровно сколько указывал",
-  "быстро зделали я доволен"
-];
-
-const DEMO_REVIEW_ENDINGS = [
-  "буду брать ещё",
-  "можно пользоваться",
-  "респект менеджеру",
-  "в целом доволен",
-  "для первого раза отлично",
-  "без обмана",
-  "норм тема",
-  "советую",
-  "спасибо",
-  "вопросов нет",
-  "цена устроила",
-  "все ок",
-  "имба",
-  "вернусь ещё",
-  "зачёт",
-  "ожидание небольшое",
-  "результатом доволен"
-];
-const REVIEW_VARIANTS = {
-  "black-russia": [
-    { amount: "3 кк", price: "300 ₽" },
-    { amount: "7 кк", price: "700 ₽" },
-    { amount: "11 кк", price: "1 100 ₽" },
-    { amount: "18 кк", price: "1 800 ₽" },
-    { amount: "22 кк", price: "2 200 ₽" },
-    { amount: "27 кк", price: "2 700 ₽" },
-    { amount: "35 кк", price: "3 500 ₽" },
-    { amount: "44 кк", price: "4 400 ₽" },
-    { amount: "63 кк", price: "6 300 ₽" },
-    { amount: "86 кк", price: "8 600 ₽" },
-    { amount: "105 кк", price: "10 500 ₽" }
-  ],
-  "matreshka-rp": [
-    { amount: "3 кк", price: "570 ₽" },
-    { amount: "6 кк", price: "1 140 ₽" },
-    { amount: "11 кк", price: "2 090 ₽" },
-    { amount: "17 кк", price: "3 230 ₽" },
-    { amount: "22 кк", price: "4 180 ₽" },
-    { amount: "27 кк", price: "5 130 ₽" },
-    { amount: "41 кк", price: "7 790 ₽" },
-    { amount: "58 кк", price: "11 020 ₽" },
-    { amount: "73 кк", price: "13 870 ₽" },
-    { amount: "96 кк", price: "18 240 ₽" }
-  ],
-  "gta-5-rp": [
-    { amount: "1 кк", price: "1 000 ₽" },
-    { amount: "2 кк", price: "2 000 ₽" },
-    { amount: "3 кк", price: "3 000 ₽" },
-    { amount: "7 кк", price: "7 000 ₽" },
-    { amount: "11 кк", price: "11 000 ₽" },
-    { amount: "15 кк", price: "15 000 ₽" },
-    { amount: "22 кк", price: "22 000 ₽" },
-    { amount: "27 кк", price: "27 000 ₽" },
-    { amount: "31 кк", price: "31 000 ₽" },
-    { amount: "48 кк", price: "48 000 ₽" }
-  ]
-};
-
-function demoReviewDate(index) {
-  const date = new Date(Date.UTC(2026, 6, 26));
-  date.setUTCDate(date.getUTCDate() - Math.floor(index / 3));
-  return [
-    String(date.getUTCDate()).padStart(2, "0"),
-    String(date.getUTCMonth() + 1).padStart(2, "0"),
-    date.getUTCFullYear()
-  ].join(".");
-}
-
-function demoReviewText(index) {
-  const start = DEMO_REVIEW_OPENERS[index % DEMO_REVIEW_OPENERS.length];
-  const detail = DEMO_REVIEW_DETAILS[(index * 7 + 3) % DEMO_REVIEW_DETAILS.length];
-  const ending = DEMO_REVIEW_ENDINGS[(index * 11 + 5) % DEMO_REVIEW_ENDINGS.length];
-  const lowerDetail = detail.charAt(0).toLowerCase() + detail.slice(1);
-  const lowerEnding = ending.charAt(0).toLowerCase() + ending.slice(1);
-
-  const style = index % 24;
-  if (style === 0) return `${start}, ${lowerDetail}`;
-  if (style === 7) return `${start}. ${detail}`;
-  if (style === 15) return `${start} ${lowerDetail}!`;
-  if (style === 21) return `${start}. ${detail} ${lowerEnding}`;
-  if (style % 3 === 0) return `${start} ${lowerDetail} ${lowerEnding}`;
-  return `${start} ${lowerDetail}`;
-}
-
-function buildDemoReviews(total = 300) {
-  return Array.from({ length: total }, (_, index) => {
-    const projectId = REVIEW_PROJECT_SEQUENCE[index % REVIEW_PROJECT_SEQUENCE.length];
-    const servers = SERVERS[projectId];
-    const variant = REVIEW_VARIANTS[projectId][index % REVIEW_VARIANTS[projectId].length];
-    const orderCode = ((0x3000 + index * 73) % 0x10000)
-      .toString(16)
-      .padStart(4, "0")
-      .toUpperCase();
-    return {
-      id: `demo-review-${String(index + 1).padStart(3, "0")}`,
-      initial: REVIEW_INITIALS[index % REVIEW_INITIALS.length],
-      order: `Заказ #${orderCode}`,
-      status: "подтверждён",
-      rating: (index + 1) % 10 === 0 ? 4 : 5,
-      text: demoReviewText(index),
-      projectId,
-      server: servers[(index * 11) % servers.length],
-      amount: variant.amount,
-      price: variant.price,
-      delivery: index % 3 === 0 ? "Трейд" : "Банк",
-      time: `~${2 + ((index * 7) % 8)} мин`,
-      date: demoReviewDate(index),
-      source: REVIEW_SOURCES[index % REVIEW_SOURCES.length]
-    };
-  });
-}
-
-const REVIEWS = buildDemoReviews();
+// Demo review fixtures are intentionally excluded from the production build.
 
 const state = {
   route: "home",
@@ -480,6 +262,11 @@ function escapeHTML(value) {
 function icon(name, className = "") {
   const extraClass = className ? ` ${className}` : "";
   return `<svg class="ui-icon${extraClass}" aria-hidden="true" focusable="false"><use href="#icon-${name}"></use></svg>`;
+}
+
+function socialLogo(network) {
+  const source = network === "telegram" ? "telegram-logo.png" : "vk-logo.png";
+  return `<img class="social-brand-logo" src="${source}" alt="" aria-hidden="true">`;
 }
 
 function ratingStars(rating = 5) {
@@ -1307,7 +1094,7 @@ function reviewCard(review) {
 
 function renderReviews() {
   const storedReviews = REVIEWS_API_BASE_URL ? state.apiReviews : getLocalReviews();
-  const allReviews = [...storedReviews, ...REVIEWS];
+  const allReviews = storedReviews;
   const visibleReviews = state.reviewFilter === "all"
     ? allReviews
     : allReviews.filter((review) => review.projectId === state.reviewFilter);
@@ -1616,6 +1403,11 @@ function renderProfile() {
           <span class="select-copy"><strong>Поддержка</strong><small>Задать вопрос менеджеру</small></span>
           <span class="select-chevron">${icon("chevron-right")}</span>
         </button>
+        <button class="select-card" type="button" data-open-resources>
+          <span class="select-icon">${icon("arrow-up-right")}</span>
+          <span class="select-copy"><strong>Наши ресурсы</strong><small>Магазины и официальный канал</small></span>
+          <span class="select-chevron">${icon("chevron-right")}</span>
+        </button>
         <button class="select-card" type="button" data-route="info">
           <span class="select-icon">${icon("info")}</span>
           <span class="select-copy"><strong>О сервисе и условия</strong><small>Доставка, возврат и документы</small></span>
@@ -1623,6 +1415,38 @@ function renderProfile() {
         </button>
       </div>
     </section>
+  `;
+}
+
+function openResourcesModal() {
+  modalRoot.innerHTML = `
+    <div class="modal-backdrop" data-close-modal>
+      <section class="modal-sheet resources-modal" role="dialog" aria-modal="true" aria-labelledby="resourcesModalTitle">
+        <div class="modal-head">
+          <div>
+            <h2 id="resourcesModalTitle">Наши ресурсы</h2>
+          </div>
+          <button class="close-button" type="button" data-close-modal aria-label="Закрыть">${icon("x")}</button>
+        </div>
+        <div class="resources-modal-list">
+          <button class="info-document-button resource-link-button" type="button" data-resource-network="telegram" data-resource-url="${TELEGRAM_BUY_URL}">
+            <span class="info-document-icon">${socialLogo("telegram")}</span>
+            <span class="info-document-copy"><strong>Купить вирты</strong><small>Telegram канал</small></span>
+            <span class="info-document-arrow">${icon("arrow-up-right")}</span>
+          </button>
+          <button class="info-document-button resource-link-button" type="button" data-resource-network="vk" data-resource-url="${VK_BUY_URL}">
+            <span class="info-document-icon">${socialLogo("vk")}</span>
+            <span class="info-document-copy"><strong>Купить вирты</strong><small>Сообщество VK</small></span>
+            <span class="info-document-arrow">${icon("arrow-up-right")}</span>
+          </button>
+          <button class="info-document-button resource-link-button" type="button" data-resource-network="vk" data-resource-url="${VK_SELL_URL}">
+            <span class="info-document-icon">${socialLogo("vk")}</span>
+            <span class="info-document-copy"><strong>Продать вирты</strong><small>Сообщество VK</small></span>
+            <span class="info-document-arrow">${icon("arrow-up-right")}</span>
+          </button>
+        </div>
+      </section>
+    </div>
   `;
 }
 
@@ -2341,7 +2165,13 @@ document.addEventListener("click", (event) => {
   }
 
   if (event.target.closest("[data-open-review]")) {
-    openReviewModal();
+    openExternal(REVIEWS_VK_URL);
+    haptic();
+    return;
+  }
+
+  if (event.target.closest("[data-open-resources]")) {
+    openResourcesModal();
     haptic();
     return;
   }
@@ -2411,6 +2241,12 @@ modalRoot.addEventListener("click", (event) => {
     event.target.closest(".payment-placeholder-close")
   ) {
     closeModal();
+    return;
+  }
+  const resourceButton = event.target.closest("[data-resource-url]");
+  if (resourceButton) {
+    openExternal(resourceButton.dataset.resourceUrl);
+    haptic();
     return;
   }
   const ratingButton = event.target.closest("[data-rating]");

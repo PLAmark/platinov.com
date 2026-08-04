@@ -11370,6 +11370,43 @@ body:has(.order-buy-step) {
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* v187: profile resources and production-only reviews */
+.resources-modal-list {
+  display: grid;
+  gap: 10px;
+}
+
+.resource-link-button {
+  width: 100%;
+  border: 1px solid rgba(153, 211, 255, 0.14);
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+}
+
+.social-brand-logo {
+  display: block;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.resources-modal .resource-link-button[data-resource-network="telegram"] .info-document-icon {
+  background: transparent;
+}
+
+.resources-modal .resource-link-button[data-resource-network="vk"] .info-document-icon {
+  background: transparent;
+}
+
+.profile-screen .profile-menu [data-open-resources] .select-icon {
+  color: #80caff;
+  background: rgba(52, 150, 232, 0.16);
+}
+
 /* v149: Platinov Deep Blue Orb Glass across the orders screen */
 .orders-screen .orders-hero,
 .orders-screen .order-card,
