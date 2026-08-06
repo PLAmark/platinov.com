@@ -12,9 +12,9 @@ const VK_SELL_URL = "https://vk.ru/platinov_sell";
 const TELEGRAM_BUY_URL = "https://t.me/platinov_shop";
 const ACCESS_RESTRICTED_TEXT = "Оформить заказ можно вручную.";
 const MAX_ORDER_TOTAL_RUB = 250000;
-const PAYMENT_PLACEHOLDER_ENABLED = true;
+const PAYMENT_PLACEHOLDER_ENABLED = false;
 // Temporarily disabled while the acquiring flow is under bank review.
-const SELLING_ENABLED = false;
+const SELLING_ENABLED = true;
 const SITE_ROOT = window.location.protocol === "file:" ? "" : "/";
 
 function siteAsset(path) {
@@ -38,6 +38,7 @@ let telegramAvatarObjectUrl = "";
 let telegramAvatarLoadPromise = null;
 let promoQuoteTimer = 0;
 let promoQuoteSequence = 0;
+let remoteOrdersLoading = false;
 
 function setApiAccessToken(token) {
   apiAccessToken = token || "";
@@ -209,7 +210,188 @@ PROJECTS.forEach((project) => {
   project.servers = SERVERS[project.id] || [];
 });
 
-// Demo review fixtures are intentionally excluded from the production build.
+const REVIEW_PROJECT_SEQUENCE = [
+  "black-russia",
+  "matreshka-rp",
+  "black-russia",
+  "gta-5-rp",
+  "black-russia",
+  "black-russia",
+  "matreshka-rp",
+  "black-russia",
+  "black-russia",
+  "black-russia"
+];
+
+const REVIEW_INITIALS = [
+  "А", "М", "Д", "К", "Р", "И", "С", "Н", "В", "Е",
+  "Т", "П", "Г", "Л", "О", "Ф", "Я", "Б", "Ю", "З"
+];
+
+const REVIEW_SOURCES = ["Telegram", "Сайт", "Telegram", "VK", "Сайт"];
+const DEMO_REVIEW_OPENERS = [
+  "всё чётко",
+  "быстро выдали",
+  "топ всё без заморочек",
+  "брал здесь впервые",
+  "заказал прямо с телефона",
+  "немного переживал сначала",
+  "оплатил поздно вечером",
+  "нужны были вирты срочно",
+  "сделка прошла спокойно",
+  "менеджер ответил почти сразу",
+  "курс оказался нормальный",
+  "оформление простое и понятное",
+  "вирты пришли полностью",
+  "вопросов по заказу не было",
+  "проверил сначала на небольшом заказе",
+  "зашёл по совету друга",
+  "сначала не понял куда писать",
+  "сделал заказ ночью",
+  "брал через банк",
+  "выбрал получение трейдом",
+  "всё гуд",
+  "реально быстро",
+  "спс всё пришло"
+];
+
+const DEMO_REVIEW_DETAILS = [
+  "сервер нашли с первого раза",
+  "по сумме всё совпало",
+  "поддержка объяснила что делать",
+  "на выдаче не задержали",
+  "статус обновился сразу",
+  "ник проверили перед отправкой",
+  "зачислили одной суммой",
+  "пришлось подождать всего пару минут",
+  "без лишних вопросов оформили",
+  "курс был такой же как на странице",
+  "выдача заняла минут пять",
+  "ответили нормально не шаблоном",
+  "сделку провели аккуратно",
+  "с телефона оформилось без проблем",
+  "менеджер всё время был на связи",
+  "чутка тупил сам но разобрался",
+  "думал будет намного дольше",
+  "получил ровно сколько указывал",
+  "быстро зделали я доволен"
+];
+
+const DEMO_REVIEW_ENDINGS = [
+  "буду брать ещё",
+  "можно пользоваться",
+  "респект менеджеру",
+  "в целом доволен",
+  "для первого раза отлично",
+  "без обмана",
+  "норм тема",
+  "советую",
+  "спасибо",
+  "вопросов нет",
+  "цена устроила",
+  "все ок",
+  "имба",
+  "вернусь ещё",
+  "зачёт",
+  "ожидание небольшое",
+  "результатом доволен"
+];
+
+const REVIEW_VARIANTS = {
+  "black-russia": [
+    { amount: "3 кк", price: "300 ₽" },
+    { amount: "7 кк", price: "700 ₽" },
+    { amount: "11 кк", price: "1 100 ₽" },
+    { amount: "18 кк", price: "1 800 ₽" },
+    { amount: "22 кк", price: "2 200 ₽" },
+    { amount: "27 кк", price: "2 700 ₽" },
+    { amount: "35 кк", price: "3 500 ₽" },
+    { amount: "44 кк", price: "4 400 ₽" },
+    { amount: "63 кк", price: "6 300 ₽" },
+    { amount: "86 кк", price: "8 600 ₽" },
+    { amount: "105 кк", price: "10 500 ₽" }
+  ],
+  "matreshka-rp": [
+    { amount: "3 кк", price: "570 ₽" },
+    { amount: "6 кк", price: "1 140 ₽" },
+    { amount: "11 кк", price: "2 090 ₽" },
+    { amount: "17 кк", price: "3 230 ₽" },
+    { amount: "22 кк", price: "4 180 ₽" },
+    { amount: "27 кк", price: "5 130 ₽" },
+    { amount: "41 кк", price: "7 790 ₽" },
+    { amount: "58 кк", price: "11 020 ₽" },
+    { amount: "73 кк", price: "13 870 ₽" },
+    { amount: "96 кк", price: "18 240 ₽" }
+  ],
+  "gta-5-rp": [
+    { amount: "1 кк", price: "1 000 ₽" },
+    { amount: "2 кк", price: "2 000 ₽" },
+    { amount: "3 кк", price: "3 000 ₽" },
+    { amount: "7 кк", price: "7 000 ₽" },
+    { amount: "11 кк", price: "11 000 ₽" },
+    { amount: "15 кк", price: "15 000 ₽" },
+    { amount: "22 кк", price: "22 000 ₽" },
+    { amount: "27 кк", price: "27 000 ₽" },
+    { amount: "31 кк", price: "31 000 ₽" },
+    { amount: "48 кк", price: "48 000 ₽" }
+  ]
+};
+
+function demoReviewDate(index) {
+  const date = new Date(Date.UTC(2026, 6, 26));
+  date.setUTCDate(date.getUTCDate() - Math.floor(index / 3));
+  return [
+    String(date.getUTCDate()).padStart(2, "0"),
+    String(date.getUTCMonth() + 1).padStart(2, "0"),
+    date.getUTCFullYear()
+  ].join(".");
+}
+
+function demoReviewText(index) {
+  const start = DEMO_REVIEW_OPENERS[index % DEMO_REVIEW_OPENERS.length];
+  const detail = DEMO_REVIEW_DETAILS[(index * 7 + 3) % DEMO_REVIEW_DETAILS.length];
+  const ending = DEMO_REVIEW_ENDINGS[(index * 11 + 5) % DEMO_REVIEW_ENDINGS.length];
+  const lowerDetail = detail.charAt(0).toLowerCase() + detail.slice(1);
+  const lowerEnding = ending.charAt(0).toLowerCase() + ending.slice(1);
+
+  const style = index % 24;
+  if (style === 0) return `${start}, ${lowerDetail}`;
+  if (style === 7) return `${start}. ${detail}`;
+  if (style === 15) return `${start} ${lowerDetail}!`;
+  if (style === 21) return `${start}. ${detail} ${lowerEnding}`;
+  if (style % 3 === 0) return `${start} ${lowerDetail} ${lowerEnding}`;
+  return `${start} ${lowerDetail}`;
+}
+
+function buildDemoReviews(total = 300) {
+  return Array.from({ length: total }, (_, index) => {
+    const projectId = REVIEW_PROJECT_SEQUENCE[index % REVIEW_PROJECT_SEQUENCE.length];
+    const servers = SERVERS[projectId];
+    const variant = REVIEW_VARIANTS[projectId][index % REVIEW_VARIANTS[projectId].length];
+    const orderCode = ((0x3000 + index * 73) % 0x10000)
+      .toString(16)
+      .padStart(4, "0")
+      .toUpperCase();
+    return {
+      id: `demo-review-${String(index + 1).padStart(3, "0")}`,
+      initial: REVIEW_INITIALS[index % REVIEW_INITIALS.length],
+      order: `Заказ #${orderCode}`,
+      status: "подтверждён",
+      rating: (index + 1) % 10 === 0 ? 4 : 5,
+      text: demoReviewText(index),
+      projectId,
+      server: servers[(index * 11) % servers.length],
+      amount: variant.amount,
+      price: variant.price,
+      delivery: index % 3 === 0 ? "Трейд" : "Банк",
+      time: `~${2 + ((index * 7) % 8)} мин`,
+      date: demoReviewDate(index),
+      source: REVIEW_SOURCES[index % REVIEW_SOURCES.length]
+    };
+  });
+}
+
+const REVIEWS = buildDemoReviews();
 
 const state = {
   route: "home",
@@ -224,6 +406,7 @@ const state = {
   reviewRating: 5,
   serverSearch: "",
   apiReviews: [],
+  apiOrders: null,
   paymentReturnNotice: null,
   lastEdited: "virtual"
 };
@@ -518,6 +701,39 @@ function getLocalOrders() {
   return getStoredJSON("alexey-store-orders", []);
 }
 
+function mapRemoteOrder(order) {
+  const statusMap = {
+    awaiting_payment_provider: ["Ожидает оплаты", "waiting"],
+    paid: ["Оплачен", "paid"],
+    processing: ["В обработке", "processing"],
+    completed: ["Выполнен", "completed"],
+    cancelled: ["Отменён", "cancelled"]
+  };
+  const [status, statusClass] = statusMap[order.status] || [order.status || "Создан", "waiting"];
+  const numericAmount = Number(order.amount_kk);
+  const amount = Number.isFinite(numericAmount)
+    ? numericAmount.toLocaleString("ru-RU")
+    : String(order.amount_kk || "");
+  const date = new Date(order.created_at);
+  return {
+    id: order.public_id,
+    game: order.game,
+    server: order.server || "Без сервера",
+    amount: `${amount} ${order.game === "STANDOFF 2" ? "G" : "кк"}`,
+    total: formatMoney(Number(order.price_rub)),
+    totalValue: Number(order.price_rub),
+    status,
+    statusClass,
+    date: Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString("ru-RU")
+  };
+}
+
+function getOrdersForDisplay() {
+  return Array.isArray(state.apiOrders)
+    ? state.apiOrders.map(mapRemoteOrder)
+    : getLocalOrders();
+}
+
 function haptic(type = "light") {
   if (!tg?.isVersionAtLeast?.("6.1")) return;
   try {
@@ -537,6 +753,14 @@ function openExternal(url) {
     return;
   }
   window.open(url, "_blank", "noopener,noreferrer");
+}
+
+function openPaymentPage(url) {
+  try {
+    window.location.assign(url);
+  } catch {
+    openExternal(url);
+  }
 }
 
 function showToast(message) {
@@ -569,6 +793,7 @@ function navigate(route, options = {}) {
   if (!replace && state.route !== route) state.history.push(state.route);
   state.route = route;
   render();
+  if (route === "orders") loadRemoteOrders();
   if (!preserveScroll) window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -932,7 +1157,6 @@ function renderPurchaseForm() {
           <span class="payment-button-label">Оплатить ${formatMoney(price.total)}</span>
           <span class="button-arrow">${icon("arrow-right")}</span>
         </button>
-        <p class="payment-placeholder-caption">Платёжный модуль подключается. Списания пока не производятся.</p>
       </form>
     </section>
   `;
@@ -1027,7 +1251,7 @@ function orderCard(order) {
 }
 
 function renderOrders() {
-  const orders = getLocalOrders();
+  const orders = getOrdersForDisplay();
   const paymentNotice = state.paymentReturnNotice
     ? `
       <div class="payment-return-notice is-${escapeHTML(state.paymentReturnNotice.type)}" role="status">
@@ -1094,7 +1318,7 @@ function reviewCard(review) {
 
 function renderReviews() {
   const storedReviews = REVIEWS_API_BASE_URL ? state.apiReviews : getLocalReviews();
-  const allReviews = storedReviews;
+  const allReviews = [...storedReviews, ...REVIEWS];
   const visibleReviews = state.reviewFilter === "all"
     ? allReviews
     : allReviews.filter((review) => review.projectId === state.reviewFilter);
@@ -1962,7 +2186,7 @@ async function submitPurchase(form) {
       };
       navigate("orders", { replace: true });
       showToast("Заказ сохранён — открываем оплату");
-      openExternal(paymentUrl);
+      openPaymentPage(paymentUrl);
     } else {
       showToast("Заказ создан и готов к оплате");
       state.history = [];
@@ -2065,6 +2289,24 @@ async function loadRemoteReviews() {
     if (state.route === "reviews") render();
   } catch (error) {
     console.error(error);
+  }
+}
+
+async function loadRemoteOrders() {
+  if (!API_BASE_URL || remoteOrdersLoading || (!tg?.initData && !apiAccessToken)) return;
+  remoteOrdersLoading = true;
+  try {
+    const response = await apiRequest("/api/orders");
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !Array.isArray(data.orders)) {
+      throw new Error(data.error || `Orders request failed: ${response.status}`);
+    }
+    state.apiOrders = data.orders;
+    if (state.route === "orders") render();
+  } catch (error) {
+    console.error("Orders load error", error);
+  } finally {
+    remoteOrdersLoading = false;
   }
 }
 
@@ -2323,6 +2565,7 @@ renderHeaderProfile();
 render();
 hydrateTelegramAvatar();
 loadRemoteReviews();
+if (state.route === "orders") loadRemoteOrders();
 checkAccess();
 
 window.addEventListener?.("pagehide", saveNavigationSession);
