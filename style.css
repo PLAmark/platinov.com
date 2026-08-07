@@ -8341,6 +8341,33 @@ body:has(.order-buy-step) {
   font-weight: 720;
 }
 
+.order-buy-step .standoff-market-note {
+  gap: 12px;
+  padding: 15px;
+  color: #bfd3e8;
+}
+
+.order-buy-step .standoff-market-copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.order-buy-step .standoff-market-copy > strong {
+  color: #ffffff;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.order-buy-step .standoff-market-copy > span {
+  line-height: 1.5;
+}
+
+.order-buy-step .standoff-market-copy b {
+  color: #ffffff;
+  white-space: nowrap;
+}
+
 .order-buy-step .order-submit-button {
   width: 100%;
   min-height: 56px;

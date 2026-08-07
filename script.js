@@ -464,6 +464,19 @@ function formatMoney(value) {
   return `${new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(value)} ₽`;
 }
 
+function calculateStandoffListingPrice(amount) {
+  const normalizedAmount = Number(amount);
+  return Number.isFinite(normalizedAmount) && normalizedAmount > 0
+    ? normalizedAmount / 0.8
+    : 0;
+}
+
+function formatGold(value) {
+  return `${new Intl.NumberFormat("ru-RU", {
+    maximumFractionDigits: 2
+  }).format(value)} G`;
+}
+
 function getProject(projectId = state.selectedProjectId) {
   return PROJECTS.find((project) => project.id === projectId);
 }
@@ -497,6 +510,7 @@ function updatePurchaseSummary(project, amount, total) {
   const productLabel = document.getElementById("productLabel");
   const quantityLabel = document.getElementById("quantityLabel");
   const paymentButtonLabel = document.querySelector("#buyForm .payment-button-label");
+  const standoffListingAmount = document.getElementById("standoffListingAmount");
   if (productLabel) {
     productLabel.textContent = `Товар: ${wording.productName}`;
   }
@@ -507,6 +521,11 @@ function updatePurchaseSummary(project, amount, total) {
     paymentButtonLabel.textContent = normalizedTotal > 0
       ? `Оплатить ${formatMoney(normalizedTotal)}`
       : "Оплатить";
+  }
+  if (standoffListingAmount) {
+    standoffListingAmount.textContent = formatGold(
+      calculateStandoffListingPrice(normalizedAmount)
+    );
   }
 }
 
@@ -1133,22 +1152,37 @@ function renderPurchaseForm() {
             autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Если есть">
           <p class="promo-status" id="promoStatus"></p>
         </div>
-        <div class="form-field">
-          <span class="field-label">Способ получения</span>
-          <div class="segmented" role="group" aria-label="Способ получения">
-            <button class="segment-button is-active" type="button" data-delivery="trade">
-              <span>Получить трейдом</span>${icon("check", "segment-check")}
-            </button>
-            <button class="segment-button" type="button" data-delivery="bank">
-              <span>Получить банком</span>${icon("check", "segment-check")}
-            </button>
+        ${project.id === "standoff-2" ? `
+          <div class="inline-note standoff-market-note">
+            <span class="inline-note-icon">${icon("info")}</span>
+            <span class="standoff-market-copy">
+              <strong>Получение через рынок STANDOFF 2</strong>
+              <span>
+                После оплаты выставьте любой скин с паттерном за
+                <b id="standoffListingAmount">${formatGold(calculateStandoffListingPrice(defaultAmount))}</b>.
+                Мы купим его, а комиссию рынка 20% полностью оплатит PLATINOV SHOP.
+                Оплаченное количество голды вы получите полностью.
+              </span>
+            </span>
           </div>
-        </div>
-        <div class="field-group form-field is-hidden" id="bankAccountGroup">
-          <label for="bankAccount">Номер игрового банковского счёта</label>
-          <input class="field-control" id="bankAccount" name="bank_account" maxlength="60"
-            autocomplete="off" placeholder="Введите номер счёта">
-        </div>
+        ` : `
+          <div class="form-field">
+            <span class="field-label">Способ получения</span>
+            <div class="segmented" role="group" aria-label="Способ получения">
+              <button class="segment-button is-active" type="button" data-delivery="trade">
+                <span>Получить трейдом</span>${icon("check", "segment-check")}
+              </button>
+              <button class="segment-button" type="button" data-delivery="bank">
+                <span>Получить банком</span>${icon("check", "segment-check")}
+              </button>
+            </div>
+          </div>
+          <div class="field-group form-field is-hidden" id="bankAccountGroup">
+            <label for="bankAccount">Номер игрового банковского счёта</label>
+            <input class="field-control" id="bankAccount" name="bank_account" maxlength="60"
+              autocomplete="off" placeholder="Введите номер счёта">
+          </div>
+        `}
         <div class="inline-note">
           <span class="inline-note-icon">${icon("shield-check")}</span>
           <span><strong>Данные защищены.</strong> Мы не запрашиваем пароль от игрового аккаунта.</span>
@@ -2089,6 +2123,7 @@ function openPaymentPlaceholder(project, amount, total) {
 async function submitPurchase(form) {
   if (!validateForm(form)) return;
   const project = getProject();
+  const isStandoff = project.id === "standoff-2";
   const amount = Number(form.elements.amount.value);
   const promoCode = form.elements.promo.value.trim().toUpperCase();
   const price = calculatePrice(project, amount);
@@ -2105,11 +2140,15 @@ async function submitPurchase(form) {
     nickname: form.elements.nickname?.value.trim() || "",
     promo: promoCode,
     amount_kk: Number(amount.toFixed(2)),
-    delivery_type: state.deliveryType === "bank" ? "Банком" : "Трейдом",
-    bank_account: state.deliveryType === "bank" ? form.elements.bank_account.value.trim() : ""
+    delivery_type: isStandoff
+      ? "Трейдом"
+      : state.deliveryType === "bank" ? "Банком" : "Трейдом",
+    bank_account: !isStandoff && state.deliveryType === "bank"
+      ? form.elements.bank_account.value.trim()
+      : ""
   };
 
-  if (state.deliveryType === "bank" && !payload.bank_account) {
+  if (!isStandoff && state.deliveryType === "bank" && !payload.bank_account) {
     form.elements.bank_account.setCustomValidity("Укажите номер игрового счёта");
     form.elements.bank_account.reportValidity();
     form.elements.bank_account.addEventListener("input", () => {
@@ -2117,7 +2156,7 @@ async function submitPurchase(form) {
     }, { once: true });
     return;
   }
-  if (state.deliveryType === "bank" && !/^\d+$/.test(payload.bank_account)) {
+  if (!isStandoff && state.deliveryType === "bank" && !/^\d+$/.test(payload.bank_account)) {
     form.elements.bank_account.setCustomValidity("Номер счёта должен состоять только из цифр");
     form.elements.bank_account.reportValidity();
     form.elements.bank_account.addEventListener("input", () => {
