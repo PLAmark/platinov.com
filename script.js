@@ -1,15 +1,15 @@
 "use strict";
 
 const API_BASE_URL = "https://api.platinov.com";
-const REVIEWS_API_BASE_URL = "";
-const SUPPORT_URL = "https://t.me/PlatinovSupport";
+const REVIEWS_API_BASE_URL = API_BASE_URL;
+let SUPPORT_URL = "https://t.me/PlatinovSupport";
 const TELEGRAM_AUTH_URL = "https://t.me/PlatinovBot?startapp=profile";
-const SELL_MANAGER_URL = SUPPORT_URL;
-const REVIEWS_TELEGRAM_URL = "https://t.me/+TZeEFqDDYyhkOTEy";
-const REVIEWS_VK_URL = "https://vk.ru/wall866011657_25";
-const VK_BUY_URL = "https://vk.ru/platinov_shop";
-const VK_SELL_URL = "https://vk.ru/platinov_sell";
-const TELEGRAM_BUY_URL = "https://t.me/platinov_shop";
+let SELL_MANAGER_URL = SUPPORT_URL;
+let REVIEWS_TELEGRAM_URL = "https://t.me/+TZeEFqDDYyhkOTEy";
+let REVIEWS_VK_URL = "https://vk.ru/wall866011657_25";
+let VK_BUY_URL = "https://vk.ru/platinov_shop";
+let VK_SELL_URL = "https://vk.ru/platinov_sell";
+let TELEGRAM_BUY_URL = "https://t.me/platinov_shop";
 const ACCESS_RESTRICTED_TEXT = "Оформить заказ можно вручную.";
 const MAX_ORDER_TOTAL_RUB = 250000;
 const PAYMENT_PLACEHOLDER_ENABLED = false;
@@ -39,6 +39,34 @@ let telegramAvatarLoadPromise = null;
 let promoQuoteTimer = 0;
 let promoQuoteSequence = 0;
 let remoteOrdersLoading = false;
+let activityLoading = false;
+let moscowRefreshTimer = 0;
+
+function getReferralVisitorKey() {
+  const storageKey = "platinov-referral-visitor-v1";
+  try {
+    let value = localStorage.getItem(storageKey) || "";
+    if (!value) {
+      value = crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem(storageKey, value);
+    }
+    return value;
+  } catch {
+    return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+}
+
+function getReferralId() {
+  const url = new URL(window.location.href);
+  const startParam = String(
+    tg?.initDataUnsafe?.start_param ||
+    url.searchParams.get("tgWebAppStartParam") ||
+    url.searchParams.get("ref") ||
+    ""
+  );
+  const match = startParam.match(/^(?:ref[_-])?(\d{1,20})$/i);
+  return match ? Number(match[1]) : 0;
+}
 
 function setApiAccessToken(token) {
   apiAccessToken = token || "";
@@ -64,7 +92,10 @@ async function authenticateApi(force = false) {
       "Content-Type": "application/json",
       "X-Telegram-Init-Data": tg.initData
     },
-    body: "{}"
+    body: JSON.stringify({
+      referrer_id: getReferralId() || null,
+      visitor_key: getReferralVisitorKey()
+    })
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok || !data.access_token) {
@@ -210,188 +241,8 @@ PROJECTS.forEach((project) => {
   project.servers = SERVERS[project.id] || [];
 });
 
-const REVIEW_PROJECT_SEQUENCE = [
-  "black-russia",
-  "matreshka-rp",
-  "black-russia",
-  "gta-5-rp",
-  "black-russia",
-  "black-russia",
-  "matreshka-rp",
-  "black-russia",
-  "black-russia",
-  "black-russia"
-];
-
-const REVIEW_INITIALS = [
-  "А", "М", "Д", "К", "Р", "И", "С", "Н", "В", "Е",
-  "Т", "П", "Г", "Л", "О", "Ф", "Я", "Б", "Ю", "З"
-];
-
-const REVIEW_SOURCES = ["Telegram", "Сайт", "Telegram", "VK", "Сайт"];
-const DEMO_REVIEW_OPENERS = [
-  "всё чётко",
-  "быстро выдали",
-  "топ всё без заморочек",
-  "брал здесь впервые",
-  "заказал прямо с телефона",
-  "немного переживал сначала",
-  "оплатил поздно вечером",
-  "нужны были вирты срочно",
-  "сделка прошла спокойно",
-  "менеджер ответил почти сразу",
-  "курс оказался нормальный",
-  "оформление простое и понятное",
-  "вирты пришли полностью",
-  "вопросов по заказу не было",
-  "проверил сначала на небольшом заказе",
-  "зашёл по совету друга",
-  "сначала не понял куда писать",
-  "сделал заказ ночью",
-  "брал через банк",
-  "выбрал получение трейдом",
-  "всё гуд",
-  "реально быстро",
-  "спс всё пришло"
-];
-
-const DEMO_REVIEW_DETAILS = [
-  "сервер нашли с первого раза",
-  "по сумме всё совпало",
-  "поддержка объяснила что делать",
-  "на выдаче не задержали",
-  "статус обновился сразу",
-  "ник проверили перед отправкой",
-  "зачислили одной суммой",
-  "пришлось подождать всего пару минут",
-  "без лишних вопросов оформили",
-  "курс был такой же как на странице",
-  "выдача заняла минут пять",
-  "ответили нормально не шаблоном",
-  "сделку провели аккуратно",
-  "с телефона оформилось без проблем",
-  "менеджер всё время был на связи",
-  "чутка тупил сам но разобрался",
-  "думал будет намного дольше",
-  "получил ровно сколько указывал",
-  "быстро зделали я доволен"
-];
-
-const DEMO_REVIEW_ENDINGS = [
-  "буду брать ещё",
-  "можно пользоваться",
-  "респект менеджеру",
-  "в целом доволен",
-  "для первого раза отлично",
-  "без обмана",
-  "норм тема",
-  "советую",
-  "спасибо",
-  "вопросов нет",
-  "цена устроила",
-  "все ок",
-  "имба",
-  "вернусь ещё",
-  "зачёт",
-  "ожидание небольшое",
-  "результатом доволен"
-];
-
-const REVIEW_VARIANTS = {
-  "black-russia": [
-    { amount: "3 кк", price: "300 ₽" },
-    { amount: "7 кк", price: "700 ₽" },
-    { amount: "11 кк", price: "1 100 ₽" },
-    { amount: "18 кк", price: "1 800 ₽" },
-    { amount: "22 кк", price: "2 200 ₽" },
-    { amount: "27 кк", price: "2 700 ₽" },
-    { amount: "35 кк", price: "3 500 ₽" },
-    { amount: "44 кк", price: "4 400 ₽" },
-    { amount: "63 кк", price: "6 300 ₽" },
-    { amount: "86 кк", price: "8 600 ₽" },
-    { amount: "105 кк", price: "10 500 ₽" }
-  ],
-  "matreshka-rp": [
-    { amount: "3 кк", price: "570 ₽" },
-    { amount: "6 кк", price: "1 140 ₽" },
-    { amount: "11 кк", price: "2 090 ₽" },
-    { amount: "17 кк", price: "3 230 ₽" },
-    { amount: "22 кк", price: "4 180 ₽" },
-    { amount: "27 кк", price: "5 130 ₽" },
-    { amount: "41 кк", price: "7 790 ₽" },
-    { amount: "58 кк", price: "11 020 ₽" },
-    { amount: "73 кк", price: "13 870 ₽" },
-    { amount: "96 кк", price: "18 240 ₽" }
-  ],
-  "gta-5-rp": [
-    { amount: "1 кк", price: "1 000 ₽" },
-    { amount: "2 кк", price: "2 000 ₽" },
-    { amount: "3 кк", price: "3 000 ₽" },
-    { amount: "7 кк", price: "7 000 ₽" },
-    { amount: "11 кк", price: "11 000 ₽" },
-    { amount: "15 кк", price: "15 000 ₽" },
-    { amount: "22 кк", price: "22 000 ₽" },
-    { amount: "27 кк", price: "27 000 ₽" },
-    { amount: "31 кк", price: "31 000 ₽" },
-    { amount: "48 кк", price: "48 000 ₽" }
-  ]
-};
-
-function demoReviewDate(index) {
-  const date = new Date(Date.UTC(2026, 6, 26));
-  date.setUTCDate(date.getUTCDate() - Math.floor(index / 3));
-  return [
-    String(date.getUTCDate()).padStart(2, "0"),
-    String(date.getUTCMonth() + 1).padStart(2, "0"),
-    date.getUTCFullYear()
-  ].join(".");
-}
-
-function demoReviewText(index) {
-  const start = DEMO_REVIEW_OPENERS[index % DEMO_REVIEW_OPENERS.length];
-  const detail = DEMO_REVIEW_DETAILS[(index * 7 + 3) % DEMO_REVIEW_DETAILS.length];
-  const ending = DEMO_REVIEW_ENDINGS[(index * 11 + 5) % DEMO_REVIEW_ENDINGS.length];
-  const lowerDetail = detail.charAt(0).toLowerCase() + detail.slice(1);
-  const lowerEnding = ending.charAt(0).toLowerCase() + ending.slice(1);
-
-  const style = index % 24;
-  if (style === 0) return `${start}, ${lowerDetail}`;
-  if (style === 7) return `${start}. ${detail}`;
-  if (style === 15) return `${start} ${lowerDetail}!`;
-  if (style === 21) return `${start}. ${detail} ${lowerEnding}`;
-  if (style % 3 === 0) return `${start} ${lowerDetail} ${lowerEnding}`;
-  return `${start} ${lowerDetail}`;
-}
-
-function buildDemoReviews(total = 300) {
-  return Array.from({ length: total }, (_, index) => {
-    const projectId = REVIEW_PROJECT_SEQUENCE[index % REVIEW_PROJECT_SEQUENCE.length];
-    const servers = SERVERS[projectId];
-    const variant = REVIEW_VARIANTS[projectId][index % REVIEW_VARIANTS[projectId].length];
-    const orderCode = ((0x3000 + index * 73) % 0x10000)
-      .toString(16)
-      .padStart(4, "0")
-      .toUpperCase();
-    return {
-      id: `demo-review-${String(index + 1).padStart(3, "0")}`,
-      initial: REVIEW_INITIALS[index % REVIEW_INITIALS.length],
-      order: `Заказ #${orderCode}`,
-      status: "подтверждён",
-      rating: (index + 1) % 10 === 0 ? 4 : 5,
-      text: demoReviewText(index),
-      projectId,
-      server: servers[(index * 11) % servers.length],
-      amount: variant.amount,
-      price: variant.price,
-      delivery: index % 3 === 0 ? "Трейд" : "Банк",
-      time: `~${2 + ((index * 7) % 8)} мин`,
-      date: demoReviewDate(index),
-      source: REVIEW_SOURCES[index % REVIEW_SOURCES.length]
-    };
-  });
-}
-
-const REVIEWS = buildDemoReviews();
+// Reviews are published only by the backend after moderation.
+const REVIEWS = [];
 
 const state = {
   route: "home",
@@ -407,6 +258,8 @@ const state = {
   serverSearch: "",
   apiReviews: [],
   apiOrders: null,
+  activity: null,
+  activityError: "",
   paymentReturnNotice: null,
   lastEdited: "virtual"
 };
@@ -426,6 +279,28 @@ const RESTORABLE_ROUTES = new Set([
   "profile",
   "info"
 ]);
+
+const PUBLIC_ROUTE_PATHS = Object.freeze({
+  home: "/",
+  profile: "/profile",
+  orders: "/orders",
+  reviews: "/reviews",
+  support: "/support",
+  raffle: "/giveaway"
+});
+
+const PUBLIC_PATH_ROUTES = new Map(
+  Object.entries(PUBLIC_ROUTE_PATHS).map(([route, pathname]) => [pathname, route])
+);
+
+const ROUTE_TITLES = Object.freeze({
+  home: "PLATINOV SHOP",
+  profile: "Профиль — PLATINOV SHOP",
+  orders: "Заказы — PLATINOV SHOP",
+  reviews: "Отзывы — PLATINOV SHOP",
+  support: "Поддержка — PLATINOV SHOP",
+  raffle: "Розыгрыш — PLATINOV SHOP"
+});
 
 const app = document.getElementById("app");
 const backButton = document.getElementById("backButton");
@@ -561,6 +436,60 @@ function saveNavigationSession() {
   }
 }
 
+function normalizePublicPath(pathname = window.location.pathname) {
+  let normalized = String(pathname || "/").replace(/\/{2,}/g, "/");
+  if (normalized === "/index.html") return "/";
+  if (normalized.length > 1) normalized = normalized.replace(/\/+$/, "");
+  return normalized || "/";
+}
+
+function getPublicRouteFromLocation() {
+  return PUBLIC_PATH_ROUTES.get(normalizePublicPath()) || null;
+}
+
+function getPublicPathForRoute(route) {
+  if (route === "info") return PUBLIC_ROUTE_PATHS.profile;
+  return PUBLIC_ROUTE_PATHS[route] || "/";
+}
+
+function updateRouteTitle(route) {
+  document.title = ROUTE_TITLES[route] || ROUTE_TITLES.home;
+}
+
+function syncBrowserRoute(route, mode = "push") {
+  const pathname = getPublicPathForRoute(route);
+  const currentPathname = normalizePublicPath();
+  const statePayload = { platinovRoute: route };
+  const targetUrl = `${pathname}${window.location.search}${window.location.hash}`;
+
+  updateRouteTitle(route);
+
+  if (mode === "none") return;
+  if (mode === "replace" || pathname === currentPathname) {
+    window.history.replaceState(statePayload, "", targetUrl);
+    return;
+  }
+  window.history.pushState(statePayload, "", targetUrl);
+}
+
+function applyRouteFromLocation(historyState = null) {
+  const pathnameRoute = getPublicRouteFromLocation();
+  const savedRoute = historyState && RESTORABLE_ROUTES.has(historyState.platinovRoute)
+    ? historyState.platinovRoute
+    : null;
+  const route = normalizePublicPath() === "/"
+    ? savedRoute || "home"
+    : pathnameRoute || "home";
+
+  state.history = [];
+  state.route = route;
+  updateRouteTitle(route);
+  render();
+  if (route === "orders" || route === "profile") loadRemoteOrders();
+  if (route === "raffle") loadActivity();
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
 function restoreNavigationSession() {
   try {
     const saved = JSON.parse(sessionStorage.getItem(NAVIGATION_SESSION_KEY));
@@ -650,7 +579,16 @@ function applyPaymentReturnRoute() {
     startParam.startsWith("payment_") ||
     ["success", "paid", "return", "failed", "cancelled"].includes(paymentResult);
 
-  if (!shouldOpenOrders) return;
+  if (!shouldOpenOrders) {
+    if (requestedScreen === "raffle" || startParam === "raffle") {
+      state.route = "raffle";
+      state.history = [];
+      url.searchParams.delete("screen");
+      url.searchParams.delete("tgWebAppStartParam");
+      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    }
+    return;
+  }
 
   const noticeByResult = {
     success: {
@@ -808,11 +746,13 @@ function setActiveNav(route) {
 }
 
 function navigate(route, options = {}) {
-  const { replace = false, preserveScroll = false } = options;
+  const { replace = false, preserveScroll = false, urlMode = "push" } = options;
   if (!replace && state.route !== route) state.history.push(state.route);
   state.route = route;
+  syncBrowserRoute(route, urlMode);
   render();
-  if (route === "orders") loadRemoteOrders();
+  if (route === "orders" || route === "profile") loadRemoteOrders();
+  if (route === "raffle") loadActivity();
   if (!preserveScroll) window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -821,7 +761,13 @@ function goBack() {
     navigate("home", { replace: true });
     return;
   }
+  const previousRoute = state.history[state.history.length - 1];
+  if (getPublicPathForRoute(previousRoute) !== normalizePublicPath()) {
+    window.history.back();
+    return;
+  }
   state.route = state.history.pop();
+  syncBrowserRoute(state.route, "replace");
   render();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -1327,7 +1273,10 @@ function reviewCard(review) {
     <article class="review-card">
       <div class="review-head">
         <div class="review-user">
-          <span class="avatar">${escapeHTML(review.initial)}</span>
+          <span class="avatar review-avatar">
+            <span>${escapeHTML(review.initial)}</span>
+            ${review.photoUrl ? `<img src="${escapeHTML(review.photoUrl)}" alt="" loading="lazy" decoding="async">` : ""}
+          </span>
           <span class="review-order">
             <strong>${escapeHTML(review.order)}</strong>
             <small><span class="status-badge ${statusClass}">${escapeHTML(review.status)}</span></small>
@@ -1362,7 +1311,6 @@ function renderReviews() {
     <section class="screen reviews-screen">
       <div class="glass-card reviews-hero">
         <div>
-          <p class="eyebrow">Проверенные сделки</p>
           <h1>Отзывы покупателей</h1>
           <div class="reviews-score"><strong>4.9 из 5</strong>${ratingStars(5)}</div>
           <p class="muted">На основе отзывов из сайта, Telegram и VK</p>
@@ -1405,49 +1353,293 @@ function renderReviews() {
   `;
 }
 
-function getRaffleTickets() {
-  return getLocalOrders().length * 2;
+function activityCountdown(seconds = 0) {
+  const total = Math.max(0, Number(seconds) || 0);
+  const days = Math.floor(total / 86400);
+  const hours = Math.floor((total % 86400) / 3600);
+  return `${days} д ${hours} ч`;
+}
+
+function activityDayWord(value = 0) {
+  const number = Math.abs(Number(value) || 0);
+  const lastTwo = number % 100;
+  const last = number % 10;
+  if (lastTwo >= 11 && lastTwo <= 14) return "дней";
+  if (last === 1) return "день";
+  if (last >= 2 && last <= 4) return "дня";
+  return "дней";
+}
+
+function activityInitials(name) {
+  return getUserInitials(name) || "P";
+}
+
+function activityAvatar(player) {
+  const fallback = escapeHTML(activityInitials(player.display_name));
+  if (!player.photo_url) {
+    return `<span class="activity-avatar"><span>${fallback}</span></span>`;
+  }
+  return `
+    <span class="activity-avatar">
+      <span>${fallback}</span>
+      <img src="${escapeHTML(player.photo_url)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+    </span>
+  `;
+}
+
+function activityTaskCard({ iconName, title, text, points, status, action = "", complete = false, progress = null }) {
+  const progressCurrent = Math.max(0, Number(progress?.current) || 0);
+  const progressTotal = Math.max(1, Number(progress?.total) || 1);
+  const progressPercent = Math.min(100, Math.round((progressCurrent / progressTotal) * 100));
+  const taskAction = progress
+    ? `
+      <span class="activity-task-progress" style="--activity-task-progress:${progressPercent}%">
+        <strong>${escapeHTML(progressCurrent)} / ${escapeHTML(progressTotal)}</strong>
+        <span class="activity-task-progress-track"><i></i></span>
+      </span>
+    `
+    : action || `<span class="activity-task-status${complete ? " is-complete" : ""}">${escapeHTML(status)}</span>`;
+  return `
+    <article class="activity-task-card">
+      <span class="activity-task-icon">${icon(iconName)}</span>
+      <span class="activity-task-copy">
+        <strong>${escapeHTML(title)}</strong>
+        <small>${escapeHTML(text)}</small>
+      </span>
+      <span class="activity-task-points">+${escapeHTML(points)}</span>
+      ${taskAction}
+    </article>
+  `;
+}
+
+function activityLeaderboardRow(player, prizes, currentUserId) {
+  const prize = prizes.find((item) => Number(item.rank) === Number(player.rank));
+  const isCurrent = String(player.user_id) === String(currentUserId);
+  const medalClass = player.rank <= 3 ? ` is-medal is-rank-${player.rank}` : "";
+  return `
+    <article class="activity-leader-row${medalClass}${isCurrent ? " is-current" : ""}">
+      <span class="activity-rank">${player.rank}</span>
+      ${activityAvatar(player)}
+      <span class="activity-player-copy">
+        <strong>${escapeHTML(player.display_name)}</strong>
+        <small>${escapeHTML(player.username || "Участник PLATINOV")}</small>
+      </span>
+      <strong class="activity-player-points">${Number(player.points).toLocaleString("ru-RU")}</strong>
+      ${prize ? `<span class="activity-prize"><small>Приз</small><strong>${escapeHTML(prize.label)}</strong></span>` : ""}
+    </article>
+  `;
+}
+
+function activityPreviewRow(player, prizes) {
+  const prize = prizes.find((item) => Number(item.rank) === Number(player.rank));
+  return `
+    <article class="activity-preview-row">
+      <span class="activity-preview-rank">${player.rank}</span>
+      ${activityAvatar(player)}
+      <span class="activity-preview-player">
+        <strong>${escapeHTML(player.display_name)}</strong>
+        <small>${Number(player.points).toLocaleString("ru-RU")} баллов</small>
+      </span>
+      ${prize ? `<strong class="activity-preview-prize">${icon("gift")}<span>${escapeHTML(prize.label)}</span></strong>` : ""}
+    </article>
+  `;
 }
 
 function renderRaffle() {
-  const tickets = getRaffleTickets();
-  const raffleParticipation = getStoredJSON("platinov-store-raffle", null);
-  const hasJoinedRaffle = Boolean(raffleParticipation?.joined && tickets);
+  const user = getTelegramUser();
+  const activity = state.activity;
+
+  if (!user.isAuthenticated) {
+    return `
+      <section class="screen raffle-screen activity-screen">
+        <div class="glass-card activity-auth-card">
+          <span class="activity-auth-icon">${icon("gift")}</span>
+          <h1>Войдите через Telegram</h1>
+          <p>Баллы, задания и место в рейтинге привязаны к вашему Telegram-аккаунту.</p>
+          <button class="primary-button" type="button" data-external="telegram-auth">Открыть в Telegram</button>
+        </div>
+      </section>
+    `;
+  }
+
+  if (!activity) {
+    return `
+      <section class="screen raffle-screen activity-screen">
+        <div class="glass-card activity-loading-card">
+          <span class="activity-loader" aria-hidden="true"></span>
+          <h2>${state.activityError ? "Не удалось загрузить рейтинг" : "Загружаем Лигу PLATINOV"}</h2>
+          <p>${escapeHTML(state.activityError || "Считаем баллы и обновляем места участников.")}</p>
+          ${state.activityError ? `<button class="ghost-button" type="button" data-activity-reload>Повторить</button>` : ""}
+        </div>
+      </section>
+    `;
+  }
+
+  const current = activity.current_user || {
+    user_id: user.id,
+    display_name: user.name,
+    username: user.username,
+    points: 0,
+    rank: "—"
+  };
+  const tasks = activity.tasks || {};
+  const prizes = activity.prizes || [];
+  const channelUrl = activity.main_channel?.url || TELEGRAM_BUY_URL;
+  const sponsorTasks = Array.isArray(tasks.sponsors) ? tasks.sponsors : [];
+  const leaderboard = Array.isArray(activity.leaderboard) ? activity.leaderboard : [];
+  const previewLeaders = [leaderboard[1], leaderboard[0], leaderboard[2]].filter(Boolean);
+  const streakDays = Math.max(0, Number(activity.streak || 0));
+
   return `
-    <section class="screen raffle-screen">
-      <div class="glass-card raffle-hero">
-        <span class="raffle-watermark" aria-hidden="true">
-          <span class="raffle-ticket-watermark"></span>
-          ${icon("gift", "raffle-watermark-gift")}
-          ${icon("star", "raffle-watermark-star")}
-        </span>
-        <div class="raffle-hero-content">
-          <p class="eyebrow">Еженедельный приз</p>
-          <h1>Розыгрыш недели</h1>
-          <span class="prize-label">${icon("gift")}<span>Приз — игровая валюта</span></span>
-          <p class="hero-text">Получайте билеты за покупки и участвуйте в розыгрыше.</p>
-          <div class="ticket-card">
-            <div class="ticket-balance"><span>Ваши билеты</span><strong>${tickets}</strong></div>
-            <span class="summary-tag">2 за заказ</span>
+    <section class="screen raffle-screen activity-screen">
+      <div class="glass-card activity-hero">
+        <span class="activity-hero-orb" aria-hidden="true">${icon("star")}</span>
+        <div class="activity-hero-copy">
+          <h1>Топ активности</h1>
+          <p>Выполняйте задания, набирайте баллы и забирайте призы в рейтинге каждые 14 дней.</p>
+        </div>
+        <div class="activity-user-summary">
+          <div class="activity-summary-item is-points">
+            <span class="activity-summary-icon">${icon("star")}</span>
+            <strong class="activity-summary-value">${Number(current.points || 0).toLocaleString("ru-RU")}</strong>
+            <span class="activity-summary-label">баллов</span>
           </div>
-          <button
-            class="primary-button raffle-join-button${hasJoinedRaffle ? " is-joined" : ""}"
-            type="button"
-            data-raffle-join
-            aria-pressed="${hasJoinedRaffle}"
-          >
-            <span>${hasJoinedRaffle ? "Вы участвуете" : "Участвовать"}</span>
-            ${icon(hasJoinedRaffle ? "check" : "arrow-right", "raffle-button-icon")}
-          </button>
+          <div class="activity-summary-item is-rank">
+            <span class="activity-summary-icon">${icon("trophy")}</span>
+            <strong class="activity-summary-value">${escapeHTML(current.rank ?? "—")}</strong>
+            <span class="activity-summary-label">место</span>
+          </div>
+          <div class="activity-summary-item is-time">
+            <span class="activity-summary-icon">${icon("clock")}</span>
+            <strong class="activity-summary-value">${activityCountdown(activity.season?.seconds_left)}</strong>
+            <span class="activity-summary-label">до конца</span>
+          </div>
+          <div class="activity-summary-item is-streak">
+            <span class="activity-summary-icon">${icon("flame")}</span>
+            <span class="activity-summary-label">Серия</span>
+            <strong class="activity-summary-value">${streakDays} ${activityDayWord(streakDays)}</strong>
+          </div>
         </div>
       </div>
-      <section class="section raffle-steps-section">
-        <div class="section-heading"><h2>Как получить билеты</h2></div>
-        <div class="steps-list raffle-steps-panel">
-          <article class="step-card"><span class="step-number">1</span><p><strong>Оформите и оплатите заказ</strong> в любой доступной игре.</p></article>
-          <article class="step-card"><span class="step-number">2</span><p>После подтверждения сделки <strong>билеты появятся в профиле.</strong></p></article>
-          <article class="step-card"><span class="step-number">3</span><p><strong>Нажмите «Участвовать»</strong> до завершения недели.</p></article>
+
+      <section class="activity-top-preview" aria-labelledby="activity-preview-title">
+        <div class="activity-preview-heading">
+          <h2 id="activity-preview-title">Лидеры розыгрыша</h2>
+          <button class="activity-full-list-button" type="button" data-activity-scroll-leaderboard>
+            Полный список <span aria-hidden="true">→</span>
+          </button>
         </div>
+        <div class="glass-card activity-preview-card">
+          ${previewLeaders.length ? previewLeaders.map((player) =>
+            activityPreviewRow(player, prizes)
+          ).join("") : `
+            <div class="activity-preview-empty">Выполните задание и станьте первым участником</div>
+          `}
+        </div>
+      </section>
+
+      <section class="section activity-tasks-section">
+        <div class="section-heading activity-section-heading">
+          <div><h2>Задания</h2></div>
+        </div>
+        <div class="activity-task-list">
+          ${activityTaskCard({
+            iconName: "clock",
+            title: "Ежедневный вход",
+            text: "Начисляется автоматически раз в сутки",
+            points: tasks.daily_login?.points || 10,
+            status: tasks.daily_login?.claimed ? "Получено" : "Сегодня",
+            complete: Boolean(tasks.daily_login?.claimed)
+          })}
+          ${activityTaskCard({
+            iconName: "star",
+            title: "Серия входов 7 дней",
+            text: `${Number(tasks.seven_day_streak?.progress || 0)} из 7 дней подряд`,
+            points: tasks.seven_day_streak?.points || 30,
+            progress: {
+              current: Number(tasks.seven_day_streak?.progress || 0),
+              total: 7
+            }
+          })}
+          ${activityTaskCard({
+            iconName: "message-square",
+            title: "Комментарий под последним постом",
+            text: "Не более одного комментария на публикацию",
+            points: tasks.comment?.points || 30,
+            action: `<button class="activity-task-button" type="button" data-activity-open="${escapeHTML(channelUrl)}">К посту</button>`
+          })}
+          ${activityTaskCard({
+            iconName: "star",
+            title: "Реакция на публикацию",
+            text: "Баллы начислятся после реакции в канале",
+            points: tasks.reaction?.points || 10,
+            action: `<button class="activity-task-button" type="button" data-activity-open="${escapeHTML(channelUrl)}">Открыть</button>`
+          })}
+          ${activityTaskCard({
+            iconName: "arrow-up-right",
+            title: "Репост минимум в 10 чатов",
+            text: "Одно начисление в сутки по вашей отметке",
+            points: tasks.daily_repost?.points || 30,
+            action: tasks.daily_repost?.claimed
+              ? `<span class="activity-task-status is-complete">Получено</span>`
+              : `<button class="activity-task-button" type="button" data-activity-claim="repost">Проверить</button>`
+          })}
+          ${activityTaskCard({
+            iconName: "user",
+            title: "Пригласить активного пользователя",
+            text: `${Number(activity.referrals?.active || 0)} активных из ${Number(activity.referrals?.invited || 0)} приглашённых`,
+            points: tasks.referral?.points || 30,
+            action: `<button class="activity-task-button" type="button" data-copy-activity-referral>Ссылка</button>`
+          })}
+        </div>
+      </section>
+
+      <section class="section activity-sponsors-section">
+        <div class="section-heading activity-section-heading">
+          <div><h2>Каналы спонсоров</h2></div>
+        </div>
+        <div class="activity-sponsor-list">
+          ${sponsorTasks.length ? sponsorTasks.map((sponsor) => `
+            <article class="activity-sponsor-card">
+              <span class="activity-sponsor-logo">${icon("message-square")}</span>
+              <span><strong>${escapeHTML(sponsor.title)}</strong><small>Подписка на канал</small></span>
+              <button class="activity-sponsor-open" type="button" data-activity-open="${escapeHTML(sponsor.url)}">Открыть</button>
+              <button class="activity-sponsor-check${sponsor.claimed ? " is-complete" : ""}" type="button"
+                data-activity-sponsor="${escapeHTML(sponsor.id)}" ${sponsor.claimed ? "disabled" : ""}>
+                ${sponsor.claimed ? "Получено" : `Проверить +${sponsor.points}`}
+              </button>
+            </article>
+          `).join("") : `
+            <div class="glass-card activity-empty-sponsors">
+              <span>${icon("info")}</span>
+              <div><strong>Новых заданий пока нет</strong><p>Каналы спонсоров появятся здесь отдельными карточками.</p></div>
+            </div>
+          `}
+        </div>
+      </section>
+
+      <section class="section activity-leaderboard-section" id="activity-full-leaderboard">
+        <div class="section-heading activity-section-heading">
+          <div><h2>Рейтинг розыгрыша</h2></div>
+          <span class="activity-top-prize">${icon("gift")} 10 призов</span>
+        </div>
+        <div class="activity-leaderboard glass-card">
+          <div class="activity-leader-head"><span>Место и участник</span><span>Баллы</span><span>Награда</span></div>
+          ${leaderboard.length ? leaderboard.map((player) =>
+            activityLeaderboardRow(player, prizes, current.user_id)
+          ).join("") : `
+            <div class="activity-empty-board">
+              <strong>Рейтинг только начинается</strong>
+              <p>Выполните первое задание и займите верхнюю строчку.</p>
+            </div>
+          `}
+        </div>
+        ${current.rank > 100 ? `
+          <div class="activity-current-outside glass-card">
+            <span>Ваше текущее место</span>
+            ${activityLeaderboardRow(current, prizes, current.user_id)}
+          </div>
+        ` : ""}
       </section>
     </section>
   `;
@@ -1592,7 +1784,7 @@ function renderProfile() {
       </span>
     `
     : `<span class="avatar profile-user-avatar">${escapeHTML(user.initial)}</span>`;
-  const orders = getLocalOrders();
+  const orders = getOrdersForDisplay();
   const purchaseTotal = orders.reduce((sum, order) => {
     if (Number.isFinite(order.totalValue)) return sum + order.totalValue;
     return sum + (Number(String(order.total || "").replace(/[^\d.,]/g, "").replace(",", ".")) || 0);
@@ -1752,7 +1944,20 @@ function renderInfo() {
   `;
 }
 
-function openReviewModal() {
+async function openReviewModal() {
+  if (!tg?.initData && !apiAccessToken) {
+    showToast("Откройте магазин через Telegram, чтобы оставить отзыв");
+    openExternal(TELEGRAM_AUTH_URL);
+    return;
+  }
+  await loadRemoteOrders();
+  const eligibleOrders = (state.apiOrders || []).filter((order) =>
+    ["paid", "processing", "completed"].includes(order.status)
+  );
+  if (!eligibleOrders.length) {
+    showToast("Отзыв можно оставить после оплаты заказа");
+    return;
+  }
   state.reviewRating = 5;
   modalRoot.innerHTML = `
     <div class="modal-backdrop" data-close-modal>
@@ -1766,9 +1971,13 @@ function openReviewModal() {
         </div>
         <form class="form-grid" id="reviewForm" novalidate>
           <div class="field-group">
-            <label for="reviewProject">Игра</label>
-            <select class="field-control" id="reviewProject" name="projectId" required>
-              ${PROJECTS.map((project) => `<option value="${project.id}">${escapeHTML(project.name)}</option>`).join("")}
+            <label for="reviewOrder">Заказ</label>
+            <select class="field-control" id="reviewOrder" name="orderPublicId" required>
+              ${eligibleOrders.map((order) => `
+                <option value="${escapeHTML(order.public_id)}">
+                  #${escapeHTML(order.public_id)} · ${escapeHTML(order.game)} · ${escapeHTML(order.server || "Без сервера")}
+                </option>
+              `).join("")}
             </select>
           </div>
           <div>
@@ -1784,13 +1993,6 @@ function openReviewModal() {
             <label for="reviewText">Текст отзыва</label>
             <textarea class="field-control" id="reviewText" name="text" required minlength="3" maxlength="500"
               placeholder="Расскажите, как всё прошло"></textarea>
-          </div>
-          <div class="field-group">
-            <label for="reviewDelivery">Способ получения</label>
-            <select class="field-control" id="reviewDelivery" name="delivery" required>
-              <option value="Трейд">Трейд</option>
-              <option value="Банк">Банк</option>
-            </select>
           </div>
           <button class="primary-button" type="submit">Отправить отзыв</button>
         </form>
@@ -2262,7 +2464,12 @@ function submitSale(form) {
 async function submitReview(form) {
   if (!validateForm(form)) return;
   const formData = new FormData(form);
-  const project = getProject(formData.get("projectId"));
+  const orderPublicId = String(formData.get("orderPublicId") || "");
+  const selectedOrder = (state.apiOrders || []).find((order) => order.public_id === orderPublicId);
+  if (!selectedOrder) {
+    showToast("Выберите заказ");
+    return;
+  }
   const review = {
     id: `local-${Date.now()}`,
     initial: getTelegramUser().initial,
@@ -2270,11 +2477,11 @@ async function submitReview(form) {
     status: "ожидает проверки",
     rating: state.reviewRating,
     text: formData.get("text").trim(),
-    projectId: formData.get("projectId"),
-    server: "Не указан",
-    amount: "—",
-    price: "—",
-    delivery: formData.get("delivery"),
+    projectId: PROJECTS.find((project) => project.name === selectedOrder.game)?.id || "black-russia",
+    server: selectedOrder.server || "Без сервера",
+    amount: selectedOrder.amount_kk,
+    price: selectedOrder.price_rub,
+    delivery: selectedOrder.delivery_type,
     time: "—",
     date: new Date().toLocaleDateString("ru-RU"),
     source: "Сайт"
@@ -2289,10 +2496,9 @@ async function submitReview(form) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          game: project.name,
+          order_public_id: orderPublicId,
           rating: review.rating,
-          text: review.text,
-          delivery_type: review.delivery
+          text: review.text
         })
       });
       const createdReview = await response.json().catch(() => ({}));
@@ -2309,7 +2515,7 @@ async function submitReview(form) {
     state.reviewVisibleCount = REVIEWS_PAGE_SIZE;
     render();
     haptic("medium");
-    showToast(`Спасибо! Отзыв о ${project.name} ожидает проверки`);
+    showToast(`Спасибо! Отзыв о ${selectedOrder.game} ожидает проверки`);
   } catch (error) {
     console.error(error);
     submitButton.disabled = false;
@@ -2324,7 +2530,32 @@ async function loadRemoteReviews() {
     const response = await fetch(`${REVIEWS_API_BASE_URL.replace(/\/$/, "")}${REVIEW_ENDPOINTS.list}`);
     if (!response.ok) throw new Error(`Reviews request failed: ${response.status}`);
     const data = await response.json();
-    state.apiReviews = Array.isArray(data) ? data : (data.reviews || []);
+    const rows = Array.isArray(data) ? data : (data.reviews || []);
+    state.apiReviews = rows.map((review) => {
+      const project = PROJECTS.find((item) => item.name === review.game || item.shortName === review.game);
+      const amountNumber = Number(review.amount_kk);
+      const amount = Number.isFinite(amountNumber)
+        ? `${amountNumber.toLocaleString("ru-RU")} ${review.game === "STANDOFF 2" ? "G" : "кк"}`
+        : "—";
+      const created = new Date(review.created_at);
+      return {
+        id: review.public_id,
+        initial: getUserInitials(review.username || "Пользователь"),
+        photoUrl: review.user_id ? `${API_BASE_URL}/api/public/avatar/${review.user_id}` : "",
+        order: review.order_public_id ? `Заказ #${review.order_public_id}` : `Отзыв #${review.public_id}`,
+        status: "подтверждён",
+        rating: Number(review.rating) || 5,
+        text: review.text || "",
+        projectId: project?.id || "black-russia",
+        server: review.server || "—",
+        amount,
+        price: review.price_rub ? formatMoney(Number(review.price_rub)) : "—",
+        delivery: review.delivery_type || "—",
+        time: "—",
+        date: Number.isNaN(created.getTime()) ? "" : created.toLocaleDateString("ru-RU"),
+        source: review.source || "Сайт"
+      };
+    });
     if (state.route === "reviews") render();
   } catch (error) {
     console.error(error);
@@ -2346,6 +2577,106 @@ async function loadRemoteOrders() {
     console.error("Orders load error", error);
   } finally {
     remoteOrdersLoading = false;
+  }
+}
+
+async function loadSiteConfig() {
+  if (!API_BASE_URL) return;
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/site-config`);
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) return;
+    const values = data.values || {};
+    SUPPORT_URL = values.support_url || SUPPORT_URL;
+    SELL_MANAGER_URL = SUPPORT_URL;
+    TELEGRAM_BUY_URL = values.main_channel_url || TELEGRAM_BUY_URL;
+    REVIEWS_TELEGRAM_URL = values.reviews_telegram_url || REVIEWS_TELEGRAM_URL;
+    REVIEWS_VK_URL = values.reviews_vk_url || REVIEWS_VK_URL;
+    VK_BUY_URL = values.vk_buy_url || VK_BUY_URL;
+    VK_SELL_URL = values.vk_sell_url || VK_SELL_URL;
+    render();
+  } catch (error) {
+    console.warn("Site config load error", error);
+  }
+}
+
+async function reportReferralVisit() {
+  const referrerId = getReferralId();
+  if (!API_BASE_URL || !referrerId) return;
+  try {
+    await fetch(`${API_BASE_URL}/api/referrals/visit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        referrer_id: referrerId,
+        visitor_key: getReferralVisitorKey()
+      })
+    });
+  } catch (error) {
+    console.warn("Referral visit tracking error", error);
+  }
+}
+
+async function loadActivity(force = false) {
+  if (!API_BASE_URL || !tg?.initData || activityLoading) return;
+  if (state.activity && !force) return;
+  activityLoading = true;
+  state.activityError = "";
+  try {
+    const response = await apiRequest("/api/activity");
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || `Activity request failed: ${response.status}`);
+    }
+    state.activity = data;
+  } catch (error) {
+    console.error("Activity load error", error);
+    state.activityError = error.message || "Попробуйте ещё раз";
+  } finally {
+    activityLoading = false;
+    if (state.route === "raffle") render();
+  }
+}
+
+function scheduleMoscowMidnightRefresh() {
+  window.clearTimeout(moscowRefreshTimer);
+  const now = new Date();
+  const moscowNow = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+  const nextMidnightUtc = Date.UTC(
+    moscowNow.getUTCFullYear(),
+    moscowNow.getUTCMonth(),
+    moscowNow.getUTCDate() + 1,
+    -3,
+    0,
+    0,
+    0
+  );
+  const delay = Math.max(1000, nextMidnightUtc - now.getTime() + 1500);
+  moscowRefreshTimer = window.setTimeout(async () => {
+    await loadSiteConfig();
+    if (tg?.initData) await loadActivity(true);
+    scheduleMoscowMidnightRefresh();
+  }, delay);
+}
+
+async function claimActivityTask(type, sponsorId = "") {
+  try {
+    const response = await apiRequest("/api/activity/claim", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type, sponsor_id: sponsorId || null })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || `Activity claim failed: ${response.status}`);
+    }
+    state.activity = data;
+    state.activityError = "";
+    render();
+    showToast(data.message || "Баллы обновлены");
+  } catch (error) {
+    console.error("Activity claim error", error);
+    showToast(error.message || "Не удалось проверить задание");
   }
 }
 
@@ -2379,6 +2710,67 @@ document.addEventListener("click", (event) => {
   if (event.target.closest("[data-raffle-join]")) {
     showToast("Функция в разработке");
     haptic("medium");
+    return;
+  }
+
+  if (event.target.closest("[data-activity-reload]")) {
+    state.activity = null;
+    state.activityError = "";
+    render();
+    loadActivity(true);
+    return;
+  }
+
+  if (event.target.closest("[data-activity-scroll-leaderboard]")) {
+    const leaderboard = document.getElementById("activity-full-leaderboard");
+    leaderboard?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start"
+    });
+    haptic();
+    return;
+  }
+
+  const activityOpenButton = event.target.closest("[data-activity-open]");
+  if (activityOpenButton) {
+    openExternal(activityOpenButton.dataset.activityOpen);
+    haptic();
+    return;
+  }
+
+  const activityClaimButton = event.target.closest("[data-activity-claim]");
+  if (activityClaimButton) {
+    if (
+      activityClaimButton.dataset.activityClaim === "repost" &&
+      !window.confirm("Подтверждаете, что отправили нужный пост минимум в 10 чатов?")
+    ) {
+      return;
+    }
+    activityClaimButton.disabled = true;
+    claimActivityTask(activityClaimButton.dataset.activityClaim);
+    haptic("medium");
+    return;
+  }
+
+  const sponsorClaimButton = event.target.closest("[data-activity-sponsor]");
+  if (sponsorClaimButton) {
+    sponsorClaimButton.disabled = true;
+    claimActivityTask("sponsor", sponsorClaimButton.dataset.activitySponsor);
+    haptic("medium");
+    return;
+  }
+
+  if (event.target.closest("[data-copy-activity-referral]")) {
+    const user = getTelegramUser();
+    if (!user.isAuthenticated) {
+      openExternal(TELEGRAM_AUTH_URL);
+      return;
+    }
+    const referral = `https://t.me/PlatinovBot?start=ref_${encodeURIComponent(user.id)}`;
+    navigator.clipboard?.writeText(referral)
+      .then(() => showToast("Реферальная ссылка скопирована"))
+      .catch(() => showToast(`Ссылка: ${referral}`));
+    haptic();
     return;
   }
 
@@ -2446,7 +2838,7 @@ document.addEventListener("click", (event) => {
   }
 
   if (event.target.closest("[data-open-review]")) {
-    openExternal(REVIEWS_VK_URL);
+    void openReviewModal();
     haptic();
     return;
   }
@@ -2599,12 +2991,25 @@ async function checkAccess() {
 
 initializeTelegram();
 restoreNavigationSession();
+const directPublicRoute = getPublicRouteFromLocation();
+if (normalizePublicPath() !== "/" && directPublicRoute) {
+  state.route = directPublicRoute;
+  state.history = [];
+}
 applyPaymentReturnRoute();
+syncBrowserRoute(state.route, "replace");
 renderHeaderProfile();
 render();
+loadSiteConfig();
+scheduleMoscowMidnightRefresh();
+reportReferralVisit();
 hydrateTelegramAvatar();
 loadRemoteReviews();
 if (state.route === "orders") loadRemoteOrders();
+if (state.route === "raffle") loadActivity();
 checkAccess();
 
 window.addEventListener?.("pagehide", saveNavigationSession);
+window.addEventListener?.("popstate", (event) => {
+  applyRouteFromLocation(event.state);
+});

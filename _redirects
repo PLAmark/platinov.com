@@ -1,0 +1,11 @@
+/profile/  /profile      301
+/orders/   /orders       301
+/reviews/  /reviews      301
+/support/  /support      301
+/giveaway/ /giveaway     301
+
+/profile   /index.html   200
+/orders    /index.html   200
+/reviews   /index.html   200
+/support   /index.html   200
+/giveaway  /index.html   200
