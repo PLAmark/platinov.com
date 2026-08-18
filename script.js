@@ -44,7 +44,7 @@ let moscowRefreshTimer = 0;
 let reactionClaimTimer = 0;
 let reactionClaimInFlight = false;
 let pendingReactionClaimDue = 0;
-const REACTION_CLAIM_DUE_STORAGE_KEY = "platinov-reaction-claim-due-v1";
+const REACTION_CLAIM_DUE_STORAGE_KEY = "platinov-reaction-claim-due-v2";
 
 function getReferralVisitorKey() {
   const storageKey = "platinov-referral-visitor-v1";
@@ -1571,7 +1571,9 @@ function renderRaffle() {
             title: "Комментарий под последним постом",
             text: "Не более одного комментария на публикацию",
             points: tasks.comment?.points || 30,
-            action: `<button class="activity-task-button" type="button" data-activity-open="${escapeHTML(channelUrl)}">К посту</button>`
+            action: tasks.comment?.claimed
+              ? `<span class="activity-task-status is-complete">Получено</span>`
+              : `<button class="activity-task-button" type="button" data-activity-open="${escapeHTML(channelUrl)}">К посту</button>`
           })}
           ${activityTaskCard({
             iconName: "star",
@@ -2691,7 +2693,7 @@ async function claimActivityTask(type, sponsorId = "") {
 
 function getPendingReactionClaimDue() {
   try {
-    const due = Number(window.sessionStorage.getItem(REACTION_CLAIM_DUE_STORAGE_KEY));
+    const due = Number(window.localStorage.getItem(REACTION_CLAIM_DUE_STORAGE_KEY));
     pendingReactionClaimDue = Number.isFinite(due) && due > 0 ? due : 0;
     return pendingReactionClaimDue;
   } catch {
@@ -2703,9 +2705,9 @@ function setPendingReactionClaimDue(due) {
   pendingReactionClaimDue = due > 0 ? due : 0;
   try {
     if (due > 0) {
-      window.sessionStorage.setItem(REACTION_CLAIM_DUE_STORAGE_KEY, String(due));
+      window.localStorage.setItem(REACTION_CLAIM_DUE_STORAGE_KEY, String(due));
     } else {
-      window.sessionStorage.removeItem(REACTION_CLAIM_DUE_STORAGE_KEY);
+      window.localStorage.removeItem(REACTION_CLAIM_DUE_STORAGE_KEY);
     }
   } catch {
     // The in-memory timer still works if Telegram WebView blocks storage.
@@ -2733,7 +2735,6 @@ function schedulePendingReactionClaim() {
 }
 
 function startDelayedReactionClaim(url, button) {
-  openExternal(url);
   if (state.activity?.tasks?.reaction?.claimed) return;
   const existingDue = getPendingReactionClaimDue();
   const due = existingDue > Date.now() ? existingDue : Date.now() + 10000;
@@ -2744,6 +2745,8 @@ function startDelayedReactionClaim(url, button) {
   }
   schedulePendingReactionClaim();
   showToast("Реакция засчитается через 10 секунд");
+  // Persist and schedule the claim before Telegram suspends the Mini App.
+  openExternal(url);
 }
 
 document.addEventListener("click", (event) => {
@@ -3083,12 +3086,20 @@ if (state.route === "raffle") loadActivity();
 checkAccess();
 
 schedulePendingReactionClaim();
-document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) {
-    void finishPendingReactionClaim();
-    schedulePendingReactionClaim();
+async function refreshActivityAfterReturn() {
+  if (document.hidden) return;
+  await finishPendingReactionClaim();
+  if (state.route === "raffle" && tg?.initData) {
+    await loadActivity(true);
   }
+  schedulePendingReactionClaim();
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) void refreshActivityAfterReturn();
 });
+window.addEventListener?.("focus", () => void refreshActivityAfterReturn());
+window.addEventListener?.("pageshow", () => void refreshActivityAfterReturn());
 
 window.addEventListener?.("pagehide", saveNavigationSession);
 window.addEventListener?.("popstate", (event) => {
