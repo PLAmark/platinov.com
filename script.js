@@ -41,6 +41,10 @@ let promoQuoteSequence = 0;
 let remoteOrdersLoading = false;
 let activityLoading = false;
 let moscowRefreshTimer = 0;
+let reactionClaimTimer = 0;
+let reactionClaimInFlight = false;
+let pendingReactionClaimDue = 0;
+const REACTION_CLAIM_DUE_STORAGE_KEY = "platinov-reaction-claim-due-v1";
 
 function getReferralVisitorKey() {
   const storageKey = "platinov-referral-visitor-v1";
@@ -1269,6 +1273,7 @@ function renderOrders() {
 function reviewCard(review) {
   const project = getProject(review.projectId);
   const statusClass = review.status === "подтверждён" ? "confirmed" : "";
+  const visibleSource = review.source === "Администратор" ? "" : review.source;
   return `
     <article class="review-card">
       <div class="review-head">
@@ -1293,7 +1298,7 @@ function reviewCard(review) {
       </div>
       <div class="review-meta-row">
         <span>${escapeHTML(review.date)}</span>
-        <span class="source-badge">${escapeHTML(review.source)}</span>
+        ${visibleSource ? `<span class="source-badge">${escapeHTML(visibleSource)}</span>` : ""}
       </div>
     </article>
   `;
@@ -1571,9 +1576,11 @@ function renderRaffle() {
           ${activityTaskCard({
             iconName: "star",
             title: "Реакция на публикацию",
-            text: "Баллы начислятся после реакции в канале",
+            text: "Баллы начислятся через 10 секунд после открытия",
             points: tasks.reaction?.points || 10,
-            action: `<button class="activity-task-button" type="button" data-activity-open="${escapeHTML(channelUrl)}">Открыть</button>`
+            action: tasks.reaction?.claimed
+              ? `<span class="activity-task-status is-complete">Получено</span>`
+              : `<button class="activity-task-button" type="button" data-activity-reaction="${escapeHTML(channelUrl)}">Открыть</button>`
           })}
           ${activityTaskCard({
             iconName: "arrow-up-right",
@@ -2553,7 +2560,7 @@ async function loadRemoteReviews() {
         delivery: review.delivery_type || "—",
         time: "—",
         date: Number.isNaN(created.getTime()) ? "" : created.toLocaleDateString("ru-RU"),
-        source: review.source || "Сайт"
+        source: review.source == null ? "Сайт" : review.source
       };
     });
     if (state.route === "reviews") render();
@@ -2674,10 +2681,69 @@ async function claimActivityTask(type, sponsorId = "") {
     state.activityError = "";
     render();
     showToast(data.message || "Баллы обновлены");
+    return true;
   } catch (error) {
     console.error("Activity claim error", error);
     showToast(error.message || "Не удалось проверить задание");
+    return false;
   }
+}
+
+function getPendingReactionClaimDue() {
+  try {
+    const due = Number(window.sessionStorage.getItem(REACTION_CLAIM_DUE_STORAGE_KEY));
+    pendingReactionClaimDue = Number.isFinite(due) && due > 0 ? due : 0;
+    return pendingReactionClaimDue;
+  } catch {
+    return pendingReactionClaimDue;
+  }
+}
+
+function setPendingReactionClaimDue(due) {
+  pendingReactionClaimDue = due > 0 ? due : 0;
+  try {
+    if (due > 0) {
+      window.sessionStorage.setItem(REACTION_CLAIM_DUE_STORAGE_KEY, String(due));
+    } else {
+      window.sessionStorage.removeItem(REACTION_CLAIM_DUE_STORAGE_KEY);
+    }
+  } catch {
+    // The in-memory timer still works if Telegram WebView blocks storage.
+  }
+}
+
+async function finishPendingReactionClaim() {
+  if (reactionClaimInFlight) return;
+  const due = getPendingReactionClaimDue();
+  if (!due || Date.now() < due) return;
+  reactionClaimInFlight = true;
+  const succeeded = await claimActivityTask("reaction");
+  reactionClaimInFlight = false;
+  if (succeeded) setPendingReactionClaimDue(0);
+}
+
+function schedulePendingReactionClaim() {
+  window.clearTimeout(reactionClaimTimer);
+  const due = getPendingReactionClaimDue();
+  if (!due) return;
+  reactionClaimTimer = window.setTimeout(
+    () => void finishPendingReactionClaim(),
+    Math.max(0, due - Date.now())
+  );
+}
+
+function startDelayedReactionClaim(url, button) {
+  openExternal(url);
+  if (state.activity?.tasks?.reaction?.claimed) return;
+  const existingDue = getPendingReactionClaimDue();
+  const due = existingDue > Date.now() ? existingDue : Date.now() + 10000;
+  setPendingReactionClaimDue(due);
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Проверяем…";
+  }
+  schedulePendingReactionClaim();
+  showToast("Реакция засчитается через 10 секунд");
 }
 
 document.addEventListener("click", (event) => {
@@ -2735,6 +2801,13 @@ document.addEventListener("click", (event) => {
   if (activityOpenButton) {
     openExternal(activityOpenButton.dataset.activityOpen);
     haptic();
+    return;
+  }
+
+  const reactionButton = event.target.closest("[data-activity-reaction]");
+  if (reactionButton) {
+    startDelayedReactionClaim(reactionButton.dataset.activityReaction, reactionButton);
+    haptic("medium");
     return;
   }
 
@@ -3008,6 +3081,14 @@ loadRemoteReviews();
 if (state.route === "orders") loadRemoteOrders();
 if (state.route === "raffle") loadActivity();
 checkAccess();
+
+schedulePendingReactionClaim();
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    void finishPendingReactionClaim();
+    schedulePendingReactionClaim();
+  }
+});
 
 window.addEventListener?.("pagehide", saveNavigationSession);
 window.addEventListener?.("popstate", (event) => {
