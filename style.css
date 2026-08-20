@@ -14342,22 +14342,24 @@ html .bottom-nav .nav-order.is-active:active {
   }
 }
 
-/* v247: clearer cyan lens without milky white and no press shrink */
+/* v248: neutral active lens matched to the base dock material */
 html .bottom-nav .nav-item.is-active,
 html .bottom-nav .nav-order.is-active {
-  border-color: rgba(62, 179, 244, 0.34) !important;
+  border-color: rgba(224, 239, 248, 0.16) !important;
   background:
     linear-gradient(
       180deg,
-      rgba(48, 166, 235, 0.2) 0%,
-      rgba(31, 137, 211, 0.17) 50%,
-      rgba(18, 94, 171, 0.15) 100%
+      rgba(255, 255, 255, 0.085) 0%,
+      rgba(255, 255, 255, 0.045) 52%,
+      rgba(255, 255, 255, 0.025) 100%
     ),
-    rgba(14, 92, 171, 0.18) !important;
+    rgba(255, 255, 255, 0.025) !important;
   box-shadow:
-    0 4px 12px rgba(2, 35, 73, 0.1),
-    inset 0 1px 0 rgba(58, 181, 242, 0.16),
-    inset 0 -1px 0 rgba(26, 124, 205, 0.1) !important;
+    0 4px 12px rgba(2, 14, 31, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.025) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
 html .bottom-nav .nav-item:active .nav-icon,
@@ -14371,15 +14373,15 @@ html .bottom-nav .nav-order:active .nav-icon .ui-icon {
 @media (hover: hover) and (pointer: fine) {
   html .bottom-nav .nav-item.is-active:hover,
   html .bottom-nav .nav-order.is-active:hover {
-    border-color: rgba(75, 190, 249, 0.4) !important;
+    border-color: rgba(232, 244, 251, 0.22) !important;
     background:
       linear-gradient(
         180deg,
-        rgba(55, 177, 240, 0.23) 0%,
-        rgba(35, 148, 220, 0.2) 50%,
-        rgba(21, 106, 184, 0.17) 100%
+        rgba(255, 255, 255, 0.105) 0%,
+        rgba(255, 255, 255, 0.06) 52%,
+        rgba(255, 255, 255, 0.035) 100%
       ),
-      rgba(16, 101, 184, 0.2) !important;
+      rgba(255, 255, 255, 0.035) !important;
   }
 
   html .bottom-nav .nav-item:hover .nav-icon,
