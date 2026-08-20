@@ -1421,13 +1421,14 @@ function activityLeaderboardRow(player, prizes, currentUserId) {
   const prize = prizes.find((item) => Number(item.rank) === Number(player.rank));
   const isCurrent = String(player.user_id) === String(currentUserId);
   const medalClass = player.rank <= 3 ? ` is-medal is-rank-${player.rank}` : "";
+  const visibleUsername = Number(player.rank) <= 10 ? String(player.username || "").trim() : "";
   return `
     <article class="activity-leader-row${medalClass}${isCurrent ? " is-current" : ""}">
       <span class="activity-rank">${player.rank}</span>
       ${activityAvatar(player)}
       <span class="activity-player-copy">
         <strong>${escapeHTML(player.display_name)}</strong>
-        <small>${escapeHTML(player.username || "Участник PLATINOV")}</small>
+        ${visibleUsername ? `<small>${escapeHTML(visibleUsername)}</small>` : ""}
       </span>
       <strong class="activity-player-points">${Number(player.points).toLocaleString("ru-RU")}</strong>
       ${prize ? `<span class="activity-prize"><small>Приз</small><strong>${escapeHTML(prize.label)}</strong></span>` : ""}
@@ -2536,10 +2537,21 @@ async function submitReview(form) {
 async function loadRemoteReviews() {
   if (!REVIEWS_API_BASE_URL) return;
   try {
-    const response = await fetch(`${REVIEWS_API_BASE_URL.replace(/\/$/, "")}${REVIEW_ENDPOINTS.list}`);
-    if (!response.ok) throw new Error(`Reviews request failed: ${response.status}`);
-    const data = await response.json();
-    const rows = Array.isArray(data) ? data : (data.reviews || []);
+    const rows = [];
+    const pageSize = 50;
+    let offset = 0;
+    for (let page = 0; page < 100; page += 1) {
+      const query = new URLSearchParams({ limit: String(pageSize), offset: String(offset) });
+      const response = await fetch(
+        `${REVIEWS_API_BASE_URL.replace(/\/$/, "")}${REVIEW_ENDPOINTS.list}?${query}`
+      );
+      if (!response.ok) throw new Error(`Reviews request failed: ${response.status}`);
+      const data = await response.json();
+      const batch = Array.isArray(data) ? data : (data.reviews || []);
+      rows.push(...batch);
+      if (batch.length < pageSize) break;
+      offset += batch.length;
+    }
     state.apiReviews = rows.map((review) => {
       const project = PROJECTS.find((item) => item.name === review.game || item.shortName === review.game);
       const amountNumber = Number(review.amount_kk);

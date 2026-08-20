@@ -13165,6 +13165,22 @@ body:has(.raffle-screen.activity-screen) {
   }
 }
 
+/* v245: stable first paint for every content screen.
+   Backdrop blur is composited after the first frame in Chromium/WebView and
+   briefly exposes the older dark card layer. Keep the navigation glass, but
+   render all page content from its final matte backgrounds immediately. */
+html #app .screen {
+  animation: none !important;
+}
+
+html #app,
+html #app *,
+html #app *::before,
+html #app *::after {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
 /* v210: reference-led raffle layout; global top and bottom glass stay unchanged */
 .raffle-screen.activity-screen {
   gap: 26px;
