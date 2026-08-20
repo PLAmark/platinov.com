@@ -14279,3 +14279,120 @@ html #app *::after {
     transition: none;
   }
 }
+
+/* v246: reference-matched active lens; the static bottom dock stays unchanged */
+html .bottom-nav .nav-item.is-active,
+html .bottom-nav .nav-order.is-active {
+  width: min(76px, calc(100% + 8px));
+  height: 48px;
+  min-height: 48px;
+  margin-top: 0;
+  border: 1px solid rgba(220, 242, 255, 0.38) !important;
+  border-radius: 999px;
+  color: #ffffff;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(225, 244, 255, 0.28) 0%,
+      rgba(151, 207, 247, 0.2) 48%,
+      rgba(81, 157, 221, 0.16) 100%
+    ),
+    rgba(77, 160, 226, 0.18) !important;
+  box-shadow:
+    0 4px 12px rgba(2, 35, 73, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    inset 0 -1px 0 rgba(179, 224, 253, 0.16) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(138%);
+  backdrop-filter: blur(14px) saturate(138%);
+}
+
+html .bottom-nav .nav-item.is-active::before {
+  display: none;
+  content: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html .bottom-nav .nav-item.is-active:hover,
+  html .bottom-nav .nav-order.is-active:hover {
+    border-color: rgba(229, 247, 255, 0.48) !important;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(235, 249, 255, 0.33) 0%,
+        rgba(164, 216, 251, 0.24) 48%,
+        rgba(91, 171, 233, 0.18) 100%
+      ),
+      rgba(86, 172, 236, 0.2) !important;
+    transform: translateY(-1px) scale(1.01) !important;
+  }
+}
+
+html .bottom-nav .nav-item:active,
+html .bottom-nav .nav-item.is-active:active,
+html .bottom-nav .nav-order.is-active:active {
+  transform: none !important;
+  transition-duration: 160ms !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html .bottom-nav .nav-item:hover:active,
+  html .bottom-nav .nav-item.is-active:hover:active,
+  html .bottom-nav .nav-order.is-active:hover:active {
+    transform: translateY(-1px) scale(1.01) !important;
+  }
+}
+
+/* v247: clearer cyan lens without milky white and no press shrink */
+html .bottom-nav .nav-item.is-active,
+html .bottom-nav .nav-order.is-active {
+  border-color: rgba(62, 179, 244, 0.34) !important;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(48, 166, 235, 0.2) 0%,
+      rgba(31, 137, 211, 0.17) 50%,
+      rgba(18, 94, 171, 0.15) 100%
+    ),
+    rgba(14, 92, 171, 0.18) !important;
+  box-shadow:
+    0 4px 12px rgba(2, 35, 73, 0.1),
+    inset 0 1px 0 rgba(58, 181, 242, 0.16),
+    inset 0 -1px 0 rgba(26, 124, 205, 0.1) !important;
+}
+
+html .bottom-nav .nav-item:active .nav-icon,
+html .bottom-nav .nav-order:active .nav-icon,
+html .bottom-nav .nav-item:active .nav-icon .ui-icon,
+html .bottom-nav .nav-order:active .nav-icon .ui-icon {
+  animation: none !important;
+  transform: none !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html .bottom-nav .nav-item.is-active:hover,
+  html .bottom-nav .nav-order.is-active:hover {
+    border-color: rgba(75, 190, 249, 0.4) !important;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(55, 177, 240, 0.23) 0%,
+        rgba(35, 148, 220, 0.2) 50%,
+        rgba(21, 106, 184, 0.17) 100%
+      ),
+      rgba(16, 101, 184, 0.2) !important;
+  }
+
+  html .bottom-nav .nav-item:hover .nav-icon,
+  html .bottom-nav .nav-item:hover:active .nav-icon,
+  html .bottom-nav .nav-order:hover .nav-icon,
+  html .bottom-nav .nav-order:hover:active .nav-icon {
+    transform: scale(1.08) !important;
+  }
+
+  html .bottom-nav .nav-item:hover .nav-icon .ui-icon,
+  html .bottom-nav .nav-item:hover:active .nav-icon .ui-icon,
+  html .bottom-nav .nav-order:hover .nav-icon .ui-icon,
+  html .bottom-nav .nav-order:hover:active .nav-icon .ui-icon {
+    transform: scale(1.045) !important;
+  }
+}
