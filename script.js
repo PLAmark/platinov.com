@@ -1280,7 +1280,7 @@ function reviewCard(review) {
         <div class="review-user">
           <span class="avatar review-avatar">
             <span>${escapeHTML(review.initial)}</span>
-            ${review.photoUrl ? `<img src="${escapeHTML(review.photoUrl)}" alt="" loading="lazy" decoding="async">` : ""}
+            ${review.photoUrl ? `<img data-avatar-image src="${escapeHTML(review.photoUrl)}" alt="" loading="lazy" decoding="async">` : ""}
           </span>
           <span class="review-order">
             <strong>${escapeHTML(review.order)}</strong>
@@ -1387,7 +1387,7 @@ function activityAvatar(player) {
   return `
     <span class="activity-avatar">
       <span>${fallback}</span>
-      <img src="${escapeHTML(player.photo_url)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+      <img data-avatar-image src="${escapeHTML(player.photo_url)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
     </span>
   `;
 }
@@ -2049,7 +2049,10 @@ app.addEventListener(
   "error",
   (event) => {
     const image = event.target;
-    if (image instanceof HTMLImageElement && image.matches("[data-profile-avatar]")) {
+    if (
+      image instanceof HTMLImageElement &&
+      image.matches("[data-profile-avatar], [data-avatar-image]")
+    ) {
       image.remove();
     }
   },

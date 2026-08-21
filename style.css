@@ -14327,6 +14327,55 @@ html .bottom-nav .nav-item.is-active::before {
   }
 }
 
+/* v250: one circular avatar treatment with a visible initial fallback */
+.topbar .header-profile-visual,
+.profile-screen .profile-main .profile-user-avatar,
+.reviews-screen .review-avatar,
+.activity-avatar {
+  position: relative;
+  overflow: hidden;
+  border: 0 !important;
+  border-radius: 50% !important;
+  box-shadow: none !important;
+}
+
+.topbar .header-profile-avatar,
+.profile-screen .profile-avatar-image,
+.reviews-screen .review-avatar img,
+.activity-avatar img {
+  border: 0 !important;
+  border-radius: 50% !important;
+  object-fit: cover;
+}
+
+.topbar .header-profile-initials,
+.profile-screen .profile-avatar-fallback,
+.reviews-screen .review-avatar > span,
+.activity-avatar > span {
+  position: relative;
+  z-index: 0;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+}
+
+.profile-screen .profile-avatar-image,
+.reviews-screen .review-avatar img,
+.activity-avatar img {
+  z-index: 1;
+}
+
+/* v249: the active lens stays fixed while its icon keeps hover feedback */
+@media (hover: hover) and (pointer: fine) {
+  html .bottom-nav .nav-item.is-active:hover,
+  html .bottom-nav .nav-item.is-active:hover:active,
+  html .bottom-nav .nav-order.is-active:hover,
+  html .bottom-nav .nav-order.is-active:hover:active {
+    transform: none !important;
+  }
+}
+
 html .bottom-nav .nav-item:active,
 html .bottom-nav .nav-item.is-active:active,
 html .bottom-nav .nav-order.is-active:active {
@@ -14396,5 +14445,14 @@ html .bottom-nav .nav-order:active .nav-icon .ui-icon {
   html .bottom-nav .nav-order:hover .nav-icon .ui-icon,
   html .bottom-nav .nav-order:hover:active .nav-icon .ui-icon {
     transform: scale(1.045) !important;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html .bottom-nav .nav-item.is-active:hover,
+  html .bottom-nav .nav-item.is-active:hover:active,
+  html .bottom-nav .nav-order.is-active:hover,
+  html .bottom-nav .nav-order.is-active:hover:active {
+    transform: none !important;
   }
 }
