@@ -863,6 +863,30 @@ select.field-control {
   font-size: 11px;
 }
 
+.promo-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.promo-status-link {
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.96);
+  background: rgba(42, 164, 230, 0.9);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.promo-status-link:hover {
+  background: rgba(58, 181, 238, 0.95);
+}
+
 .promo-status.is-success {
   color: var(--success);
 }

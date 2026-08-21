@@ -1100,7 +1100,7 @@ function renderPurchaseForm() {
           <label for="buyPromo">Промокод</label>
           <input class="field-control" id="buyPromo" name="promo" maxlength="30"
             autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Если есть">
-          <p class="promo-status" id="promoStatus"></p>
+          <div class="promo-status" id="promoStatus"></div>
         </div>
         ${project.id === "standoff-2" ? `
           <div class="inline-note standoff-market-note">
@@ -2121,16 +2121,57 @@ function invalidatePromoQuote() {
   promoQuoteTimer = 0;
 }
 
+function renderPromoStatus(data) {
+  const node = document.getElementById("promoStatus");
+  if (!node) return;
+  node.replaceChildren();
+  const message = String(data?.promo_message || "").trim();
+  if (!message) {
+    node.className = "promo-status";
+    return;
+  }
+  const text = document.createElement("span");
+  text.textContent = message;
+  node.append(text);
+  const status = String(data?.promo_status || "");
+  node.className = `promo-status ${data?.promo_valid ? "is-success" : "is-warning"}`;
+
+  const links = [];
+  if (status === "bot_only" && data.bot_url) {
+    links.push({ title: "Открыть Telegram-бот", url: data.bot_url });
+  }
+  if (status === "subscription_required" && Array.isArray(data.channels)) {
+    data.channels.forEach((channel) => {
+      if (channel?.url) links.push({ title: channel.title || "Подписаться", url: channel.url });
+    });
+  }
+  if (links.length) {
+    const actions = document.createElement("div");
+    actions.className = "promo-status-actions";
+    links.forEach((item) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "promo-status-link";
+      button.textContent = item.title;
+      button.addEventListener("click", () => openExternal(item.url));
+      actions.append(button);
+    });
+    node.append(actions);
+  }
+}
+
 function schedulePromoQuote(project, amount, promoCode) {
   invalidatePromoQuote();
   const normalizedCode = String(promoCode).trim().toUpperCase();
-  if (!normalizedCode || !project || !Number.isFinite(amount) || amount <= 0) return;
+  if (!project || !Number.isFinite(amount) || amount <= 0) return;
 
   const promoStatus = document.getElementById("promoStatus");
   if (!tg?.initData) {
     if (promoStatus) {
-      promoStatus.textContent = "Проверка промокода доступна при открытии через Telegram";
-      promoStatus.className = "promo-status is-warning";
+      if (normalizedCode) {
+        promoStatus.textContent = "Проверка промокода доступна при открытии через Telegram";
+        promoStatus.className = "promo-status is-warning";
+      }
     }
     return;
   }
@@ -2195,14 +2236,7 @@ async function requestPromoQuote(project, amount, promoCode, requestId) {
         : "";
       discountNode.classList.toggle("is-visible", data.promo_valid && discount > 0);
     }
-    if (promoStatus) {
-      promoStatus.textContent = data.promo_valid
-        ? `Промокод активирован: скидка ${promoPercent}%`
-        : "Промокод не найден — заказ будет без скидки";
-      promoStatus.className = data.promo_valid
-        ? "promo-status is-success"
-        : "promo-status is-warning";
-    }
+    renderPromoStatus(data);
   } catch (error) {
     if (requestId !== promoQuoteSequence) return;
     const promoStatus = document.getElementById("promoStatus");
