@@ -14400,6 +14400,136 @@ html .bottom-nav .nav-item.is-active::before {
   }
 }
 
+/* v252: low-cost mobile rendering for long reviews, FAQ and leaderboard pages */
+.reviews-page-state {
+  display: grid;
+  min-height: 150px;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  color: rgba(224, 241, 255, 0.88);
+  text-align: center;
+}
+
+.reviews-page-loader {
+  width: 26px;
+  height: 26px;
+  border: 3px solid rgba(173, 222, 255, 0.25);
+  border-top-color: #69caff;
+  border-radius: 50%;
+  animation: reviews-page-spin 700ms linear infinite;
+}
+
+@keyframes reviews-page-spin {
+  to { transform: rotate(360deg); }
+}
+
+.reviews-pagination {
+  grid-template-columns: minmax(84px, 1fr) auto minmax(84px, 1fr);
+  align-items: center;
+  justify-items: stretch;
+}
+
+.reviews-page-button {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.96);
+  background: rgba(42, 164, 230, 0.9);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.reviews-page-button:last-child {
+  justify-self: end;
+}
+
+.reviews-page-button:disabled {
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+.reviews-screen .review-card,
+.activity-screen .activity-leader-row {
+  content-visibility: auto;
+  contain: layout paint style;
+}
+
+.reviews-screen .review-card {
+  contain-intrinsic-size: auto 310px;
+}
+
+.activity-screen .activity-leader-row {
+  contain-intrinsic-size: auto 58px;
+}
+
+.activity-screen .activity-leaderboard {
+  contain: layout paint style;
+}
+
+@media (max-width: 900px), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  html {
+    background: #235fd8 !important;
+  }
+
+  body {
+    background:
+      linear-gradient(
+        180deg,
+        #4bc2f3 0%,
+        #1a9ff1 24%,
+        #167fe8 62%,
+        #235fd8 100%
+      ) top / 100% 1200px no-repeat,
+      #235fd8 !important;
+    background-attachment: scroll !important;
+  }
+
+  .app-shell,
+  #app {
+    background: transparent !important;
+    background-attachment: scroll !important;
+  }
+
+  .support-screen .faq-list,
+  .activity-screen .activity-leaderboard {
+    contain: layout paint style;
+  }
+
+  .support-screen .faq-item {
+    interpolate-size: numeric-only !important;
+    transform: none !important;
+  }
+
+  .support-screen .faq-item::details-content,
+  .support-screen .faq-chevron {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .support-screen .faq-item[open] .faq-chevron {
+    transform: rotate(180deg) !important;
+  }
+
+  .reviews-screen .review-card {
+    background: #0b315f !important;
+  }
+
+  .activity-screen .activity-leaderboard {
+    background: #256f9f !important;
+  }
+
+  .activity-screen .activity-leader-row:not(.is-medal):not(.is-current) {
+    background: rgba(20, 92, 155, 0.18) !important;
+  }
+
+  .reviews-page-loader {
+    border-color: rgba(105, 202, 255, 0.75);
+    animation: none !important;
+  }
+}
+
 html .bottom-nav .nav-item:active,
 html .bottom-nav .nav-item.is-active:active,
 html .bottom-nav .nav-order.is-active:active {

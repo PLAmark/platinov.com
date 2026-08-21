@@ -8,7 +8,7 @@
   <meta name="description" content="PLATINOV SHOP — покупка и продажа виртов">
   <title>Платинов Store</title>
   <link rel="icon" href="favicon.ico">
-  <link rel="stylesheet" href="style.css?v=251">
+  <link rel="stylesheet" href="style.css?v=252">
 </head>
 <body>
   <svg class="icon-sprite" aria-hidden="true">
@@ -18,40 +18,6 @@
         <stop offset="58%" stop-color="#ff9200"></stop>
         <stop offset="100%" stop-color="#ffc817"></stop>
       </linearGradient>
-      <filter
-        id="bottom-nav-refraction"
-        x="-12%"
-        y="-28%"
-        width="124%"
-        height="156%"
-        color-interpolation-filters="sRGB"
-      >
-        <feTurbulence
-          type="fractalNoise"
-          baseFrequency="0.008 0.055"
-          numOctaves="2"
-          seed="17"
-          stitchTiles="stitch"
-          result="refraction-noise"
-        ></feTurbulence>
-        <feGaussianBlur
-          in="refraction-noise"
-          stdDeviation="0.45"
-          result="soft-refraction"
-        ></feGaussianBlur>
-        <feDisplacementMap
-          in="SourceGraphic"
-          in2="soft-refraction"
-          scale="14"
-          xChannelSelector="R"
-          yChannelSelector="G"
-          result="refracted-backdrop"
-        ></feDisplacementMap>
-        <feGaussianBlur
-          in="refracted-backdrop"
-          stdDeviation="0.25 0.45"
-        ></feGaussianBlur>
-      </filter>
     </defs>
     <symbol id="icon-chevron-left" viewBox="0 0 24 24">
       <path d="m15 18-6-6 6-6"></path>
@@ -161,9 +127,6 @@
     </symbol>
   </svg>
 
-  <div class="ambient ambient-one" aria-hidden="true"></div>
-  <div class="ambient ambient-two" aria-hidden="true"></div>
-
   <div class="app-shell">
     <header class="topbar app-header">
       <button class="icon-button back-button is-hidden" id="backButton" type="button" aria-label="Вернуться назад">
@@ -219,6 +182,6 @@
   <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="script.js?v=251"></script>
+  <script src="script.js?v=252"></script>
 </body>
 </html>

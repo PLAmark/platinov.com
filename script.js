@@ -44,6 +44,7 @@ let moscowRefreshTimer = 0;
 let reactionClaimTimer = 0;
 let reactionClaimInFlight = false;
 let pendingReactionClaimDue = 0;
+let reviewsLoadSequence = 0;
 const REACTION_CLAIM_DUE_STORAGE_KEY_PREFIX = "platinov-reaction-claim-due-v3";
 
 function getReferralVisitorKey() {
@@ -257,7 +258,10 @@ const state = {
   selectedServer: null,
   deliveryType: "trade",
   reviewFilter: "all",
-  reviewVisibleCount: REVIEWS_PAGE_SIZE,
+  reviewPage: 0,
+  reviewsHasMore: false,
+  reviewsLoading: false,
+  reviewsError: "",
   reviewRating: 5,
   serverSearch: "",
   apiReviews: [],
@@ -757,7 +761,7 @@ function navigate(route, options = {}) {
   render();
   if (route === "orders" || route === "profile") loadRemoteOrders();
   if (route === "raffle") loadActivity();
-  if (!preserveScroll) window.scrollTo({ top: 0, behavior: "smooth" });
+  if (!preserveScroll) scrollPageToTop();
 }
 
 function goBack() {
@@ -773,7 +777,20 @@ function goBack() {
   state.route = state.history.pop();
   syncBrowserRoute(state.route, "replace");
   render();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  scrollPageToTop();
+}
+
+function prefersInstantMotion() {
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ||
+    window.matchMedia?.("(pointer: coarse)").matches ||
+    window.innerWidth <= 900;
+}
+
+function scrollPageToTop() {
+  window.scrollTo({
+    top: 0,
+    behavior: prefersInstantMotion() ? "auto" : "smooth"
+  });
 }
 
 function projectLogo(project) {
@@ -1305,13 +1322,20 @@ function reviewCard(review) {
 }
 
 function renderReviews() {
-  const storedReviews = REVIEWS_API_BASE_URL ? state.apiReviews : getLocalReviews();
-  const allReviews = [...storedReviews, ...REVIEWS];
-  const visibleReviews = state.reviewFilter === "all"
-    ? allReviews
-    : allReviews.filter((review) => review.projectId === state.reviewFilter);
-  const renderedReviews = visibleReviews.slice(0, state.reviewVisibleCount);
-  const remainingReviews = Math.max(0, visibleReviews.length - renderedReviews.length);
+  const usingRemoteReviews = Boolean(REVIEWS_API_BASE_URL);
+  const localReviews = usingRemoteReviews ? [] : [...getLocalReviews(), ...REVIEWS];
+  const filteredLocalReviews = state.reviewFilter === "all"
+    ? localReviews
+    : localReviews.filter((review) => review.projectId === state.reviewFilter);
+  const localPageStart = state.reviewPage * REVIEWS_PAGE_SIZE;
+  const renderedReviews = usingRemoteReviews
+    ? state.apiReviews
+    : filteredLocalReviews.slice(localPageStart, localPageStart + REVIEWS_PAGE_SIZE);
+  const hasPreviousPage = state.reviewPage > 0;
+  const hasNextPage = usingRemoteReviews
+    ? state.reviewsHasMore
+    : localPageStart + REVIEWS_PAGE_SIZE < filteredLocalReviews.length;
+  const hasPagination = hasPreviousPage || hasNextPage;
   return `
     <section class="screen reviews-screen">
       <div class="glass-card reviews-hero">
@@ -1334,22 +1358,29 @@ function renderReviews() {
               data-review-filter="${project.id}">${escapeHTML(project.name)}</button>
           `).join("")}
         </div>
-        <div class="review-list section">
-          ${renderedReviews.length ? renderedReviews.map(reviewCard).join("") : `
+        <div class="review-list section" id="reviews-page-list" aria-busy="${state.reviewsLoading ? "true" : "false"}">
+          ${state.reviewsLoading ? `
+            <div class="reviews-page-state" role="status">
+              <span class="reviews-page-loader" aria-hidden="true"></span>
+              <strong>Загружаем отзывы</strong>
+            </div>
+          ` : renderedReviews.length ? renderedReviews.map(reviewCard).join("") : `
             <div class="glass-card empty-state">
               <div class="empty-icon empty-icon-star">${icon("star", "rating-star")}</div>
-              <h3>Пока нет отзывов</h3>
-              <p>Станьте первым, кто поделится впечатлением об этом проекте.</p>
+              <h3>${state.reviewsError ? "Не удалось загрузить отзывы" : "Пока нет отзывов"}</h3>
+              <p>${escapeHTML(state.reviewsError || "Станьте первым, кто поделится впечатлением об этом проекте.")}</p>
               <button class="ghost-button" type="button" data-open-review>Оставить отзыв</button>
             </div>
           `}
         </div>
-        ${remainingReviews ? `
-          <div class="reviews-pagination">
-            <span>Показано ${renderedReviews.length} из ${visibleReviews.length}</span>
-            <button class="reviews-more-button" type="button" data-reviews-more>
-              Смотреть ещё
-              <small>+${Math.min(REVIEWS_PAGE_SIZE, remainingReviews)}</small>
+        ${hasPagination && !state.reviewsLoading ? `
+          <div class="reviews-pagination" aria-label="Страницы отзывов">
+            <button class="reviews-page-button" type="button" data-reviews-page="-1" ${hasPreviousPage ? "" : "disabled"}>
+              Назад
+            </button>
+            <span>Страница ${state.reviewPage + 1}</span>
+            <button class="reviews-page-button" type="button" data-reviews-page="1" ${hasNextPage ? "" : "disabled"}>
+              Далее
             </button>
           </div>
         ` : ""}
@@ -2039,7 +2070,10 @@ function render() {
     profile: renderProfile,
     info: renderInfo
   };
-  app.innerHTML = (renderers[state.route] || renderHome)();
+  const renderer = renderers[state.route] || renderHome;
+  // Remove a potentially heavy previous list before building the next screen.
+  app.replaceChildren();
+  app.innerHTML = renderer();
   setActiveNav(state.route);
   syncTelegramBackButton();
   saveNavigationSession();
@@ -2559,8 +2593,12 @@ async function submitReview(form) {
     }
     closeModal();
     state.reviewFilter = "all";
-    state.reviewVisibleCount = REVIEWS_PAGE_SIZE;
-    render();
+    state.reviewPage = 0;
+    if (REVIEWS_API_BASE_URL) {
+      void loadRemoteReviews();
+    } else {
+      render();
+    }
     haptic("medium");
     showToast(`Спасибо! Отзыв о ${selectedOrder.game} ожидает проверки`);
   } catch (error) {
@@ -2571,52 +2609,69 @@ async function submitReview(form) {
   }
 }
 
+function mapApiReview(review) {
+  const project = PROJECTS.find((item) => item.name === review.game || item.shortName === review.game);
+  const amountNumber = Number(review.amount_kk);
+  const amount = Number.isFinite(amountNumber)
+    ? `${amountNumber.toLocaleString("ru-RU")} ${review.game === "STANDOFF 2" ? "G" : "кк"}`
+    : "—";
+  const created = new Date(review.created_at);
+  return {
+    id: review.public_id,
+    initial: getUserInitials(review.username || "Пользователь"),
+    photoUrl: review.user_id ? `${API_BASE_URL}/api/public/avatar/${review.user_id}` : "",
+    order: review.order_public_id ? `Заказ #${review.order_public_id}` : `Отзыв #${review.public_id}`,
+    status: "подтверждён",
+    rating: Number(review.rating) || 5,
+    text: review.text || "",
+    projectId: project?.id || "black-russia",
+    server: review.server || "—",
+    amount,
+    price: review.price_rub ? formatMoney(Number(review.price_rub)) : "—",
+    delivery: review.delivery_type || "—",
+    time: "—",
+    date: Number.isNaN(created.getTime()) ? "" : created.toLocaleDateString("ru-RU"),
+    source: review.source == null ? "Сайт" : review.source
+  };
+}
+
 async function loadRemoteReviews() {
   if (!REVIEWS_API_BASE_URL) return;
+  const requestSequence = ++reviewsLoadSequence;
+  const requestedPage = Math.max(0, Number(state.reviewPage) || 0);
+  const requestedFilter = state.reviewFilter;
+  state.reviewsLoading = true;
+  state.reviewsError = "";
+  state.apiReviews = [];
+  state.reviewsHasMore = false;
+  if (state.route === "reviews") render();
   try {
-    const rows = [];
-    const pageSize = 50;
-    let offset = 0;
-    for (let page = 0; page < 100; page += 1) {
-      const query = new URLSearchParams({ limit: String(pageSize), offset: String(offset) });
-      const response = await fetch(
-        `${REVIEWS_API_BASE_URL.replace(/\/$/, "")}${REVIEW_ENDPOINTS.list}?${query}`
-      );
-      if (!response.ok) throw new Error(`Reviews request failed: ${response.status}`);
-      const data = await response.json();
-      const batch = Array.isArray(data) ? data : (data.reviews || []);
-      rows.push(...batch);
-      if (batch.length < pageSize) break;
-      offset += batch.length;
-    }
-    state.apiReviews = rows.map((review) => {
-      const project = PROJECTS.find((item) => item.name === review.game || item.shortName === review.game);
-      const amountNumber = Number(review.amount_kk);
-      const amount = Number.isFinite(amountNumber)
-        ? `${amountNumber.toLocaleString("ru-RU")} ${review.game === "STANDOFF 2" ? "G" : "кк"}`
-        : "—";
-      const created = new Date(review.created_at);
-      return {
-        id: review.public_id,
-        initial: getUserInitials(review.username || "Пользователь"),
-        photoUrl: review.user_id ? `${API_BASE_URL}/api/public/avatar/${review.user_id}` : "",
-        order: review.order_public_id ? `Заказ #${review.order_public_id}` : `Отзыв #${review.public_id}`,
-        status: "подтверждён",
-        rating: Number(review.rating) || 5,
-        text: review.text || "",
-        projectId: project?.id || "black-russia",
-        server: review.server || "—",
-        amount,
-        price: review.price_rub ? formatMoney(Number(review.price_rub)) : "—",
-        delivery: review.delivery_type || "—",
-        time: "—",
-        date: Number.isNaN(created.getTime()) ? "" : created.toLocaleDateString("ru-RU"),
-        source: review.source == null ? "Сайт" : review.source
-      };
+    const query = new URLSearchParams({
+      limit: String(REVIEWS_PAGE_SIZE + 1),
+      offset: String(requestedPage * REVIEWS_PAGE_SIZE)
     });
-    if (state.route === "reviews") render();
+    if (requestedFilter !== "all") {
+      const selectedProject = PROJECTS.find((project) => project.id === requestedFilter);
+      if (selectedProject) query.set("game", selectedProject.name);
+    }
+    const response = await fetch(
+      `${REVIEWS_API_BASE_URL.replace(/\/$/, "")}${REVIEW_ENDPOINTS.list}?${query}`
+    );
+    if (!response.ok) throw new Error(`Reviews request failed: ${response.status}`);
+    const data = await response.json();
+    const batch = Array.isArray(data) ? data : (data.reviews || []);
+    if (requestSequence !== reviewsLoadSequence) return;
+    state.apiReviews = batch.slice(0, REVIEWS_PAGE_SIZE).map(mapApiReview);
+    state.reviewsHasMore = batch.length > REVIEWS_PAGE_SIZE;
   } catch (error) {
     console.error(error);
+    if (requestSequence !== reviewsLoadSequence) return;
+    state.reviewsError = "Проверьте соединение и попробуйте ещё раз.";
+  } finally {
+    if (requestSequence === reviewsLoadSequence) {
+      state.reviewsLoading = false;
+      if (state.route === "reviews") render();
+    }
   }
 }
 
@@ -2951,15 +3006,29 @@ document.addEventListener("click", (event) => {
   const filterButton = event.target.closest("[data-review-filter]");
   if (filterButton) {
     state.reviewFilter = filterButton.dataset.reviewFilter;
-    state.reviewVisibleCount = REVIEWS_PAGE_SIZE;
-    render();
+    state.reviewPage = 0;
+    if (REVIEWS_API_BASE_URL) {
+      void loadRemoteReviews();
+    } else {
+      render();
+    }
     haptic();
     return;
   }
 
-  if (event.target.closest("[data-reviews-more]")) {
-    state.reviewVisibleCount += REVIEWS_PAGE_SIZE;
-    render();
+  const reviewsPageButton = event.target.closest("[data-reviews-page]");
+  if (reviewsPageButton && !reviewsPageButton.disabled) {
+    const pageDelta = Number(reviewsPageButton.dataset.reviewsPage) || 0;
+    state.reviewPage = Math.max(0, state.reviewPage + pageDelta);
+    if (REVIEWS_API_BASE_URL) {
+      void loadRemoteReviews();
+    } else {
+      render();
+    }
+    window.scrollTo({
+      top: Math.max(0, (document.querySelector(".reviews-screen .filter-row")?.offsetTop || 0) - 82),
+      behavior: "auto"
+    });
     haptic();
     return;
   }
