@@ -12166,7 +12166,7 @@ html .bottom-nav {
 }
 
 .activity-hero-copy > p:last-child {
-  max-width: 290px;
+  max-width: 100%;
   margin: 10px 0 0;
   color: #bed2e8;
   font-size: 13px;
@@ -14530,6 +14530,49 @@ html .bottom-nav .nav-item.is-active::before {
   }
 }
 
+/* v253: contact choice for selling virtual goods */
+.sell-contact-modal .modal-head p {
+  margin: 5px 0 0;
+  color: #b9cee2;
+  font-size: 13px;
+}
+
+.sell-contact-list {
+  display: grid;
+  gap: 11px;
+}
+
+.sell-contact-button {
+  width: 100%;
+  min-height: 68px;
+  text-align: left;
+}
+
+.sell-contact-button .info-document-copy small {
+  color: #b8cee4;
+}
+
+.sell-contact-button[data-sell-contact="manager"] .info-document-icon {
+  overflow: visible;
+  border-radius: 13px;
+  background: transparent;
+}
+
+.sell-contact-button[data-sell-contact="bot"] .info-document-icon,
+.sell-contact-button[data-sell-contact="vk"] .info-document-icon {
+  overflow: visible;
+  border-radius: 13px;
+  background: transparent;
+}
+
+.sell-contact-button[data-sell-contact="manager"] .social-brand-logo,
+.sell-contact-button[data-sell-contact="bot"] .social-brand-logo,
+.sell-contact-button[data-sell-contact="vk"] .social-brand-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
 html .bottom-nav .nav-item:active,
 html .bottom-nav .nav-item.is-active:active,
 html .bottom-nav .nav-order.is-active:active {
@@ -14608,5 +14651,177 @@ html .bottom-nav .nav-order:active .nav-icon .ui-icon {
   html .bottom-nav .nav-order.is-active:hover,
   html .bottom-nav .nav-order.is-active:hover:active {
     transform: none !important;
+  }
+}
+
+/* v265: borderless social contact choices */
+.sell-contact-modal {
+  width: min(100%, 560px);
+  padding: 19px 16px 18px;
+  border: 1px solid rgba(122, 205, 251, 0.42) !important;
+  border-radius: 24px;
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 14% 0%, rgba(116, 213, 255, 0.2), transparent 34%),
+    radial-gradient(circle at 100% 48%, rgba(11, 108, 197, 0.28), transparent 42%),
+    linear-gradient(145deg, #164f77 0%, #0c4373 48%, #073567 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(229, 248, 255, 0.2),
+    inset 0 -1px 0 rgba(36, 148, 229, 0.18),
+    0 24px 58px rgba(0, 20, 52, 0.46) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(118%);
+  backdrop-filter: blur(14px) saturate(118%);
+}
+
+.sell-contact-modal .modal-head {
+  gap: 10px;
+  margin-bottom: 19px;
+}
+
+.sell-contact-modal .modal-head h2 {
+  color: #ffffff;
+  font-size: 21px;
+  font-weight: 790;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.sell-contact-modal .modal-head p {
+  margin-top: 8px;
+  color: #9fc9e9;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+
+.sell-contact-modal .close-button {
+  width: 37px;
+  height: 37px;
+  border-color: rgba(154, 222, 255, 0.34);
+  border-radius: 50%;
+  color: #b8ddf7;
+  background:
+    linear-gradient(145deg, rgba(102, 194, 248, 0.28), rgba(21, 101, 169, 0.34)),
+    rgba(17, 80, 137, 0.66);
+  box-shadow:
+    inset 0 1px 0 rgba(236, 250, 255, 0.22),
+    0 8px 18px rgba(0, 28, 67, 0.2);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.sell-contact-modal .sell-contact-list {
+  gap: 10px;
+}
+
+.sell-contact-modal .sell-contact-button {
+  grid-template-columns: 38px minmax(0, 1fr) 19px;
+  gap: 12px;
+  min-height: 69px;
+  padding: 11px 13px 11px 11px;
+  border: 0;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(157, 226, 255, 0.16), transparent 42%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(53, 144, 216, 0.055)),
+    rgba(11, 64, 112, 0.68);
+  box-shadow:
+    inset 0 1px 0 rgba(235, 249, 255, 0.14),
+    0 10px 22px rgba(0, 31, 72, 0.14);
+}
+
+.sell-contact-modal .sell-contact-button .info-document-icon {
+  width: 38px;
+  height: 38px;
+}
+
+.sell-contact-modal .sell-contact-button .social-brand-logo {
+  width: 37px;
+  height: 37px;
+}
+
+.sell-contact-modal .sell-contact-button .info-document-copy {
+  gap: 4px;
+}
+
+.sell-contact-modal .sell-contact-button .info-document-copy strong {
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 740;
+  line-height: 1.15;
+  letter-spacing: -0.012em;
+}
+
+.sell-contact-modal .sell-contact-button .info-document-copy small {
+  color: #9dc8ea;
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.sell-contact-modal .sell-contact-button .info-document-arrow {
+  color: rgba(155, 211, 250, 0.88);
+}
+
+.sell-contact-modal .sell-contact-button .info-document-arrow .ui-icon {
+  width: 18px;
+  height: 18px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sell-contact-modal .sell-contact-button:hover {
+    background:
+      radial-gradient(circle at 8% 0%, rgba(169, 231, 255, 0.2), transparent 42%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.13), rgba(65, 151, 216, 0.075)),
+      rgba(12, 72, 126, 0.74);
+  }
+}
+
+@media (max-width: 350px) {
+  .sell-contact-modal {
+    width: 100%;
+    padding: 17px 13px 14px;
+    border-radius: 21px;
+  }
+
+  .sell-contact-modal .modal-head {
+    margin-bottom: 16px;
+  }
+
+  .sell-contact-modal .modal-head h2 {
+    font-size: 19px;
+  }
+
+  .sell-contact-modal .modal-head p {
+    font-size: 10.5px;
+  }
+
+  .sell-contact-modal .close-button {
+    width: 34px;
+    height: 34px;
+  }
+
+  .sell-contact-modal .sell-contact-button {
+    grid-template-columns: 35px minmax(0, 1fr) 18px;
+    gap: 10px;
+    min-height: 64px;
+    padding: 10px;
+    border-radius: 16px;
+  }
+
+  .sell-contact-modal .sell-contact-button .info-document-icon,
+  .sell-contact-modal .sell-contact-button .social-brand-logo {
+    width: 34px;
+    height: 34px;
+  }
+
+  .sell-contact-modal .sell-contact-button .info-document-copy strong {
+    font-size: 12px;
+  }
+
+  .sell-contact-modal .sell-contact-button .info-document-copy small {
+    font-size: 9.5px;
   }
 }

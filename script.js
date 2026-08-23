@@ -5,6 +5,7 @@ const REVIEWS_API_BASE_URL = API_BASE_URL;
 let SUPPORT_URL = "https://t.me/PlatinovSupport";
 const TELEGRAM_AUTH_URL = "https://t.me/PlatinovBot?startapp=profile";
 let SELL_MANAGER_URL = SUPPORT_URL;
+let SELL_BOT_URL = "https://t.me/PlatinovSellBot";
 let REVIEWS_TELEGRAM_URL = "https://t.me/+TZeEFqDDYyhkOTEy";
 let REVIEWS_VK_URL = "https://vk.ru/wall866011657_25";
 let VK_BUY_URL = "https://vk.ru/platinov_shop";
@@ -1941,6 +1942,48 @@ function openResourcesModal() {
   `;
 }
 
+function openSellContactModal() {
+  modalRoot.innerHTML = `
+    <div class="modal-backdrop" data-close-modal>
+      <section class="modal-sheet sell-contact-modal" role="dialog" aria-modal="true" aria-labelledby="sellContactModalTitle">
+        <div class="modal-head">
+          <div>
+            <h2 id="sellContactModalTitle">Куда написать?</h2>
+            <p>Выберите удобный способ связи для продажи.</p>
+          </div>
+          <button class="close-button" type="button" data-close-modal aria-label="Закрыть">${icon("x")}</button>
+        </div>
+        <div class="sell-contact-list">
+          <button class="info-document-button sell-contact-button" type="button" data-sell-contact="manager">
+            <span class="info-document-icon">${socialLogo("telegram")}</span>
+            <span class="info-document-copy">
+              <strong>Лично сотруднику</strong>
+              <small>Самый быстрый ответ</small>
+            </span>
+            <span class="info-document-arrow">${icon("arrow-up-right")}</span>
+          </button>
+          <button class="info-document-button sell-contact-button" type="button" data-sell-contact="bot">
+            <span class="info-document-icon">${socialLogo("telegram")}</span>
+            <span class="info-document-copy">
+              <strong>В Telegram-бот</strong>
+              <small>В случае спам-блока</small>
+            </span>
+            <span class="info-document-arrow">${icon("arrow-up-right")}</span>
+          </button>
+          <button class="info-document-button sell-contact-button" type="button" data-sell-contact="vk">
+            <span class="info-document-icon">${socialLogo("vk")}</span>
+            <span class="info-document-copy">
+              <strong>ВКонтакте</strong>
+              <small>Альтернативный вариант</small>
+            </span>
+            <span class="info-document-arrow">${icon("arrow-up-right")}</span>
+          </button>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
 function renderInfo() {
   return `
     <section class="screen info-screen">
@@ -2099,7 +2142,7 @@ function startAction(action) {
       showToast("Продажа временно недоступна");
       return;
     }
-    openExternal(SUPPORT_URL);
+    openSellContactModal();
     return;
   }
   state.preferredAction = action;
@@ -2128,7 +2171,7 @@ function chooseAction(action) {
       showToast("Продажа временно недоступна");
       return;
     }
-    openExternal(SUPPORT_URL);
+    openSellContactModal();
     return;
   }
   state.action = action;
@@ -2702,6 +2745,7 @@ async function loadSiteConfig() {
     const values = data.values || {};
     SUPPORT_URL = values.support_url || SUPPORT_URL;
     SELL_MANAGER_URL = SUPPORT_URL;
+    SELL_BOT_URL = values.sell_bot_url || SELL_BOT_URL;
     TELEGRAM_BUY_URL = values.main_channel_url || TELEGRAM_BUY_URL;
     REVIEWS_TELEGRAM_URL = values.reviews_telegram_url || REVIEWS_TELEGRAM_URL;
     REVIEWS_VK_URL = values.reviews_vk_url || REVIEWS_VK_URL;
@@ -3116,6 +3160,21 @@ modalRoot.addEventListener("click", (event) => {
   if (resourceButton) {
     openExternal(resourceButton.dataset.resourceUrl);
     haptic();
+    return;
+  }
+  const sellContactButton = event.target.closest("[data-sell-contact]");
+  if (sellContactButton) {
+    const urls = {
+      manager: SELL_MANAGER_URL,
+      bot: SELL_BOT_URL,
+      vk: VK_SELL_URL
+    };
+    const url = urls[sellContactButton.dataset.sellContact];
+    if (url) {
+      closeModal();
+      openExternal(url);
+      haptic();
+    }
     return;
   }
   const ratingButton = event.target.closest("[data-rating]");
