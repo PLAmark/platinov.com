@@ -2230,6 +2230,10 @@ function invalidatePromoQuote() {
   promoQuoteTimer = 0;
 }
 
+function normalizePromoCode(value) {
+  return String(value || "").trim().replace(/^#/, "").trim().toUpperCase();
+}
+
 function renderPromoStatus(data) {
   const node = document.getElementById("promoStatus");
   if (!node) return;
@@ -2271,7 +2275,7 @@ function renderPromoStatus(data) {
 
 function schedulePromoQuote(project, amount, promoCode) {
   invalidatePromoQuote();
-  const normalizedCode = String(promoCode).trim().toUpperCase();
+  const normalizedCode = normalizePromoCode(promoCode);
   if (!project || !Number.isFinite(amount) || amount <= 0) return;
 
   const promoStatus = document.getElementById("promoStatus");
@@ -2311,7 +2315,7 @@ async function requestPromoQuote(project, amount, promoCode, requestId) {
       throw new Error(data.error || `Ошибка сервера: ${response.status}`);
     }
 
-    const currentPromo = document.getElementById("buyPromo")?.value.trim().toUpperCase();
+    const currentPromo = normalizePromoCode(document.getElementById("buyPromo")?.value);
     const currentAmount = Number(document.getElementById("buyAmount")?.value);
     if (
       requestId !== promoQuoteSequence ||
@@ -2389,7 +2393,7 @@ function updatePrice() {
     discountNode.classList.remove("is-visible");
   }
   if (promoStatus) {
-    const normalizedCode = promoCode.trim().toUpperCase();
+    const normalizedCode = normalizePromoCode(promoCode);
     promoStatus.className = "promo-status";
     if (!normalizedCode) {
       promoStatus.textContent = "";
@@ -2483,7 +2487,7 @@ async function submitPurchase(form) {
   const project = getProject();
   const isStandoff = project.id === "standoff-2";
   const amount = Number(form.elements.amount.value);
-  const promoCode = form.elements.promo.value.trim().toUpperCase();
+  const promoCode = normalizePromoCode(form.elements.promo.value);
   const price = calculatePrice(project, amount);
   if (price.total > MAX_ORDER_TOTAL_RUB) {
     const moneyInput = document.getElementById("moneyAmount");
