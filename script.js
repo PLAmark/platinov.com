@@ -47,6 +47,7 @@ let reactionClaimInFlight = false;
 let pendingReactionClaimDue = 0;
 let reviewsLoadSequence = 0;
 const REACTION_CLAIM_DUE_STORAGE_KEY_PREFIX = "platinov-reaction-claim-due-v3";
+const REPOST_POST_OPEN_STORAGE_KEY_PREFIX = "platinov-repost-post-open-v1";
 
 function getReferralVisitorKey() {
   const storageKey = "platinov-referral-visitor-v1";
@@ -1483,6 +1484,30 @@ function activityPreviewRow(player, prizes) {
   `;
 }
 
+function activityRepostStorageKey(task = {}) {
+  const userId = Number(tg?.initDataUnsafe?.user?.id || 0);
+  const claimKey = String(task.claim_key || "current");
+  return `${REPOST_POST_OPEN_STORAGE_KEY_PREFIX}:${userId}:${claimKey}`;
+}
+
+function hasOpenedActivityRepost(task = {}) {
+  if (task.opened === true) return true;
+  try {
+    return window.localStorage.getItem(activityRepostStorageKey(task)) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markActivityRepostOpened(task = {}) {
+  task.opened = true;
+  try {
+    window.localStorage.setItem(activityRepostStorageKey(task), "1");
+  } catch {
+    // The current render still changes even if Telegram WebView blocks storage.
+  }
+}
+
 function renderRaffle() {
   const user = getTelegramUser();
   const activity = state.activity;
@@ -1527,6 +1552,9 @@ function renderRaffle() {
   const leaderboard = Array.isArray(activity.leaderboard) ? activity.leaderboard : [];
   const previewLeaders = [leaderboard[1], leaderboard[0], leaderboard[2]].filter(Boolean);
   const streakDays = Math.max(0, Number(activity.streak || 0));
+  const repostTask = tasks.daily_repost || {};
+  const repostPostUrl = String(repostTask.post_url || "").trim();
+  const repostPostOpened = hasOpenedActivityRepost(repostTask);
 
   return `
     <section class="screen raffle-screen activity-screen">
@@ -1621,10 +1649,14 @@ function renderRaffle() {
             iconName: "arrow-up-right",
             title: "Репост минимум в 10 чатов",
             text: "Одно начисление в сутки по вашей отметке",
-            points: tasks.daily_repost?.points || 30,
-            action: tasks.daily_repost?.claimed
+            points: repostTask.points || 30,
+            action: repostTask.claimed
               ? `<span class="activity-task-status is-complete">Получено</span>`
-              : `<button class="activity-task-button" type="button" data-activity-claim="repost">Проверить</button>`
+              : !repostPostUrl
+                ? `<button class="activity-task-button" type="button" disabled>Пост не задан</button>`
+                : repostPostOpened
+                  ? `<button class="activity-task-button" type="button" data-activity-claim="repost">Проверить</button>`
+                  : `<button class="activity-task-button" type="button" data-activity-repost-open="${escapeHTML(repostPostUrl)}">К посту</button>`
           })}
           ${activityTaskCard({
             iconName: "user",
@@ -2953,6 +2985,16 @@ document.addEventListener("click", (event) => {
   const activityOpenButton = event.target.closest("[data-activity-open]");
   if (activityOpenButton) {
     openExternal(activityOpenButton.dataset.activityOpen);
+    haptic();
+    return;
+  }
+
+  const repostOpenButton = event.target.closest("[data-activity-repost-open]");
+  if (repostOpenButton) {
+    const repostTask = state.activity?.tasks?.daily_repost || {};
+    markActivityRepostOpened(repostTask);
+    openExternal(repostOpenButton.dataset.activityRepostOpen);
+    render();
     haptic();
     return;
   }
