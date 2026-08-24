@@ -14450,12 +14450,12 @@ html .bottom-nav .nav-item.is-active::before {
   pointer-events: none;
 }
 
-/* v268: review cards use the same calm blue glass as the activity task panel */
+/* v269: darker review glass stays distinct from the bright page background */
 .reviews-screen .review-card {
-  border-color: rgba(213, 239, 255, 0.24) !important;
+  border-color: rgba(205, 234, 255, 0.2) !important;
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.085), rgba(70, 174, 249, 0.025)),
-    rgba(11, 73, 133, 0.56) !important;
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(55, 155, 232, 0.018)),
+    rgba(8, 56, 108, 0.84) !important;
 }
 
 .reviews-screen .review-card,
