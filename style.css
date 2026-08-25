@@ -14956,3 +14956,9 @@ html .bottom-nav .nav-order.is-active:hover {
     transition: none !important;
   }
 }
+
+/* v271: remove the obsolete inner top highlight from the dock */
+html .bottom-nav::before {
+  display: none !important;
+  content: none !important;
+}
