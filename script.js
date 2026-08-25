@@ -746,13 +746,76 @@ function syncTelegramBackButton() {
   else tg.BackButton.hide();
 }
 
+let bottomNavFlowTimer = 0;
+let bottomNavSettleTimer = 0;
+let bottomNavFlowFrame = 0;
+
 function setActiveNav(route) {
   const mainRoute = ["home", "reviews", "raffle", "support", "profile"].includes(route)
     ? route
     : "";
-  document.querySelectorAll(".nav-item").forEach((button) => {
+  const bottomNav = document.querySelector(".bottom-nav");
+  const navItems = Array.from(document.querySelectorAll(".nav-item"));
+  const activeIndex = navItems.findIndex((button) => button.dataset.route === mainRoute);
+
+  navItems.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.route === mainRoute);
   });
+
+  if (!bottomNav) return;
+
+  const previousIndex = Number.parseInt(bottomNav.dataset.activeIndex || "", 10);
+
+  if (activeIndex < 0) {
+    window.clearTimeout(bottomNavFlowTimer);
+    window.clearTimeout(bottomNavSettleTimer);
+    window.cancelAnimationFrame(bottomNavFlowFrame);
+    bottomNav.classList.remove("is-flowing", "is-flowing-left", "is-flowing-right");
+    bottomNav.classList.add("is-indicator-hidden");
+    return;
+  }
+
+  bottomNav.classList.remove("is-indicator-hidden");
+
+  if (previousIndex === activeIndex) {
+    bottomNav.style.setProperty("--nav-indicator-offset", `${activeIndex * 100}%`);
+    return;
+  }
+
+  window.clearTimeout(bottomNavFlowTimer);
+  window.clearTimeout(bottomNavSettleTimer);
+  window.cancelAnimationFrame(bottomNavFlowFrame);
+  bottomNav.classList.remove("is-flowing", "is-flowing-left", "is-flowing-right");
+
+  const canFlow =
+    bottomNav.classList.contains("is-indicator-ready") &&
+    Number.isFinite(previousIndex) &&
+    previousIndex !== activeIndex &&
+    !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  bottomNav.dataset.activeIndex = String(activeIndex);
+
+  if (canFlow) {
+    bottomNav.classList.add(
+      "is-flowing",
+      activeIndex > previousIndex ? "is-flowing-right" : "is-flowing-left"
+    );
+    const indicator = bottomNav.querySelector(".nav-liquid-indicator");
+    if (indicator) window.getComputedStyle(indicator).transform;
+    bottomNavFlowFrame = window.requestAnimationFrame(() => {
+      bottomNav.style.setProperty("--nav-indicator-offset", `${activeIndex * 100}%`);
+    });
+    bottomNavSettleTimer = window.setTimeout(() => {
+      bottomNav.classList.remove("is-flowing");
+    }, 190);
+    bottomNavFlowTimer = window.setTimeout(() => {
+      bottomNav.classList.remove("is-flowing-left", "is-flowing-right");
+    }, 390);
+    return;
+  }
+
+  bottomNav.style.setProperty("--nav-indicator-offset", `${activeIndex * 100}%`);
+  window.requestAnimationFrame(() => bottomNav.classList.add("is-indicator-ready"));
 }
 
 function navigate(route, options = {}) {
