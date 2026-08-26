@@ -14428,6 +14428,30 @@ html .bottom-nav .nav-item.is-active::before {
   text-shadow: none !important;
 }
 
+/* v273: Telegram-sized initials fill the fallback avatar like the native client. */
+.topbar .telegram-avatar-fallback {
+  font-size: 22px !important;
+}
+
+.profile-screen .profile-user-avatar.telegram-avatar-fallback {
+  font-size: 44px !important;
+}
+
+.reviews-screen .review-avatar.telegram-avatar-fallback,
+.activity-avatar.telegram-avatar-fallback {
+  font-size: 24px !important;
+}
+
+.activity-screen .activity-preview-row .activity-avatar.telegram-avatar-fallback {
+  font-size: 34px !important;
+}
+
+@media (max-width: 390px) {
+  .activity-screen .activity-preview-row .activity-avatar.telegram-avatar-fallback {
+    font-size: 29px !important;
+  }
+}
+
 /* v249: the active lens stays fixed while its icon keeps hover feedback */
 @media (hover: hover) and (pointer: fine) {
   html .bottom-nav .nav-item.is-active:hover,
