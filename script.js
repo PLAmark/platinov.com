@@ -1368,7 +1368,7 @@ function reviewCard(review) {
     <article class="review-card">
       <div class="review-head">
         <div class="review-user">
-          <span class="avatar review-avatar telegram-avatar-fallback" style="${telegramAvatarStyle(review.userId || review.order)}">
+          <span class="avatar review-avatar telegram-avatar-fallback${telegramAvatarInitialClass(review.initial)}" style="${telegramAvatarStyle(review.userId || review.order)}">
             <span>${escapeHTML(review.initial)}</span>
             ${review.photoUrl ? `<img data-avatar-image src="${escapeHTML(review.photoUrl)}" alt="" loading="lazy" decoding="async">` : ""}
           </span>
@@ -1484,13 +1484,15 @@ function activityInitials(name) {
 }
 
 function activityAvatar(player) {
-  const fallback = escapeHTML(activityInitials(player.display_name));
+  const fallbackText = activityInitials(player.display_name);
+  const fallback = escapeHTML(fallbackText);
+  const fallbackClass = telegramAvatarInitialClass(fallbackText);
   const fallbackStyle = telegramAvatarStyle(player.user_id || player.display_name);
   if (!player.photo_url) {
-    return `<span class="activity-avatar telegram-avatar-fallback" style="${fallbackStyle}"><span>${fallback}</span></span>`;
+    return `<span class="activity-avatar telegram-avatar-fallback${fallbackClass}" style="${fallbackStyle}"><span>${fallback}</span></span>`;
   }
   return `
-    <span class="activity-avatar telegram-avatar-fallback" style="${fallbackStyle}">
+    <span class="activity-avatar telegram-avatar-fallback${fallbackClass}" style="${fallbackStyle}">
       <span>${fallback}</span>
       <img data-avatar-image src="${escapeHTML(player.photo_url)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
     </span>
@@ -1874,6 +1876,12 @@ function telegramAvatarStyle(seed) {
   return `--telegram-avatar-start:${start};--telegram-avatar-end:${end}`;
 }
 
+function telegramAvatarInitialClass(initials) {
+  return Array.from(String(initials ?? "").trim()).length > 1
+    ? " telegram-avatar-multi"
+    : "";
+}
+
 function getHeaderProfileData() {
   const siteUser = window.PLATINOV_SITE_USER || null;
   const telegramUser = tg?.initDataUnsafe?.user || null;
@@ -1903,7 +1911,7 @@ function renderHeaderProfile() {
 
   const profile = getHeaderProfileData();
   const renderFallback = () => {
-    visual.className = "header-profile-visual header-profile-fallback telegram-avatar-fallback";
+    visual.className = `header-profile-visual header-profile-fallback telegram-avatar-fallback${telegramAvatarInitialClass(profile.initials)}`;
     visual.style.cssText = telegramAvatarStyle(profile.userId || profile.initials);
     visual.innerHTML = profile.initials
       ? `<span class="header-profile-initials">${escapeHTML(profile.initials)}</span>`
@@ -1934,7 +1942,7 @@ function renderHeaderProfile() {
 function renderProfile() {
   const user = getTelegramUser();
   const profileAvatar = `
-    <span class="avatar profile-user-avatar telegram-avatar-fallback" style="${telegramAvatarStyle(user.id || user.name)}">
+    <span class="avatar profile-user-avatar telegram-avatar-fallback${telegramAvatarInitialClass(user.initial)}" style="${telegramAvatarStyle(user.id || user.name)}">
       <span class="profile-avatar-fallback">${escapeHTML(user.initial)}</span>
       ${user.photoUrl ? `
         <img

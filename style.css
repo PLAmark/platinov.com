@@ -14446,9 +14446,30 @@ html .bottom-nav .nav-item.is-active::before {
   font-size: 34px !important;
 }
 
+/* Two Telegram initials need more side space than a single character. */
+.topbar .telegram-avatar-fallback.telegram-avatar-multi,
+.reviews-screen .review-avatar.telegram-avatar-fallback.telegram-avatar-multi,
+.activity-avatar.telegram-avatar-fallback.telegram-avatar-multi {
+  font-size: 18px !important;
+  letter-spacing: -0.04em !important;
+}
+
+.profile-screen .profile-user-avatar.telegram-avatar-fallback.telegram-avatar-multi {
+  font-size: 34px !important;
+  letter-spacing: -0.04em !important;
+}
+
+.activity-screen .activity-preview-row .activity-avatar.telegram-avatar-fallback.telegram-avatar-multi {
+  font-size: 26px !important;
+}
+
 @media (max-width: 390px) {
   .activity-screen .activity-preview-row .activity-avatar.telegram-avatar-fallback {
     font-size: 29px !important;
+  }
+
+  .activity-screen .activity-preview-row .activity-avatar.telegram-avatar-fallback.telegram-avatar-multi {
+    font-size: 22px !important;
   }
 }
 
