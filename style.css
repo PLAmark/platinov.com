@@ -15045,3 +15045,155 @@ html .bottom-nav::before {
   display: none !important;
   content: none !important;
 }
+
+/* v276: horizontal bank-first delivery selector based on the mobile reference. */
+.order-buy-step .delivery-method-field {
+  display: grid;
+  gap: 8px;
+}
+
+.order-buy-step .delivery-method-field > .field-label {
+  color: #a9c2dc;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.order-buy-step .delivery-methods {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid rgba(184, 222, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(9, 43, 83, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 8px 20px rgba(3, 24, 52, 0.08);
+}
+
+.order-buy-step .delivery-method {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 58px;
+  grid-template-columns: 28px minmax(0, 1fr) 18px;
+  gap: 8px;
+  align-items: center;
+  padding: 9px 12px;
+  border: 0;
+  border-right: 1px solid rgba(181, 219, 252, 0.11);
+  border-radius: 14px;
+  color: #b9cee2;
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+  transform: none !important;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.order-buy-step .delivery-method:last-child {
+  border-right: 0;
+}
+
+.order-buy-step .delivery-method.is-active {
+  color: #ffffff;
+  background: rgba(45, 160, 232, 0.94);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 7px 18px rgba(5, 76, 135, 0.16);
+}
+
+.order-buy-step .delivery-method-visual {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  color: #91b6d4;
+}
+
+.order-buy-step .delivery-method.is-active .delivery-method-visual {
+  color: #ffffff;
+}
+
+.order-buy-step .delivery-method-icon {
+  width: 23px;
+  height: 23px;
+  color: currentColor;
+  stroke-width: 2;
+}
+
+.order-buy-step .delivery-method-copy {
+  min-width: 0;
+}
+
+.order-buy-step .delivery-method-copy strong {
+  overflow: hidden;
+  color: #f7fbff;
+  font-size: 13px;
+  font-weight: 760;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-buy-step .delivery-method:not(.is-active) .delivery-method-copy strong {
+  color: #aec3d8;
+}
+
+.order-buy-step .delivery-method-state {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  color: transparent;
+}
+
+.order-buy-step .delivery-method-state svg {
+  width: 17px;
+  height: 17px;
+  color: #ffffff;
+  stroke-width: 2.4;
+}
+
+.order-buy-step .delivery-method-help {
+  margin: 0;
+  padding: 0 2px;
+  color: #9fb9d3;
+  font-size: 11.5px;
+  font-weight: 520;
+  line-height: 1.35;
+}
+
+.order-buy-step .delivery-method:focus-visible {
+  outline: 2px solid rgba(105, 194, 255, 0.74);
+  outline-offset: -3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html .order-buy-step .delivery-method:hover,
+  html .order-buy-step .delivery-method:active {
+    transform: none !important;
+  }
+
+  html .order-buy-step .delivery-method:not(.is-active):hover {
+    color: #dceeff;
+    background: rgba(54, 145, 211, 0.1);
+  }
+}
+
+@media (max-width: 350px) {
+  .order-buy-step .delivery-method {
+    min-height: 54px;
+    grid-template-columns: 24px minmax(0, 1fr) 16px;
+    gap: 6px;
+    padding-inline: 9px;
+  }
+
+  .order-buy-step .delivery-method-visual {
+    width: 24px;
+    height: 24px;
+  }
+
+  .order-buy-step .delivery-method-copy strong {
+    font-size: 12px;
+  }
+}

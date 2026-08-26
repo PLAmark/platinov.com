@@ -266,7 +266,7 @@ const state = {
   preferredAction: null,
   action: null,
   selectedServer: null,
-  deliveryType: "trade",
+  deliveryType: "bank",
   reviewFilter: "all",
   reviewPage: 0,
   reviewsHasMore: false,
@@ -526,9 +526,9 @@ function restoreNavigationSession() {
 
     state.selectedProjectId = project?.id || null;
     state.preferredAction = preferredAction;
-    state.deliveryType = ["trade", "bank"].includes(saved.deliveryType)
-      ? saved.deliveryType
-      : "trade";
+    // Bank delivery is the product default, including sessions saved before
+    // the delivery-method redesign.
+    state.deliveryType = "bank";
     state.reviewFilter = saved.reviewFilter === "all" || getProject(saved.reviewFilter)
       ? saved.reviewFilter
       : "all";
@@ -1121,9 +1121,24 @@ function getMaxOrderAmount(project) {
 function renderPurchaseForm() {
   const project = getProject();
   if (!project || !state.selectedServer) return renderServerSelection();
+  if (project.id === "matreshka-rp") state.deliveryType = "bank";
   const wording = getTradeWording(project);
   const defaultAmount = project.defaultAmount ?? project.quickAmounts[0];
   const price = calculatePrice(project, defaultAmount);
+  const deliveryOptions = [
+    {
+      id: "bank",
+      iconName: "landmark",
+      title: "Банком",
+      description: "Через игровой банковский счёт. Быстрая выдача"
+    },
+    ...(project.id === "matreshka-rp" ? [] : [{
+      id: "trade",
+      iconName: "arrow-left-right",
+      title: "Трейдом",
+      description: "Передача напрямую при встрече. Время выдачи заказа дольше."
+    }])
+  ];
   return `
     <section class="screen order-flow order-form-step order-buy-step">
       <header class="screen-header order-step-header">
@@ -1206,21 +1221,41 @@ function renderPurchaseForm() {
             </span>
           </div>
         ` : `
-          <div class="form-field">
-            <span class="field-label">Способ получения</span>
-            <div class="segmented" role="group" aria-label="Способ получения">
-              <button class="segment-button is-active" type="button" data-delivery="trade">
-                <span>Получить трейдом</span>${icon("check", "segment-check")}
-              </button>
-              <button class="segment-button" type="button" data-delivery="bank">
-                <span>Получить банком</span>${icon("check", "segment-check")}
-              </button>
+          <div class="form-field delivery-method-field">
+            <span class="field-label">Как получить вирты?</span>
+            <div class="delivery-methods" role="radiogroup" aria-label="Способ получения">
+              ${deliveryOptions.map((option) => {
+                const active = state.deliveryType === option.id;
+                return `
+                  <button
+                    class="delivery-method${active ? " is-active" : ""}"
+                    type="button"
+                    role="radio"
+                    aria-checked="${active}"
+                    data-delivery="${option.id}"
+                    data-delivery-description="${escapeHTML(option.description)}"
+                  >
+                    <span class="delivery-method-visual" aria-hidden="true">
+                      ${icon(option.iconName, "delivery-method-icon")}
+                    </span>
+                    <span class="delivery-method-copy">
+                      <strong>${option.title}</strong>
+                    </span>
+                    <span class="delivery-method-state" aria-hidden="true">
+                      ${active ? icon("check") : ""}
+                    </span>
+                  </button>
+                `;
+              }).join("")}
             </div>
+            <p class="delivery-method-help" id="deliveryMethodHelp">
+              ${deliveryOptions.find((option) => option.id === state.deliveryType)?.description || ""}
+            </p>
           </div>
-          <div class="field-group form-field is-hidden" id="bankAccountGroup">
+          <div class="field-group form-field${state.deliveryType === "bank" ? "" : " is-hidden"}" id="bankAccountGroup">
             <label for="bankAccount">Номер игрового банковского счёта</label>
             <input class="field-control" id="bankAccount" name="bank_account" maxlength="60"
-              autocomplete="off" placeholder="Введите номер счёта">
+              autocomplete="off" placeholder="Введите номер счёта"${state.deliveryType === "bank" ? " required" : ""}>
           </div>
         `}
         <div class="inline-note">
@@ -2309,7 +2344,7 @@ function chooseAction(action) {
   const project = getProject();
   if (project && !requiresServerSelection(project)) {
     state.selectedServer = project.servers[0] || project.name;
-    state.deliveryType = "trade";
+    state.deliveryType = "bank";
     navigate(action === "sell" ? "sell" : "buy");
     return;
   }
@@ -2318,7 +2353,7 @@ function chooseAction(action) {
 
 function chooseServer(server) {
   state.selectedServer = server;
-  state.deliveryType = "trade";
+  state.deliveryType = "bank";
   navigate(state.action === "sell" ? "sell" : "buy");
 }
 
@@ -3181,8 +3216,14 @@ document.addEventListener("click", (event) => {
   if (deliveryButton) {
     state.deliveryType = deliveryButton.dataset.delivery;
     document.querySelectorAll("[data-delivery]").forEach((button) => {
-      button.classList.toggle("is-active", button === deliveryButton);
+      const active = button === deliveryButton;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-checked", String(active));
+      const stateIcon = button.querySelector(".delivery-method-state");
+      if (stateIcon) stateIcon.innerHTML = active ? icon("check") : "";
     });
+    const methodHelp = document.getElementById("deliveryMethodHelp");
+    if (methodHelp) methodHelp.textContent = deliveryButton.dataset.deliveryDescription || "";
     const accountGroup = document.getElementById("bankAccountGroup");
     const accountInput = document.getElementById("bankAccount");
     const useBank = state.deliveryType === "bank";
