@@ -48,6 +48,15 @@ let pendingReactionClaimDue = 0;
 let reviewsLoadSequence = 0;
 const REACTION_CLAIM_DUE_STORAGE_KEY_PREFIX = "platinov-reaction-claim-due-v3";
 const REPOST_POST_OPEN_STORAGE_KEY_PREFIX = "platinov-repost-post-open-v1";
+const TELEGRAM_AVATAR_PALETTES = [
+  ["#e56f6f", "#c94f62"],
+  ["#f2a04b", "#e47735"],
+  ["#a987e8", "#8066cc"],
+  ["#65c466", "#42a956"],
+  ["#5ca8df", "#3d83c5"],
+  ["#e477ad", "#c95291"],
+  ["#56c3c7", "#389da7"]
+];
 
 function getReferralVisitorKey() {
   const storageKey = "platinov-referral-visitor-v1";
@@ -132,14 +141,13 @@ async function apiRequest(path, options = {}, allowRetry = true) {
 
 async function loadTelegramAvatar() {
   const directPhotoUrl = tg?.initDataUnsafe?.user?.photo_url || "";
-  if (directPhotoUrl) return directPhotoUrl;
   if (telegramAvatarObjectUrl) return telegramAvatarObjectUrl;
-  if (!API_BASE_URL || !tg?.initData) return "";
+  if (!API_BASE_URL || !tg?.initData) return directPhotoUrl;
   if (telegramAvatarLoadPromise) return telegramAvatarLoadPromise;
 
   telegramAvatarLoadPromise = (async () => {
     const response = await apiRequest("/api/profile/avatar");
-    if (response.status === 404) return "";
+    if (response.status === 404) return directPhotoUrl;
     if (!response.ok) {
       throw new Error(`Не удалось загрузить Telegram-аватар: ${response.status}`);
     }
@@ -150,7 +158,7 @@ async function loadTelegramAvatar() {
   })()
     .catch((error) => {
       console.warn("Telegram avatar loading error", error);
-      return "";
+      return directPhotoUrl;
     })
     .finally(() => {
       telegramAvatarLoadPromise = null;
@@ -1360,7 +1368,7 @@ function reviewCard(review) {
     <article class="review-card">
       <div class="review-head">
         <div class="review-user">
-          <span class="avatar review-avatar">
+          <span class="avatar review-avatar telegram-avatar-fallback" style="${telegramAvatarStyle(review.userId || review.order)}">
             <span>${escapeHTML(review.initial)}</span>
             ${review.photoUrl ? `<img data-avatar-image src="${escapeHTML(review.photoUrl)}" alt="" loading="lazy" decoding="async">` : ""}
           </span>
@@ -1477,11 +1485,12 @@ function activityInitials(name) {
 
 function activityAvatar(player) {
   const fallback = escapeHTML(activityInitials(player.display_name));
+  const fallbackStyle = telegramAvatarStyle(player.user_id || player.display_name);
   if (!player.photo_url) {
-    return `<span class="activity-avatar"><span>${fallback}</span></span>`;
+    return `<span class="activity-avatar telegram-avatar-fallback" style="${fallbackStyle}"><span>${fallback}</span></span>`;
   }
   return `
-    <span class="activity-avatar">
+    <span class="activity-avatar telegram-avatar-fallback" style="${fallbackStyle}">
       <span>${fallback}</span>
       <img data-avatar-image src="${escapeHTML(player.photo_url)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
     </span>
@@ -1823,7 +1832,7 @@ function getTelegramUser() {
       username: user.username ? `@${user.username}` : "username не указан",
       id: user.id,
       initial: (user.first_name || "T").charAt(0).toLocaleUpperCase("ru"),
-      photoUrl: user.photo_url || telegramAvatarObjectUrl || null,
+      photoUrl: telegramAvatarObjectUrl || user.photo_url || null,
       isAuthenticated: true
     };
   }
@@ -1850,6 +1859,21 @@ function getUserInitials(name) {
     .toLocaleUpperCase("ru");
 }
 
+function telegramAvatarPaletteIndex(seed) {
+  const value = String(seed ?? "telegram-user");
+  let hash = 2166136261;
+  for (const character of value) {
+    hash ^= character.codePointAt(0) || 0;
+    hash = Math.imul(hash, 16777619);
+  }
+  return Math.abs(hash >>> 0) % TELEGRAM_AVATAR_PALETTES.length;
+}
+
+function telegramAvatarStyle(seed) {
+  const [start, end] = TELEGRAM_AVATAR_PALETTES[telegramAvatarPaletteIndex(seed)];
+  return `--telegram-avatar-start:${start};--telegram-avatar-end:${end}`;
+}
+
 function getHeaderProfileData() {
   const siteUser = window.PLATINOV_SITE_USER || null;
   const telegramUser = tg?.initDataUnsafe?.user || null;
@@ -1860,13 +1884,14 @@ function getHeaderProfileData() {
   const name = siteName || telegramName || "";
   const photoUrl =
     siteUser?.avatarUrl ||
-    telegramUser?.photo_url ||
     telegramAvatarObjectUrl ||
+    telegramUser?.photo_url ||
     null;
 
   return {
     photoUrl,
     initials: getUserInitials(name),
+    userId: siteUser?.id || telegramUser?.id || "",
     isAuthenticated: Boolean(siteUser || telegramUser)
   };
 }
@@ -1878,7 +1903,8 @@ function renderHeaderProfile() {
 
   const profile = getHeaderProfileData();
   const renderFallback = () => {
-    visual.className = "header-profile-visual header-profile-fallback";
+    visual.className = "header-profile-visual header-profile-fallback telegram-avatar-fallback";
+    visual.style.cssText = telegramAvatarStyle(profile.userId || profile.initials);
     visual.innerHTML = profile.initials
       ? `<span class="header-profile-initials">${escapeHTML(profile.initials)}</span>`
       : icon("user", "header-profile-icon");
@@ -1900,16 +1926,17 @@ function renderHeaderProfile() {
   image.decoding = "async";
   image.addEventListener("error", renderFallback, { once: true });
   visual.className = "header-profile-visual";
+  visual.style.cssText = "";
   visual.replaceChildren(image);
   image.src = profile.photoUrl;
 }
 
 function renderProfile() {
   const user = getTelegramUser();
-  const profileAvatar = user.photoUrl
-    ? `
-      <span class="avatar profile-user-avatar">
-        <span class="profile-avatar-fallback">${escapeHTML(user.initial)}</span>
+  const profileAvatar = `
+    <span class="avatar profile-user-avatar telegram-avatar-fallback" style="${telegramAvatarStyle(user.id || user.name)}">
+      <span class="profile-avatar-fallback">${escapeHTML(user.initial)}</span>
+      ${user.photoUrl ? `
         <img
           class="profile-avatar-image"
           data-profile-avatar
@@ -1918,9 +1945,9 @@ function renderProfile() {
           decoding="async"
           referrerpolicy="no-referrer"
         >
-      </span>
-    `
-    : `<span class="avatar profile-user-avatar">${escapeHTML(user.initial)}</span>`;
+      ` : ""}
+    </span>
+  `;
   const orders = getOrdersForDisplay();
   const purchaseTotal = orders.reduce((sum, order) => {
     if (Number.isFinite(order.totalValue)) return sum + order.totalValue;
@@ -2760,6 +2787,7 @@ function mapApiReview(review) {
   const created = new Date(review.created_at);
   return {
     id: review.public_id,
+    userId: review.user_id || "",
     initial: getUserInitials(review.username || "Пользователь"),
     photoUrl: review.user_id ? `${API_BASE_URL}/api/public/avatar/${review.user_id}` : "",
     order: review.order_public_id ? `Заказ #${review.order_public_id}` : `Отзыв #${review.public_id}`,
