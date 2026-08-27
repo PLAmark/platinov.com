@@ -2194,7 +2194,9 @@ function openGiveawayInfoModal() {
       </section>
     </div>
   `;
-  modalRoot.querySelector(".giveaway-info-close")?.focus();
+  const giveawayInfoSheet = modalRoot.querySelector(".giveaway-info-modal");
+  if (giveawayInfoSheet) giveawayInfoSheet.scrollTop = 0;
+  modalRoot.querySelector(".giveaway-info-modal .close-button")?.focus({ preventScroll: true });
 }
 
 function openSellContactModal() {
@@ -3432,7 +3434,7 @@ app.addEventListener("submit", (event) => {
 modalRoot.addEventListener("click", (event) => {
   if (
     event.target.matches(".modal-backdrop") ||
-    event.target.closest(".close-button") ||
+    event.target.closest("button[data-close-modal]") ||
     event.target.closest(".payment-placeholder-close")
   ) {
     closeModal();
