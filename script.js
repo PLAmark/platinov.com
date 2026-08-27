@@ -325,6 +325,29 @@ const backButton = document.getElementById("backButton");
 const modalRoot = document.getElementById("modalRoot");
 const toastRegion = document.getElementById("toastRegion");
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+let modalLockedScrollY = 0;
+
+function syncModalScrollLock() {
+  const shouldLock = Boolean(modalRoot.firstElementChild);
+  const isLocked = document.body.classList.contains("is-modal-open");
+
+  if (shouldLock && !isLocked) {
+    modalLockedScrollY = window.scrollY;
+    document.documentElement.classList.add("is-modal-open");
+    document.body.classList.add("is-modal-open");
+    document.body.style.top = `-${modalLockedScrollY}px`;
+    return;
+  }
+
+  if (!shouldLock && isLocked) {
+    document.documentElement.classList.remove("is-modal-open");
+    document.body.classList.remove("is-modal-open");
+    document.body.style.top = "";
+    window.scrollTo(0, modalLockedScrollY);
+  }
+}
+
+new MutationObserver(syncModalScrollLock).observe(modalRoot, { childList: true });
 
 function escapeHTML(value) {
   return String(value ?? "")

@@ -1396,6 +1396,19 @@ select.field-control {
   background: rgba(0, 0, 0, 0.62);
   backdrop-filter: blur(9px);
   animation: fade-in 180ms ease;
+  overscroll-behavior: contain;
+}
+
+html.is-modal-open {
+  overflow: hidden;
+}
+
+body.is-modal-open {
+  position: fixed;
+  right: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
 }
 
 @keyframes fade-in {
@@ -1412,6 +1425,8 @@ select.field-control {
   background: #121722;
   box-shadow: 0 28px 100px rgba(0, 0, 0, 0.55);
   animation: sheet-in 220ms cubic-bezier(.2, .75, .25, 1);
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes sheet-in {
@@ -15201,16 +15216,16 @@ html .bottom-nav::before {
 /* v279: compact giveaway details without crowding the activity screen */
 .activity-info-button {
   display: inline-flex;
-  min-height: 36px;
+  min-height: 30px;
   align-items: center;
   gap: 7px;
-  margin-top: 14px;
-  padding: 0 13px;
+  margin-top: 8px;
+  padding: 0 11px;
   border: 0;
   border-radius: 999px;
   color: rgba(242, 250, 255, 0.96);
   font: inherit;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 680;
   background: rgba(8, 64, 124, 0.5);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.11);
@@ -15228,6 +15243,44 @@ html .bottom-nav::before {
   height: 14px;
   margin-left: 1px;
   color: rgba(193, 227, 250, 0.82);
+}
+
+/* v281: keep the original compact hero proportions after adding the details link */
+.activity-screen .activity-hero-copy > p {
+  max-width: 390px;
+  margin: 14px 0 0;
+  color: #d7e8f7;
+  font-size: 15px;
+  line-height: 1.48;
+}
+
+.activity-screen .activity-user-summary {
+  margin-top: 16px;
+}
+
+.activity-screen .activity-user-summary > .activity-summary-item {
+  min-height: 112px;
+}
+
+@media (max-width: 560px) {
+  .activity-screen .activity-hero {
+    padding: 24px 19px 11px;
+  }
+
+  .activity-screen .activity-hero-copy > p {
+    max-width: 305px;
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .activity-screen .activity-user-summary {
+    margin-top: 14px;
+  }
+
+  .activity-screen .activity-user-summary > .activity-summary-item {
+    min-height: 86px;
+  }
 }
 
 .giveaway-info-modal {
