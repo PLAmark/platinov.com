@@ -1672,6 +1672,9 @@ function renderRaffle() {
         <div class="activity-hero-copy">
           <h1>Топ активности</h1>
           <p>Выполняйте задания, набирайте баллы и забирайте призы в рейтинге каждые 14 дней.</p>
+          <button class="activity-info-button" type="button" data-open-giveaway-info>
+            ${icon("info")}<span>Подробнее о розыгрыше</span>${icon("chevron-right")}
+          </button>
         </div>
         <div class="activity-user-summary">
           <div class="activity-summary-item is-points">
@@ -2105,6 +2108,70 @@ function openResourcesModal() {
       </section>
     </div>
   `;
+}
+
+function openGiveawayInfoModal() {
+  const prizes = Array.isArray(state.activity?.prizes) ? state.activity.prizes : [];
+  const orderedPrizes = [...prizes]
+    .filter((prize) => Number(prize.rank) >= 1 && Number(prize.rank) <= 10)
+    .sort((left, right) => Number(left.rank) - Number(right.rank));
+
+  modalRoot.innerHTML = `
+    <div class="modal-backdrop" data-close-modal>
+      <section class="modal-sheet giveaway-info-modal" role="dialog" aria-modal="true" aria-labelledby="giveawayInfoModalTitle">
+        <div class="modal-head">
+          <div>
+            <h2 id="giveawayInfoModalTitle">О розыгрыше</h2>
+            <p>Баллы за активность превращаются в место в рейтинге.</p>
+          </div>
+          <button class="close-button" type="button" data-close-modal aria-label="Закрыть">${icon("x")}</button>
+        </div>
+
+        <div class="giveaway-info-list">
+          <article class="giveaway-info-item">
+            <span class="giveaway-info-icon">${icon("clock")}</span>
+            <div><strong>Новый розыгрыш каждые 14 дней</strong><p>После окончания периода баллы обнуляются, а начинается новый рейтинг.</p></div>
+          </article>
+          <article class="giveaway-info-item">
+            <span class="giveaway-info-icon">${icon("star")}</span>
+            <div><strong>Выполняйте ежедневные задания</strong><p>Баллы активности начисляются за задания в разделе «Розыгрыш» и определяют место участника в рейтинге.</p></div>
+          </article>
+          <article class="giveaway-info-item">
+            <span class="giveaway-info-icon">${icon("trophy")}</span>
+            <div><strong>Призы получают участники топ-10</strong><p>Чем больше баллов набрано к завершению розыгрыша, тем выше место участника и его награда.</p></div>
+          </article>
+        </div>
+
+        ${orderedPrizes.length ? `
+          <div class="giveaway-prizes-block">
+            <h3>Призы текущего розыгрыша</h3>
+            <div class="giveaway-prize-grid">
+              ${orderedPrizes.map((prize) => `
+                <div class="giveaway-prize-row${Number(prize.rank) <= 3 ? " is-top" : ""}">
+                  <span>${Number(prize.rank)} место</span>
+                  <strong>${escapeHTML(prize.label)}</strong>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        ` : ""}
+
+        <div class="giveaway-rules-block">
+          <h3>${icon("shield-check")} Правила получения приза</h3>
+          <ol class="giveaway-rules-list">
+            <li>Игровая валюта выдаётся в <strong>BLACK RUSSIA</strong>. По желанию призёра её можно заменить на сопоставимый по стоимости товар из магазина.</li>
+            <li>Призёр должен написать в поддержку в течение <strong>7 дней</strong> после завершения розыгрыша.</li>
+            <li>Призёр обязан сохранить достаточные доказательства фактического выполнения заданий.</li>
+            <li>Для задания «Репост минимум в 10 чатов» организатор может запросить подтверждение. При отсутствии доказательств организатор вправе отказать в выдаче приза или уменьшить его размер.</li>
+          </ol>
+        </div>
+
+        <p class="giveaway-rules-footnote">Накрутка, спам и использование нескольких аккаунтов могут стать причиной исключения из рейтинга.</p>
+        <button class="primary-button giveaway-info-close" type="button" data-close-modal>Понятно</button>
+      </section>
+    </div>
+  `;
+  modalRoot.querySelector(".giveaway-info-close")?.focus();
 }
 
 function openSellContactModal() {
@@ -3107,6 +3174,12 @@ document.addEventListener("click", (event) => {
     state.activityError = "";
     render();
     loadActivity(true);
+    return;
+  }
+
+  if (event.target.closest("[data-open-giveaway-info]")) {
+    openGiveawayInfoModal();
+    haptic();
     return;
   }
 
