@@ -816,8 +816,15 @@ function openExternal(url) {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
+function isTelegramWebClient() {
+  const platform = String(tg?.platform || "").trim().toLowerCase();
+  return platform === "web" || platform === "weba" || platform === "webk";
+}
+
 function preparePaymentWindow() {
-  if (!tg?.initData) return null;
+  // Telegram Web isolates a pre-opened about:blank tab and may block the later
+  // cross-origin redirect. Its native openLink API is used after order creation.
+  if (!tg?.initData || isTelegramWebClient()) return null;
   try {
     const paymentWindow = window.open("about:blank", "_blank");
     if (!paymentWindow) return null;
@@ -848,6 +855,14 @@ function closePreparedPaymentWindow(paymentWindow) {
 }
 
 function openPaymentPage(url, paymentWindow = null) {
+  if (isTelegramWebClient() && tg?.openLink) {
+    try {
+      tg.openLink(url, { try_instant_view: false });
+      return;
+    } catch {
+      // Fall through to ordinary browser navigation if the client API fails.
+    }
+  }
   if (paymentWindow && !paymentWindow.closed) {
     try {
       paymentWindow.location.replace(url);
