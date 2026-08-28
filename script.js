@@ -279,6 +279,7 @@ const state = {
   activity: null,
   activityError: "",
   paymentReturnNotice: null,
+  paymentReturnRequest: null,
   lastEdited: "virtual"
 };
 
@@ -616,6 +617,8 @@ function applyPaymentReturnRoute() {
   ).toLowerCase();
   const requestedScreen = String(url.searchParams.get("screen") || "").toLowerCase();
   const paymentResult = String(url.searchParams.get("payment") || "").toLowerCase();
+  const returnedOrderId = String(url.searchParams.get("order") || "").trim().toUpperCase();
+  const returnToken = String(url.searchParams.get("return_token") || "").trim();
   const shouldOpenOrders = requestedScreen === "orders" ||
     startParam.startsWith("payment_") ||
     ["success", "paid", "return", "failed", "cancelled"].includes(paymentResult);
@@ -663,16 +666,75 @@ function applyPaymentReturnRoute() {
 
   state.route = "orders";
   state.history = [];
+  if (returnedOrderId && returnToken) {
+    state.paymentReturnRequest = {
+      orderId: returnedOrderId,
+      token: returnToken
+    };
+  }
   state.paymentReturnNotice = noticeByResult[resolvedResult] || {
     type: "pending",
     title: "Ваш заказ сохранён",
     text: "Актуальный статус заказа отображается в этом разделе."
   };
 
-  ["screen", "payment", "order", "tgWebAppStartParam"].forEach((name) => {
+  ["screen", "payment", "order", "return_token", "tgWebAppStartParam"].forEach((name) => {
     url.searchParams.delete(name);
   });
   window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+}
+
+async function reconcilePaymentReturn() {
+  const pendingReturn = state.paymentReturnRequest;
+  if (!API_BASE_URL || !pendingReturn) return;
+  state.paymentReturnRequest = null;
+  try {
+    const query = new URLSearchParams({
+      order: pendingReturn.orderId,
+      token: pendingReturn.token
+    });
+    const response = await fetch(
+      `${API_BASE_URL.replace(/\/$/, "")}/api/payments/platega/return-status?${query}`,
+      { cache: "no-store" }
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok || !data.order) {
+      throw new Error(data.error || `Payment status request failed: ${response.status}`);
+    }
+    const order = data.order;
+    const currentOrders = Array.isArray(state.apiOrders) ? state.apiOrders : [];
+    state.apiOrders = [
+      order,
+      ...currentOrders.filter((item) => item.public_id !== order.public_id)
+    ];
+    if (["paid", "processing", "completed"].includes(order.status)) {
+      state.paymentReturnNotice = {
+        type: "success",
+        title: `Оплата заказа #${order.public_id} подтверждена`,
+        text: "Заказ принят и передан сотрудникам. Его актуальный статус показан ниже."
+      };
+    } else if (["cancelled", "chargebacked"].includes(order.status)) {
+      state.paymentReturnNotice = {
+        type: "error",
+        title: "Оплата не завершена",
+        text: `Статус заказа #${order.public_id} обновлён платёжной системой.`
+      };
+    } else {
+      state.paymentReturnNotice = {
+        type: "pending",
+        title: "Платёж ещё проверяется",
+        text: `Заказ #${order.public_id} сохранён. Статус обновится после подтверждения Platega.`
+      };
+    }
+  } catch (error) {
+    console.error("Payment return reconciliation error", error);
+    state.paymentReturnNotice = {
+      type: "error",
+      title: "Не удалось проверить оплату",
+      text: "Заказ сохранён. Откройте его через Telegram или обратитесь в поддержку."
+    };
+  }
+  if (state.route === "orders") render();
 }
 
 function getStoredJSON(key, fallback) {
@@ -705,7 +767,8 @@ function mapRemoteOrder(order) {
     paid: ["Оплачен", "paid"],
     processing: ["В обработке", "processing"],
     completed: ["Выполнен", "completed"],
-    cancelled: ["Отменён", "cancelled"]
+    cancelled: ["Отменён", "cancelled"],
+    chargebacked: ["Возврат платежа", "cancelled"]
   };
   const [status, statusClass] = statusMap[order.status] || [order.status || "Создан", "waiting"];
   const numericAmount = Number(order.amount_kk);
@@ -3585,6 +3648,7 @@ applyPaymentReturnRoute();
 syncBrowserRoute(state.route, "replace");
 renderHeaderProfile();
 render();
+void reconcilePaymentReturn();
 loadSiteConfig();
 scheduleMoscowMidnightRefresh();
 reportReferralVisit();
