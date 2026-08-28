@@ -308,6 +308,17 @@ const PUBLIC_ROUTE_PATHS = Object.freeze({
   raffle: "/giveaway"
 });
 
+const TELEGRAM_START_ROUTES = Object.freeze({
+  home: "home",
+  shop: "home",
+  profile: "profile",
+  orders: "orders",
+  reviews: "reviews",
+  support: "support",
+  giveaway: "raffle",
+  raffle: "raffle"
+});
+
 const PUBLIC_PATH_ROUTES = new Map(
   Object.entries(PUBLIC_ROUTE_PATHS).map(([route, pathname]) => [pathname, route])
 );
@@ -624,8 +635,11 @@ function applyPaymentReturnRoute() {
     ["success", "paid", "return", "failed", "cancelled"].includes(paymentResult);
 
   if (!shouldOpenOrders) {
-    if (requestedScreen === "raffle" || startParam === "raffle") {
-      state.route = "raffle";
+    const requestedStartRoute = TELEGRAM_START_ROUTES[requestedScreen] ||
+      TELEGRAM_START_ROUTES[startParam] ||
+      null;
+    if (requestedStartRoute) {
+      state.route = requestedStartRoute;
       state.history = [];
       url.searchParams.delete("screen");
       url.searchParams.delete("tgWebAppStartParam");
