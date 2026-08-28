@@ -753,7 +753,50 @@ function openExternal(url) {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
-function openPaymentPage(url) {
+function preparePaymentWindow() {
+  if (!tg?.initData) return null;
+  try {
+    const paymentWindow = window.open("about:blank", "_blank");
+    if (!paymentWindow) return null;
+    paymentWindow.document.title = "PLATINOV SHOP — оплата";
+    paymentWindow.document.body.innerHTML = `
+      <main style="min-height:100vh;display:grid;place-items:center;margin:0;padding:24px;box-sizing:border-box;background:#0b2e53;color:#fff;font-family:Arial,sans-serif;text-align:center">
+        <div>
+          <div style="width:38px;height:38px;margin:0 auto 18px;border:3px solid rgba(255,255,255,.22);border-top-color:#35aef2;border-radius:50%;animation:platinov-payment-spin .8s linear infinite"></div>
+          <strong style="display:block;font-size:18px;line-height:1.3">Подготавливаем безопасную оплату</strong>
+          <span style="display:block;margin-top:8px;color:rgba(255,255,255,.72);font-size:14px">Окно Platega откроется автоматически</span>
+        </div>
+      </main>
+      <style>@keyframes platinov-payment-spin{to{transform:rotate(360deg)}}body{margin:0}</style>
+    `;
+    paymentWindow.opener = null;
+    return paymentWindow;
+  } catch {
+    return null;
+  }
+}
+
+function closePreparedPaymentWindow(paymentWindow) {
+  try {
+    if (paymentWindow && !paymentWindow.closed) paymentWindow.close();
+  } catch {
+    // The browser may revoke access after moving the tab to another process.
+  }
+}
+
+function openPaymentPage(url, paymentWindow = null) {
+  if (paymentWindow && !paymentWindow.closed) {
+    try {
+      paymentWindow.location.replace(url);
+      return;
+    } catch {
+      // Fall through to Telegram's external-link API.
+    }
+  }
+  if (tg?.openLink) {
+    tg.openLink(url, { try_instant_view: false });
+    return;
+  }
   try {
     window.location.assign(url);
   } catch {
@@ -2765,6 +2808,7 @@ async function submitPurchase(form) {
   const submitButton = form.querySelector('[type="submit"]');
   submitButton.disabled = true;
   submitButton.textContent = "Создаём заказ…";
+  const paymentWindow = preparePaymentWindow();
 
   try {
     let paymentUrl = "";
@@ -2812,13 +2856,15 @@ async function submitPurchase(form) {
       };
       navigate("orders", { replace: true });
       showToast("Заказ сохранён — открываем оплату");
-      openPaymentPage(paymentUrl);
+      openPaymentPage(paymentUrl, paymentWindow);
     } else {
+      closePreparedPaymentWindow(paymentWindow);
       showToast("Заказ создан и готов к оплате");
       state.history = [];
       navigate("orders", { replace: true });
     }
   } catch (error) {
+    closePreparedPaymentWindow(paymentWindow);
     console.error(error);
     showToast(`Не удалось создать заказ: ${error.message}`);
     submitButton.disabled = false;
