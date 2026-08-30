@@ -15503,3 +15503,20 @@ html .bottom-nav::before {
     grid-template-columns: 1fr;
   }
 }
+.order-buy-step .amount-speed-note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: -2px 0 1px;
+  color: rgba(186, 224, 248, 0.9);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.order-buy-step .amount-speed-note .ui-icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  color: #65c8ff;
+}

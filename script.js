@@ -184,7 +184,7 @@ const PROJECTS = [
     color: "red",
     logo: "black-russia.png",
     amountStep: 1,
-    defaultAmount: 3,
+    defaultAmount: 1,
     quickAmounts: [10, 20, 50, 100],
     tariffs: [{ from: 1, price: 100 }]
   },
@@ -197,7 +197,7 @@ const PROJECTS = [
     color: "orange",
     logo: "gta5rp.png",
     amountStep: 1,
-    defaultAmount: 3,
+    defaultAmount: 1,
     quickAmounts: [10, 20, 50, 100],
     tariffs: [{ from: 1, price: 1000 }]
   },
@@ -210,7 +210,7 @@ const PROJECTS = [
     color: "purple",
     logo: "matreshka.png",
     amountStep: 1,
-    defaultAmount: 3,
+    defaultAmount: 1,
     quickAmounts: [10, 20, 50, 100],
     tariffs: [{ from: 1, price: 190 }]
   },
@@ -1340,6 +1340,12 @@ function renderPurchaseForm() {
             </div>
           </div>
         </div>
+        ${project.id === "standoff-2" ? "" : `
+          <p class="amount-speed-note">
+            ${icon("clock")}
+            <span>От 3кк выдача быстрее</span>
+          </p>
+        `}
         <div class="field-group form-field">
           <div class="quick-row" aria-label="Быстрый выбор количества">
             ${project.quickAmounts.map((amount) => `
@@ -1883,7 +1889,7 @@ function renderRaffle() {
             iconName: "clock",
             title: "Ежедневный вход",
             text: "Начисляется автоматически раз в сутки",
-            points: tasks.daily_login?.points || 10,
+            points: tasks.daily_login?.points || 100,
             status: tasks.daily_login?.claimed ? "Получено" : "Сегодня",
             complete: Boolean(tasks.daily_login?.claimed)
           })}
@@ -1891,7 +1897,7 @@ function renderRaffle() {
             iconName: "star",
             title: "Серия входов 7 дней",
             text: `${Number(tasks.seven_day_streak?.progress || 0)} из 7 дней подряд`,
-            points: tasks.seven_day_streak?.points || 30,
+            points: tasks.seven_day_streak?.points || 300,
             progress: {
               current: Number(tasks.seven_day_streak?.progress || 0),
               total: 7
@@ -1901,7 +1907,7 @@ function renderRaffle() {
             iconName: "message-square",
             title: "Комментарий под последним постом",
             text: "Не более одного комментария на публикацию",
-            points: tasks.comment?.points || 30,
+            points: tasks.comment?.points || 300,
             action: tasks.comment?.claimed
               ? `<span class="activity-task-status is-complete">Получено</span>`
               : `<button class="activity-task-button" type="button" data-activity-open="${escapeHTML(channelUrl)}">К посту</button>`
@@ -1910,7 +1916,7 @@ function renderRaffle() {
             iconName: "star",
             title: "Реакция на публикацию",
             text: "Баллы начислятся через 10 секунд после открытия",
-            points: tasks.reaction?.points || 10,
+            points: tasks.reaction?.points || 100,
             action: tasks.reaction?.claimed
               ? `<span class="activity-task-status is-complete">Получено</span>`
               : `<button class="activity-task-button" type="button" data-activity-reaction="${escapeHTML(channelUrl)}">Открыть</button>`
@@ -1919,7 +1925,7 @@ function renderRaffle() {
             iconName: "arrow-up-right",
             title: "Репост минимум в 10 чатов",
             text: "Одно начисление в сутки по вашей отметке",
-            points: repostTask.points || 30,
+            points: repostTask.points || 300,
             action: repostTask.claimed
               ? `<span class="activity-task-status is-complete">Получено</span>`
               : !repostPostUrl
@@ -1932,7 +1938,7 @@ function renderRaffle() {
             iconName: "user",
             title: "Пригласить активного пользователя",
             text: `${Number(activity.referrals?.active || 0)} активных из ${Number(activity.referrals?.invited || 0)} приглашённых`,
-            points: tasks.referral?.points || 30,
+            points: tasks.referral?.points || 200,
             action: `<button class="activity-task-button" type="button" data-copy-activity-referral>Ссылка</button>`
           })}
         </div>
@@ -1950,7 +1956,7 @@ function renderRaffle() {
               <button class="activity-sponsor-open" type="button" data-activity-open="${escapeHTML(sponsor.url)}">Открыть</button>
               <button class="activity-sponsor-check${sponsor.claimed ? " is-complete" : ""}" type="button"
                 data-activity-sponsor="${escapeHTML(sponsor.id)}" ${sponsor.claimed ? "disabled" : ""}>
-                ${sponsor.claimed ? "Получено" : `Проверить +${sponsor.points}`}
+                ${sponsor.claimed ? "Получено" : `Проверить +${Number(sponsor.points || 500)}`}
               </button>
             </article>
           `).join("") : `
