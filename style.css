@@ -15520,3 +15520,143 @@ html .bottom-nav::before {
   flex: 0 0 15px;
   color: #65c8ff;
 }
+
+/* v288: active-referral explainer and final daily-login state */
+.activity-task-subline {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.activity-task-subline small {
+  min-width: 0;
+}
+
+.activity-screen .activity-referral-info-button {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(165, 219, 255, 0.26);
+  border-radius: 50%;
+  color: #bce4ff;
+  background: rgba(13, 77, 145, 0.58);
+  transition: background-color 150ms ease, transform 100ms ease;
+}
+
+.activity-screen .activity-referral-info-button .ui-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.activity-screen .activity-referral-info-button:active {
+  transform: scale(0.96);
+}
+
+.active-referral-info-modal {
+  max-width: 460px;
+  border-color: rgba(137, 211, 255, 0.25);
+  background:
+    radial-gradient(circle at 92% 0%, rgba(74, 180, 255, 0.16), transparent 32%),
+    linear-gradient(150deg, rgba(18, 91, 153, 0.99), rgba(5, 43, 92, 0.99));
+}
+
+.active-referral-info-modal .modal-head p {
+  max-width: 310px;
+  margin: 6px 0 0;
+  color: rgba(211, 233, 249, 0.78);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.active-referral-steps {
+  display: grid;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(181, 224, 255, 0.14);
+  border-radius: 20px;
+  background: rgba(5, 41, 88, 0.34);
+}
+
+.active-referral-step {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 14px;
+}
+
+.active-referral-step + .active-referral-step {
+  border-top: 1px solid rgba(186, 225, 255, 0.11);
+}
+
+.active-referral-step > span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 13px;
+  color: #82d5ff;
+  font-size: 14px;
+  font-weight: 800;
+  background: rgba(55, 158, 229, 0.16);
+}
+
+.active-referral-step > span .ui-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.active-referral-step strong {
+  display: block;
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.active-referral-step p {
+  margin: 4px 0 0;
+  color: rgba(210, 232, 248, 0.82);
+  font-size: 12px;
+  font-weight: 520;
+  line-height: 1.45;
+}
+
+.active-referral-step.is-result > span {
+  color: #91edc2;
+  background: rgba(34, 163, 111, 0.18);
+}
+
+.active-referral-warning {
+  margin: 12px 2px 0;
+  color: rgba(191, 219, 240, 0.72);
+  font-size: 10.5px;
+  font-weight: 520;
+  line-height: 1.45;
+}
+
+.active-referral-info-close {
+  width: 100%;
+  margin-top: 14px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .activity-screen .activity-referral-info-button:hover {
+    background: rgba(26, 105, 180, 0.72);
+  }
+}
+
+@media (max-width: 390px) {
+  .activity-screen .activity-referral-info-button {
+    width: 21px;
+    height: 21px;
+    flex-basis: 21px;
+  }
+
+  .activity-screen .activity-referral-info-button .ui-icon {
+    width: 13px;
+    height: 13px;
+  }
+}

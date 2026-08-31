@@ -1698,7 +1698,7 @@ function activityAvatar(player) {
   `;
 }
 
-function activityTaskCard({ iconName, title, text, points, status, action = "", complete = false, progress = null }) {
+function activityTaskCard({ iconName, title, text, points, status, action = "", copyAddon = "", complete = false, progress = null }) {
   const progressCurrent = Math.max(0, Number(progress?.current) || 0);
   const progressTotal = Math.max(1, Number(progress?.total) || 1);
   const progressPercent = Math.min(100, Math.round((progressCurrent / progressTotal) * 100));
@@ -1715,7 +1715,7 @@ function activityTaskCard({ iconName, title, text, points, status, action = "", 
       <span class="activity-task-icon">${icon(iconName)}</span>
       <span class="activity-task-copy">
         <strong>${escapeHTML(title)}</strong>
-        <small>${escapeHTML(text)}</small>
+        <span class="activity-task-subline"><small>${escapeHTML(text)}</small>${copyAddon}</span>
       </span>
       <span class="activity-task-points">+${escapeHTML(points)}</span>
       ${taskAction}
@@ -1890,8 +1890,8 @@ function renderRaffle() {
             title: "Ежедневный вход",
             text: "Начисляется автоматически раз в сутки",
             points: tasks.daily_login?.points || 100,
-            status: tasks.daily_login?.claimed ? "Получено" : "Сегодня",
-            complete: Boolean(tasks.daily_login?.claimed)
+            status: "Получено",
+            complete: true
           })}
           ${activityTaskCard({
             iconName: "star",
@@ -1939,6 +1939,7 @@ function renderRaffle() {
             title: "Пригласить активного пользователя",
             text: `${Number(activity.referrals?.active || 0)} активных из ${Number(activity.referrals?.invited || 0)} приглашённых`,
             points: tasks.referral?.points || 200,
+            copyAddon: `<button class="activity-referral-info-button" type="button" data-active-referral-info aria-label="Как пользователь становится активным">${icon("info")}</button>`,
             action: `<button class="activity-task-button" type="button" data-copy-activity-referral>Ссылка</button>`
           })}
         </div>
@@ -2338,6 +2339,41 @@ function openGiveawayInfoModal() {
   const giveawayInfoSheet = modalRoot.querySelector(".giveaway-info-modal");
   if (giveawayInfoSheet) giveawayInfoSheet.scrollTop = 0;
   modalRoot.querySelector(".giveaway-info-modal .close-button")?.focus({ preventScroll: true });
+}
+
+function openActiveReferralInfoModal() {
+  modalRoot.innerHTML = `
+    <div class="modal-backdrop" data-close-modal>
+      <section class="modal-sheet active-referral-info-modal" role="dialog" aria-modal="true" aria-labelledby="activeReferralInfoModalTitle">
+        <div class="modal-head">
+          <div>
+            <h2 id="activeReferralInfoModalTitle">Кто считается активным?</h2>
+            <p>Баллы начисляются за реального приглашённого пользователя.</p>
+          </div>
+          <button class="close-button" type="button" data-close-modal aria-label="Закрыть">${icon("x")}</button>
+        </div>
+
+        <div class="active-referral-steps">
+          <article class="active-referral-step">
+            <span>1</span>
+            <div><strong>Переход по вашей ссылке</strong><p>Пользователь впервые запускает @PlatinovBot по вашей персональной ссылке.</p></div>
+          </article>
+          <article class="active-referral-step">
+            <span>2</span>
+            <div><strong>Первое действие в розыгрыше</strong><p>Пользователь заходит в раздел «Розыгрыш» и получает первое начисление баллов активности.</p></div>
+          </article>
+          <article class="active-referral-step is-result">
+            <span>${icon("check")}</span>
+            <div><strong>Вам начисляется +200 баллов</strong><p>Награда выдаётся один раз за каждого активного приглашённого. Повторные переходы не учитываются.</p></div>
+          </article>
+        </div>
+
+        <p class="active-referral-warning">Самоприглашение и использование нескольких аккаунтов не засчитываются.</p>
+        <button class="primary-button active-referral-info-close" type="button" data-close-modal>Понятно</button>
+      </section>
+    </div>
+  `;
+  modalRoot.querySelector(".active-referral-info-modal .close-button")?.focus({ preventScroll: true });
 }
 
 function openSellContactModal() {
@@ -3418,6 +3454,12 @@ document.addEventListener("click", (event) => {
     navigator.clipboard?.writeText(referral)
       .then(() => showToast("Реферальная ссылка скопирована"))
       .catch(() => showToast(`Ссылка: ${referral}`));
+    haptic();
+    return;
+  }
+
+  if (event.target.closest("[data-active-referral-info]")) {
+    openActiveReferralInfoModal();
     haptic();
     return;
   }
