@@ -316,6 +316,8 @@ const TELEGRAM_START_ROUTES = Object.freeze({
   reviews: "reviews",
   support: "support",
   giveaway: "raffle",
+  giveaway_info: "raffle",
+  giveawayinfo: "raffle",
   raffle: "raffle"
 });
 
@@ -3720,6 +3722,13 @@ async function checkAccess() {
 
 initializeTelegram();
 restoreNavigationSession();
+const launchStartParam = String(
+  tg?.initDataUnsafe?.start_param ||
+  new URL(window.location.href).searchParams.get("tgWebAppStartParam") ||
+  ""
+).toLowerCase();
+const shouldOpenGiveawayInfoOnLaunch = ["giveaway_info", "giveaway-info", "giveawayinfo"]
+  .includes(launchStartParam);
 const directPublicRoute = getPublicRouteFromLocation();
 if (normalizePublicPath() !== "/" && directPublicRoute) {
   state.route = directPublicRoute;
@@ -3736,7 +3745,15 @@ reportReferralVisit();
 hydrateTelegramAvatar();
 loadRemoteReviews();
 if (state.route === "orders") loadRemoteOrders();
-if (state.route === "raffle") loadActivity();
+if (state.route === "raffle") {
+  const activityPromise = loadActivity();
+  if (shouldOpenGiveawayInfoOnLaunch) {
+    Promise.resolve(activityPromise).finally(() => {
+      if (state.route !== "raffle") return;
+      window.requestAnimationFrame(() => openGiveawayInfoModal());
+    });
+  }
+}
 checkAccess();
 
 schedulePendingReactionClaim();
