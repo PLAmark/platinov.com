@@ -1918,7 +1918,7 @@ function renderRaffle() {
           ${activityTaskCard({
             iconName: "star",
             title: "Реакция на публикацию",
-            text: "Баллы начислятся через 10 секунд после открытия",
+            text: "Засчитывает одну реакцию на пост",
             points: tasks.reaction?.points || 100,
             action: tasks.reaction?.claimed
               ? `<span class="activity-task-status is-complete">Получено</span>`
