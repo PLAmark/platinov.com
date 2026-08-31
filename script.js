@@ -46,6 +46,7 @@ let reactionClaimTimer = 0;
 let reactionClaimInFlight = false;
 let pendingReactionClaimDue = 0;
 let reviewsLoadSequence = 0;
+let lastAnimatedRoute = "";
 const REACTION_CLAIM_DUE_STORAGE_KEY_PREFIX = "platinov-reaction-claim-due-v3";
 const REPOST_POST_OPEN_STORAGE_KEY_PREFIX = "platinov-repost-post-open-v1";
 const TELEGRAM_AVATAR_PALETTES = [
@@ -2530,6 +2531,19 @@ function closeModal() {
   modalRoot.innerHTML = "";
 }
 
+function animateRenderedScreen() {
+  const screen = app.firstElementChild;
+  if (!(screen instanceof HTMLElement) || lastAnimatedRoute === state.route) return;
+  lastAnimatedRoute = state.route;
+  screen.classList.add("is-page-entering");
+  const finishPageEntrance = (event) => {
+    if (event.target !== screen) return;
+    screen.classList.remove("is-page-entering");
+    screen.removeEventListener("animationend", finishPageEntrance);
+  };
+  screen.addEventListener("animationend", finishPageEntrance);
+}
+
 function render() {
   if (!SELLING_ENABLED) {
     if (state.preferredAction === "sell") state.preferredAction = null;
@@ -2557,6 +2571,7 @@ function render() {
   // Remove a potentially heavy previous list before building the next screen.
   app.replaceChildren();
   app.innerHTML = renderer();
+  animateRenderedScreen();
   setActiveNav(state.route);
   syncTelegramBackButton();
   saveNavigationSession();
