@@ -2302,6 +2302,10 @@ function openGiveawayInfoModal() {
             <div><strong>Выполняйте ежедневные задания</strong><p>Баллы активности начисляются за задания в разделе «Розыгрыш» и определяют место участника в рейтинге.</p></div>
           </article>
           <article class="giveaway-info-item">
+            <span class="giveaway-info-icon">${icon("message-square")}</span>
+            <div><strong>Подписывайтесь на каналы спонсоров</strong><p>Каждая подписка в блоке «Каналы спонсоров» — отдельное задание. Откройте канал, подпишитесь, затем вернитесь в приложение и нажмите «Проверить», чтобы получить баллы.</p></div>
+          </article>
+          <article class="giveaway-info-item">
             <span class="giveaway-info-icon">${icon("trophy")}</span>
             <div><strong>Призы получают участники топ-10</strong><p>Чем больше баллов набрано к завершению розыгрыша, тем выше место участника и его награда.</p></div>
           </article>
