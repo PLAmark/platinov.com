@@ -245,9 +245,9 @@ const SERVERS = {
     "PODOLSK", "MAGADAN", "CHEREPOVETS", "NORILSK"
   ],
   "gta-5-rp": [
-    "Downtown", "Strawberry", "Vinewood", "Blackberry", "Insquad", "Sunrise", "Rainbow", "Richman",
-    "Eclipse", "La Mesa", "Burton", "Rockford", "Alta", "Del Perro", "Davis", "Harmony", "Redwood",
-    "Hawick", "Grapeseed", "Murrieta", "Vespucci", "Milton", "La Puerta", "Senora"
+    "Downtown", "StrawBerry", "VineWood", "BlackBerry", "Insquad", "Sunrise", "Richman", "Eclipse",
+    "LaMesa", "Burton", "Rockford", "Alta", "Redwood", "Grapeseed", "Murrieta", "Milton",
+    "La Puerta", "Chiliad"
   ],
   "matreshka-rp": Array.from({ length: 34 }, (_, index) => `MATRESHKA MOBILE #${index + 1}`),
   "standoff-2": ["STANDOFF 2"]
