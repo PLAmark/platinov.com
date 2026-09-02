@@ -16214,3 +16214,57 @@ html[data-theme="dark"] :focus-visible {
     transition: none;
   }
 }
+
+/* v296: dark-theme liquid glass consistency and activity surface cleanup. */
+html[data-theme="dark"] .topbar.app-header {
+  border: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html[data-theme="dark"] .topbar :is(
+  .header-brand-pill,
+  .header-pill,
+  .back-button
+) {
+  border-color: rgba(221, 242, 255, 0.2) !important;
+  color: #f2f2f7 !important;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.012)
+    ),
+    rgba(7, 30, 55, 0.14) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: blur(4px) saturate(108%) !important;
+  backdrop-filter: blur(4px) saturate(108%) !important;
+}
+
+html[data-theme="dark"] .activity-screen .activity-preview-row,
+html[data-theme="dark"] .activity-screen .activity-preview-row:first-child,
+html[data-theme="dark"] .activity-screen .activity-preview-row:nth-child(2),
+html[data-theme="dark"] .activity-screen .activity-preview-row:nth-child(3) {
+  background: #2c2c2e !important;
+  background-image: none !important;
+}
+
+html[data-theme="dark"] .activity-screen .activity-task-list {
+  background: #242426 !important;
+  background-image: none !important;
+}
+
+html[data-theme="dark"] .activity-screen .activity-task-card,
+html[data-theme="dark"] .activity-screen .activity-task-card:hover {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+html[data-theme="dark"] .activity-screen .activity-tasks-section
+  .activity-task-list > .activity-task-card + .activity-task-card {
+  background-color: transparent !important;
+  background-image: none !important;
+}
