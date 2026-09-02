@@ -16358,6 +16358,53 @@ html[data-theme="dark"] .bottom-nav {
   background-image: none !important;
 }
 
+/* v301: a quiet, live daily-task clock; no extra card or changes to task states. */
+.activity-screen .activity-tasks-section .activity-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.activity-task-refresh {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  margin-left: auto;
+}
+
+.activity-task-refresh-clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #eaf6ff;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.activity-task-refresh-clock .ui-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.activity-task-refresh-label {
+  color: #bdd4ed;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+html[data-theme="dark"] .activity-task-refresh-clock {
+  color: #f2f2f7;
+}
+
+html[data-theme="dark"] .activity-task-refresh-label {
+  color: #8e8e93;
+}
+
 /* v300: balanced leaderboard rows and a surface-free review game filter. */
 .activity-screen .activity-leaderboard {
   display: grid;

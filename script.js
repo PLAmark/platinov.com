@@ -43,6 +43,7 @@ let promoQuoteSequence = 0;
 let remoteOrdersLoading = false;
 let activityLoading = false;
 let moscowRefreshTimer = 0;
+let activityCountdownTimer = 0;
 let reactionClaimTimer = 0;
 let reactionClaimInFlight = false;
 let pendingReactionClaimDue = 0;
@@ -1696,6 +1697,32 @@ function renderReviews() {
   `;
 }
 
+function nextMoscowMidnight(now = Date.now()) {
+  const moscowNow = new Date(now + 3 * 60 * 60 * 1000);
+  return Date.UTC(
+    moscowNow.getUTCFullYear(),
+    moscowNow.getUTCMonth(),
+    moscowNow.getUTCDate() + 1,
+    -3, 0, 0, 0
+  );
+}
+
+function dailyTaskCountdown(now = Date.now()) {
+  const seconds = Math.max(0, Math.ceil((nextMoscowMidnight(now) - now) / 1000));
+  return [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60]
+    .map((value) => String(value).padStart(2, "0"))
+    .join(":");
+}
+
+function syncActivityTaskCountdown() {
+  window.clearTimeout(activityCountdownTimer);
+  const timer = app.querySelector("[data-activity-task-countdown]");
+  if (!timer || document.hidden) return;
+  // Only the visible clock changes: no rerender, claims, or task-state mutations.
+  timer.textContent = dailyTaskCountdown();
+  activityCountdownTimer = window.setTimeout(syncActivityTaskCountdown, 1000);
+}
+
 function activityCountdown(seconds = 0) {
   const total = Math.max(0, Number(seconds) || 0);
   const days = Math.floor(total / 86400);
@@ -1918,6 +1945,12 @@ function renderRaffle() {
       <section class="section activity-tasks-section">
         <div class="section-heading activity-section-heading">
           <div><h2>Задания</h2></div>
+          <div class="activity-task-refresh" title="Ежедневные задания обновляются в 00:00 МСК">
+            <span class="activity-task-refresh-clock" role="timer" aria-live="off" aria-label="До обновления ежедневных заданий">
+              ${icon("clock")}<span data-activity-task-countdown>${dailyTaskCountdown()}</span>
+            </span>
+            <span class="activity-task-refresh-label">до обновления ежедневных</span>
+          </div>
         </div>
         <div class="activity-task-list">
           ${activityTaskCard({
@@ -2608,6 +2641,7 @@ function render() {
   // Remove a potentially heavy previous list before building the next screen.
   app.replaceChildren();
   app.innerHTML = renderer();
+  syncActivityTaskCountdown();
   animateRenderedScreen();
   setActiveNav(state.route);
   syncTelegramBackButton();
@@ -3297,18 +3331,8 @@ async function loadActivity(force = false) {
 
 function scheduleMoscowMidnightRefresh() {
   window.clearTimeout(moscowRefreshTimer);
-  const now = new Date();
-  const moscowNow = new Date(now.getTime() + 3 * 60 * 60 * 1000);
-  const nextMidnightUtc = Date.UTC(
-    moscowNow.getUTCFullYear(),
-    moscowNow.getUTCMonth(),
-    moscowNow.getUTCDate() + 1,
-    -3,
-    0,
-    0,
-    0
-  );
-  const delay = Math.max(1000, nextMidnightUtc - now.getTime() + 1500);
+  const now = Date.now();
+  const delay = Math.max(1000, nextMoscowMidnight(now) - now + 1500);
   moscowRefreshTimer = window.setTimeout(async () => {
     await loadSiteConfig();
     if (tg?.initData) await loadActivity(true);
@@ -3821,6 +3845,7 @@ async function refreshActivityAfterReturn() {
 }
 
 document.addEventListener("visibilitychange", () => {
+  syncActivityTaskCountdown();
   if (!document.hidden) void refreshActivityAfterReturn();
 });
 window.addEventListener?.("focus", () => void refreshActivityAfterReturn());
