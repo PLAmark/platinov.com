@@ -16346,3 +16346,14 @@ html[data-theme="dark"] .bottom-nav .nav-liquid-indicator::before {
     ),
     rgba(255, 255, 255, 0.028) !important;
 }
+
+/* v299: uniform graphite glass without a pale highlight along the top edge. */
+html[data-theme="dark"] .topbar :is(
+  .header-brand-pill,
+  .header-pill,
+  .back-button
+),
+html[data-theme="dark"] .bottom-nav {
+  background: rgba(28, 28, 30, 0.24) !important;
+  background-image: none !important;
+}
