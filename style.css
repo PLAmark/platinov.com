@@ -16357,3 +16357,45 @@ html[data-theme="dark"] .bottom-nav {
   background: rgba(28, 28, 30, 0.24) !important;
   background-image: none !important;
 }
+
+/* v300: balanced leaderboard rows and a surface-free review game filter. */
+.activity-screen .activity-leaderboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+.activity-screen .activity-leader-head,
+.activity-screen .activity-leader-row,
+.activity-screen .activity-leader-row.is-medal {
+  grid-template-columns: 24px 40px minmax(0, 1fr) 52px 78px;
+  gap: 6px;
+}
+
+.activity-screen .activity-leader-head {
+  margin-bottom: 2px;
+}
+
+.activity-screen .activity-leader-row,
+.activity-screen .activity-leader-row.is-medal {
+  margin: 0;
+  border-top: 0;
+  border-radius: 16px;
+}
+
+.reviews-screen .filter-row,
+html[data-theme="dark"] .reviews-screen .filter-row {
+  border: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 390px) {
+  .activity-screen .activity-leader-head,
+  .activity-screen .activity-leader-row,
+  .activity-screen .activity-leader-row.is-medal {
+    grid-template-columns: 22px 40px minmax(0, 1fr) 48px 70px;
+    gap: 5px;
+  }
+}
