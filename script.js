@@ -17,6 +17,7 @@ const PAYMENT_PLACEHOLDER_ENABLED = false;
 // Temporarily disabled while the acquiring flow is under bank review.
 const SELLING_ENABLED = true;
 const SITE_ROOT = window.location.protocol === "file:" ? "" : "/";
+const THEME_STORAGE_KEY = "platinov-theme-v1";
 
 function siteAsset(path) {
   return `${SITE_ROOT}${String(path).replace(/^\/+/, "")}`;
@@ -340,6 +341,37 @@ const backButton = document.getElementById("backButton");
 const modalRoot = document.getElementById("modalRoot");
 const toastRegion = document.getElementById("toastRegion");
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+
+function isDarkTheme() {
+  return document.documentElement.dataset.theme === "dark";
+}
+
+function syncTelegramThemeColors() {
+  if (!tg) return;
+  const dark = isDarkTheme();
+  try {
+    tg.setHeaderColor(dark ? "#000000" : "#2A9FF0");
+    tg.setBackgroundColor(dark ? "#000000" : "#2A9FF0");
+    tg.setBottomBarColor?.(dark ? "#1C1C1E" : "#235FD8");
+  } catch {
+    // Older Telegram versions may not support color setters.
+  }
+}
+
+function setTheme(theme) {
+  const nextTheme = theme === "dark" ? "dark" : "blue";
+  if (nextTheme === "dark") {
+    document.documentElement.dataset.theme = "dark";
+  } else {
+    delete document.documentElement.dataset.theme;
+  }
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  } catch {
+    // The selected theme still applies for the current session.
+  }
+  syncTelegramThemeColors();
+}
 let modalLockedScrollY = 0;
 
 function syncModalScrollLock() {
@@ -2216,6 +2248,11 @@ function renderProfile() {
         </div>
       </div>
       <div class="profile-menu">
+        <button class="select-card theme-select-card" type="button" data-theme-toggle aria-pressed="${isDarkTheme() ? "true" : "false"}">
+          <span class="select-icon">${icon("star")}</span>
+          <span class="select-copy"><strong>Тёмная тема</strong><small>${isDarkTheme() ? "Включена · Telegram Dark" : "Выключена · используется голубая тема"}</small></span>
+          <span class="theme-switch ${isDarkTheme() ? "is-active" : ""}" aria-hidden="true"><span></span></span>
+        </button>
         <button class="select-card" type="button" data-route="orders">
           <span class="select-icon">${icon("receipt")}</span>
           <span class="select-copy"><strong>История заказов</strong><small>Покупки и их статусы</small></span>
@@ -3363,6 +3400,14 @@ function startDelayedReactionClaim(url, button) {
 }
 
 document.addEventListener("click", (event) => {
+  const themeButton = event.target.closest("[data-theme-toggle]");
+  if (themeButton) {
+    setTheme(isDarkTheme() ? "blue" : "dark");
+    haptic("light");
+    render();
+    return;
+  }
+
   const routeButton = event.target.closest("[data-route]");
   if (routeButton) {
     const route = routeButton.dataset.route;
@@ -3695,13 +3740,7 @@ function initializeTelegram() {
   tg.ready();
   tg.expand();
   if (tg.isVersionAtLeast?.("7.7")) tg.disableVerticalSwipes?.();
-  try {
-    tg.setHeaderColor("#2A9FF0");
-    tg.setBackgroundColor("#2A9FF0");
-    tg.setBottomBarColor?.("#235FD8");
-  } catch {
-    // Older Telegram versions may not support color setters.
-  }
+  syncTelegramThemeColors();
 }
 
 async function checkAccess() {
