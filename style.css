@@ -16268,3 +16268,81 @@ html[data-theme="dark"] .activity-screen .activity-tasks-section
   background-color: transparent !important;
   background-image: none !important;
 }
+
+/* v297: restore liquid glass on the dark-theme bottom navigation. */
+html[data-theme="dark"] .bottom-nav {
+  border-color: rgba(221, 242, 255, 0.2) !important;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.012)
+    ),
+    rgba(7, 30, 55, 0.14) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: blur(4px) saturate(108%) !important;
+  backdrop-filter: blur(4px) saturate(108%) !important;
+}
+
+html[data-theme="dark"] .bottom-nav::after {
+  border: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] .bottom-nav .nav-liquid-indicator,
+html[data-theme="dark"] .bottom-nav .nav-liquid-indicator::before {
+  border-color: rgba(221, 242, 255, 0.16) !important;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.075),
+      rgba(255, 255, 255, 0.018)
+    ),
+    rgba(255, 255, 255, 0.025) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] .bottom-nav .nav-liquid-indicator::after {
+  display: block !important;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(235, 249, 255, 0.13),
+    transparent
+  ) !important;
+  opacity: 0.8 !important;
+}
+
+/* v298: neutral graphite liquid glass without a blue surface tint. */
+html[data-theme="dark"] .topbar :is(
+  .header-brand-pill,
+  .header-pill,
+  .back-button
+),
+html[data-theme="dark"] .bottom-nav {
+  border-color: rgba(242, 242, 247, 0.16) !important;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.012)
+    ),
+    rgba(28, 28, 30, 0.18) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: blur(4px) saturate(104%) !important;
+  backdrop-filter: blur(4px) saturate(104%) !important;
+}
+
+html[data-theme="dark"] .bottom-nav .nav-liquid-indicator,
+html[data-theme="dark"] .bottom-nav .nav-liquid-indicator::before {
+  border-color: rgba(242, 242, 247, 0.14) !important;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.075),
+      rgba(255, 255, 255, 0.018)
+    ),
+    rgba(255, 255, 255, 0.028) !important;
+}
