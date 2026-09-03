@@ -16650,3 +16650,25 @@ html[data-theme="dark"] .reviews-screen .filter-row {
     gap: 5px;
   }
 }
+
+/* v304: remove the remaining control and grouped-list outlines in both themes. */
+html #app :is(
+  .reviews-screen .filter-chip,
+  .reviews-screen .reviews-hero .primary-button,
+  .activity-screen .activity-full-list-button,
+  .support-screen .faq-list,
+  .support-screen .faq-chevron,
+  .support-screen .support-hero .primary-button
+) {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Keep the navigation bar glass, but remove the rim around its moving active glass. */
+html .bottom-nav .nav-liquid-indicator,
+html .bottom-nav .nav-liquid-indicator::before {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
