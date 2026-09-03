@@ -3110,6 +3110,125 @@ html[data-theme="dark"] #app .active-referral-step:first-child {
   border-top: 0 !important;
 }
 
+/* v303: the same borderless card treatment for the default blue theme. */
+html:not([data-theme="dark"]) #app :is(
+  .hero,
+  .screen-header,
+  .order-step-header,
+  .orders-hero,
+  .reviews-hero,
+  .support-hero,
+  .glass-card,
+  .summary-card,
+  .form-card,
+  .order-card,
+  .legal-card,
+  .rating-panel,
+  .review-card,
+  .profile-card,
+  .stat-card,
+  .faq-item,
+  .empty-state,
+  .payment-return-notice,
+  .project-card,
+  .selected-game-card,
+  .order-action-card,
+  .select-card,
+  .server-button,
+  .choice-card,
+  .delivery-methods,
+  .delivery-method,
+  .price-box,
+  .inline-note,
+  .info-orb-card,
+  .info-document-button,
+  .resource-link-button,
+  .trust-grid,
+  .trust-item,
+  .modal-sheet,
+  .giveaway-info-modal,
+  .active-referral-info-modal,
+  .resources-modal,
+  .giveaway-info-list,
+  .giveaway-prize-row,
+  .giveaway-info-note,
+  .giveaway-rules-block,
+  .active-referral-steps,
+  .active-referral-warning,
+  .activity-hero,
+  .activity-preview-card,
+  .activity-preview-row,
+  .activity-task-list,
+  .activity-sponsor-card,
+  .activity-leaderboard,
+  .activity-leader-row,
+  .activity-loading-card,
+  .activity-auth-card,
+  .activity-empty-sponsors,
+  .activity-current-outside
+) {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+html:not([data-theme="dark"]) #app .activity-task-card,
+html:not([data-theme="dark"]) #app .active-referral-step {
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 0 !important;
+  box-shadow: none !important;
+}
+
+html:not([data-theme="dark"]) #app :is(
+  .activity-task-card:first-child,
+  .active-referral-step:first-child
+) {
+  border-top: 0 !important;
+}
+
+html[data-theme="dark"] #modalRoot :is(
+  .modal-sheet,
+  .giveaway-info-modal,
+  .active-referral-info-modal,
+  .resources-modal,
+  .giveaway-info-list,
+  .giveaway-prize-row,
+  .giveaway-info-note,
+  .giveaway-rules-block,
+  .active-referral-steps,
+  .active-referral-warning
+),
+html:not([data-theme="dark"]) #modalRoot :is(
+  .modal-sheet,
+  .giveaway-info-modal,
+  .active-referral-info-modal,
+  .resources-modal,
+  .giveaway-info-list,
+  .giveaway-prize-row,
+  .giveaway-info-note,
+  .giveaway-rules-block,
+  .active-referral-steps,
+  .active-referral-warning
+) {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] #modalRoot .active-referral-step,
+html:not([data-theme="dark"]) #modalRoot .active-referral-step {
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] #modalRoot .active-referral-step:first-child,
+html:not([data-theme="dark"]) #modalRoot .active-referral-step:first-child {
+  border-top: 0 !important;
+}
+
 /* v293: Telegram-style page and modal entrances without transparency.
    Only a short upward transform is animated so content stays fully opaque. */
 html #app > .screen.is-page-entering {
