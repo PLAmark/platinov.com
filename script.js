@@ -347,22 +347,49 @@ function isDarkTheme() {
   return document.documentElement.dataset.theme === "dark";
 }
 
+function getTheme() {
+  const theme = document.documentElement.dataset.theme;
+  return theme === "dark" || theme === "light" ? theme : "blue";
+}
+
+function isLightTheme() {
+  return getTheme() === "light";
+}
+
+function getThemeLabel(theme = getTheme()) {
+  if (theme === "dark") return "Тёмная";
+  if (theme === "light") return "Светлая";
+  return "Голубая";
+}
+
+function getThemeDescription(theme = getTheme()) {
+  if (theme === "dark") return "Тёмная · Telegram Dark";
+  if (theme === "light") return "Светлая · Telegram Light";
+  return "Голубая · По умолчанию";
+}
+
 function syncTelegramThemeColors() {
+  const theme = getTheme();
+  const colors = theme === "dark"
+    ? { header: "#0D0D0F", background: "#0D0D0F", bottom: "#1C1C1E" }
+    : theme === "light"
+      ? { header: "#F2F2F7", background: "#F2F2F7", bottom: "#FFFFFF" }
+      : { header: "#2A9FF0", background: "#2A9FF0", bottom: "#235FD8" };
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", colors.header);
   if (!tg) return;
-  const dark = isDarkTheme();
   try {
-    tg.setHeaderColor(dark ? "#000000" : "#2A9FF0");
-    tg.setBackgroundColor(dark ? "#000000" : "#2A9FF0");
-    tg.setBottomBarColor?.(dark ? "#1C1C1E" : "#235FD8");
+    tg.setHeaderColor(colors.header);
+    tg.setBackgroundColor(colors.background);
+    tg.setBottomBarColor?.(colors.bottom);
   } catch {
     // Older Telegram versions may not support color setters.
   }
 }
 
 function setTheme(theme) {
-  const nextTheme = theme === "dark" ? "dark" : "blue";
-  if (nextTheme === "dark") {
-    document.documentElement.dataset.theme = "dark";
+  const nextTheme = theme === "dark" || theme === "light" ? theme : "blue";
+  if (nextTheme === "dark" || nextTheme === "light") {
+    document.documentElement.dataset.theme = nextTheme;
   } else {
     delete document.documentElement.dataset.theme;
   }
@@ -371,7 +398,15 @@ function setTheme(theme) {
   } catch {
     // The selected theme still applies for the current session.
   }
+  const themeColor = nextTheme === "dark" ? "#0D0D0F" : nextTheme === "light" ? "#F2F2F7" : "#2A9FF0";
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", themeColor);
   syncTelegramThemeColors();
+}
+
+function getNextTheme() {
+  const themes = ["blue", "dark", "light"];
+  const currentIndex = themes.indexOf(getTheme());
+  return themes[(currentIndex + 1) % themes.length];
 }
 let modalLockedScrollY = 0;
 
@@ -2281,10 +2316,10 @@ function renderProfile() {
         </div>
       </div>
       <div class="profile-menu">
-        <button class="select-card theme-select-card" type="button" data-theme-toggle aria-pressed="${isDarkTheme() ? "true" : "false"}">
+        <button class="select-card theme-select-card" type="button" data-theme-cycle aria-label="Сменить тему. Текущая тема: ${getThemeLabel()}">
           <span class="select-icon">${icon("star")}</span>
-          <span class="select-copy"><strong>Тёмная тема</strong><small>${isDarkTheme() ? "Включена · Telegram Dark" : "Выключена · используется голубая тема"}</small></span>
-          <span class="theme-switch ${isDarkTheme() ? "is-active" : ""}" aria-hidden="true"><span></span></span>
+          <span class="select-copy"><strong>Тема оформления</strong><small>${getThemeDescription()}</small></span>
+          <span class="theme-mode-badge" aria-hidden="true">${getThemeLabel()}</span>
         </button>
         <button class="select-card" type="button" data-route="orders">
           <span class="select-icon">${icon("receipt")}</span>
@@ -3424,9 +3459,9 @@ function startDelayedReactionClaim(url, button) {
 }
 
 document.addEventListener("click", (event) => {
-  const themeButton = event.target.closest("[data-theme-toggle]");
+  const themeButton = event.target.closest("[data-theme-cycle]");
   if (themeButton) {
-    setTheme(isDarkTheme() ? "blue" : "dark");
+    setTheme(getNextTheme());
     haptic("light");
     render();
     return;
@@ -3760,11 +3795,11 @@ document.addEventListener("keydown", (event) => {
 });
 
 function initializeTelegram() {
+  syncTelegramThemeColors();
   if (!tg) return;
   tg.ready();
   tg.expand();
   if (tg.isVersionAtLeast?.("7.7")) tg.disableVerticalSwipes?.();
-  syncTelegramThemeColors();
 }
 
 async function checkAccess() {

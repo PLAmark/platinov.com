@@ -15911,7 +15911,7 @@ html .bottom-nav::before {
 
 /* v295: optional Telegram Dark theme. The existing blue theme remains default. */
 .theme-select-card {
-  grid-template-columns: 46px minmax(0, 1fr) 46px !important;
+  grid-template-columns: 46px minmax(0, 1fr) minmax(62px, auto) !important;
 }
 
 .theme-switch {
@@ -16670,5 +16670,643 @@ html .bottom-nav .nav-liquid-indicator,
 html .bottom-nav .nav-liquid-indicator::before {
   border: 0 !important;
   outline: 0 !important;
+  box-shadow: none !important;
+}
+
+/* v305: third, explicitly selectable Telegram Light theme. */
+.theme-mode-badge {
+  display: inline-flex;
+  min-width: 62px;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 999px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 11px;
+  font-weight: 760;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+html[data-theme="dark"] .theme-mode-badge {
+  color: #f2f2f7;
+  background: #2c2c2e;
+}
+
+html[data-theme="light"] {
+  --bg: #f2f2f7;
+  --bg-blue: #f2f2f7;
+  --surface: #ffffff;
+  --surface-strong: #f7f7f9;
+  --surface-soft: #f1f1f4;
+  --line: rgba(60, 60, 67, 0.12);
+  --line-strong: rgba(60, 60, 67, 0.18);
+  --text: #111113;
+  --muted: #73737a;
+  --muted-strong: #9a9aa1;
+  --accent: #0a84ff;
+  --electric-blue: #0a84ff;
+  --accent-strong: #0a84ff;
+  --accent-soft: rgba(10, 132, 255, 0.12);
+  --success: #34c759;
+  --warning: #ff9f0a;
+  --danger: #ff3b30;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  color-scheme: light;
+  background: #f2f2f7;
+}
+
+html[data-theme="light"] body,
+html[data-theme="light"] .app-shell,
+html[data-theme="light"] .screen,
+html[data-theme="light"] .activity-screen {
+  color: #111113;
+  background: #f2f2f7 !important;
+  background-image: none !important;
+}
+
+html[data-theme="light"] .ambient {
+  display: none;
+}
+
+html[data-theme="light"] .topbar.app-header {
+  border: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html[data-theme="light"] .topbar :is(
+  .header-brand-pill,
+  .header-pill,
+  .header-orders-button,
+  .header-profile-button,
+  .back-button,
+  .icon-button
+) {
+  border: 0 !important;
+  color: #111113 !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  background-image: none !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(112%) !important;
+  backdrop-filter: blur(18px) saturate(112%) !important;
+}
+
+html[data-theme="light"] :is(
+  .hero,
+  .screen-header,
+  .order-step-header,
+  .orders-hero,
+  .glass-card,
+  .summary-card,
+  .form-card,
+  .order-card,
+  .legal-card,
+  .support-hero,
+  .rating-panel,
+  .review-card,
+  .reviews-hero,
+  .profile-card,
+  .stat-card,
+  .faq-list,
+  .modal-sheet,
+  .empty-state,
+  .payment-return-notice,
+  .activity-hero,
+  .activity-preview-card,
+  .activity-task-list,
+  .activity-leaderboard,
+  .activity-loading-card,
+  .activity-auth-card,
+  .activity-empty-sponsors,
+  .activity-current-outside,
+  .giveaway-info-card,
+  .giveaway-rules-card,
+  .active-referral-info-card
+) {
+  border: 0 !important;
+  color: #111113;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+html[data-theme="light"] :is(
+  .hero::before,
+  .hero::after,
+  .screen-header::before,
+  .screen-header::after,
+  .support-hero::before,
+  .support-hero::after,
+  .reviews-hero::before,
+  .reviews-hero::after,
+  .profile-card::before,
+  .profile-card::after,
+  .activity-hero::before,
+  .activity-hero::after,
+  .activity-preview-card::before,
+  .activity-preview-card::after
+) {
+  background: none !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] :is(
+  .project-card,
+  .activity-preview-row,
+  .activity-sponsor-card,
+  .activity-leader-row,
+  .select-card,
+  .server-button,
+  .choice-card,
+  .delivery-methods,
+  .delivery-method,
+  .info-document-button,
+  .resource-link-button,
+  .price-box,
+  .inline-note,
+  .giveaway-info-list,
+  .giveaway-prize-row,
+  .giveaway-info-note,
+  .giveaway-rules-block,
+  .active-referral-steps,
+  .active-referral-warning,
+  .filter-chip,
+  .quick-chip,
+  .order-status,
+  .profile-auth-button
+) {
+  border: 0 !important;
+  color: #111113;
+  background: #f7f7f9 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] :is(
+  .project-card.is-selected,
+  .server-button.is-selected,
+  .choice-card.is-selected,
+  .delivery-method.is-active,
+  .select-card.is-featured
+) {
+  color: #111113 !important;
+  background: #f1f1f4 !important;
+  background-image: none !important;
+}
+
+html[data-theme="light"] .profile-menu {
+  border: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .profile-menu .select-card,
+html[data-theme="light"] .profile-screen .stat-card {
+  border: 0 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+html[data-theme="light"] .profile-menu .select-icon,
+html[data-theme="light"] :is(.stat-icon, .activity-task-icon, .activity-summary-icon) {
+  border: 0 !important;
+  background: #f1f1f4 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .theme-mode-badge {
+  color: #0a84ff;
+  background: #f1f1f4;
+}
+
+html[data-theme="light"] .trust-grid {
+  border: 0 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html[data-theme="light"] .trust-grid .trust-item,
+html[data-theme="light"] .trust-grid .trust-item:hover {
+  color: #111113 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .trust-grid .trust-item span:last-child {
+  color: #111113 !important;
+}
+
+html[data-theme="light"] .trust-grid > .trust-item:nth-of-type(odd) {
+  border-right: 1px solid rgba(60, 60, 67, 0.12) !important;
+}
+
+html[data-theme="light"] .trust-grid > .trust-item:nth-of-type(-n + 2) {
+  border-bottom: 1px solid rgba(60, 60, 67, 0.12) !important;
+}
+
+html[data-theme="light"] :is(.trust-watermark, .rating-watermark) {
+  color: #9a9aa1 !important;
+}
+
+html[data-theme="light"] :is(
+  h1,
+  h2,
+  h3,
+  h4,
+  .hero-title,
+  .section-title,
+  .brand-copy strong,
+  .select-copy strong,
+  .project-name,
+  .activity-summary-value,
+  .activity-preview-player strong,
+  .activity-task-copy strong,
+  .activity-player-copy strong,
+  .activity-sponsor-card > span:nth-child(2) strong,
+  .summary-copy strong,
+  .rating-value,
+  .activity-task-points,
+  .activity-player-points,
+  .modal-head h2,
+  .giveaway-info-item strong,
+  .giveaway-prizes-block h3,
+  .giveaway-rules-block h3,
+  .active-referral-step strong,
+  .info-document-copy strong,
+  .review-author strong,
+  .order-card strong,
+  .faq-item summary
+) {
+  color: #111113 !important;
+}
+
+html[data-theme="light"] :is(
+  .muted,
+  .hero-text,
+  .screen-header > p:not(.eyebrow),
+  .order-step-header > p:not(.eyebrow),
+  .activity-auth-card p,
+  .brand-copy small,
+  .select-copy small,
+  .project-price,
+  .activity-hero-copy > p,
+  .activity-summary-label,
+  .activity-preview-player small,
+  .activity-task-copy small,
+  .activity-sponsor-card > span:nth-child(2) small,
+  .activity-player-copy small,
+  .activity-leader-head,
+  .activity-empty-board p,
+  .activity-task-refresh-label,
+  .review-card p,
+  .review-date,
+  .faq-item p,
+  .giveaway-info-item p,
+  .giveaway-info-note,
+  .giveaway-rules-list,
+  .giveaway-rules-footnote,
+  .active-referral-step p,
+  .active-referral-warning
+) {
+  color: #73737a !important;
+}
+
+html[data-theme="light"] :is(
+  .eyebrow,
+  .activity-task-refresh-clock,
+  .text-link,
+  .select-chevron,
+  .project-card-chevron,
+  .server-button.is-selected .select-chevron
+) {
+  color: #0a84ff !important;
+}
+
+html[data-theme="light"] .activity-info-button {
+  border: 0 !important;
+  color: #111113 !important;
+  background: #f1f1f4 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .activity-top-prize {
+  border: 0 !important;
+  color: #73737a !important;
+  background: #f1f1f4 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] :is(
+  .primary-button,
+  .activity-task-button,
+  .activity-sponsor-open,
+  .activity-sponsor-check:not(.is-complete),
+  .activity-full-list-button,
+  .reviews-screen .reviews-hero .primary-button,
+  .support-screen .support-hero .primary-button
+) {
+  border: 0 !important;
+  color: #ffffff !important;
+  background: #0a84ff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] :is(
+  .primary-button:hover,
+  .activity-task-button:hover,
+  .activity-sponsor-open:hover,
+  .activity-sponsor-check:not(.is-complete):hover
+) {
+  background: #2997ff !important;
+}
+
+html[data-theme="light"] :is(
+  .primary-button:active,
+  .activity-task-button:active,
+  .activity-sponsor-open:active,
+  .activity-sponsor-check:not(.is-complete):active
+) {
+  background: #0077ed !important;
+}
+
+html[data-theme="light"] :is(
+  .secondary-button,
+  .ghost-button,
+  .hero .secondary-button,
+  .resource-link-button,
+  .info-document-button
+) {
+  border: 0 !important;
+  color: #111113 !important;
+  background: #e9e9ee !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] :is(.quick-chip.is-active, .filter-chip.is-active) {
+  border: 0 !important;
+  color: #ffffff !important;
+  background: #0a84ff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] :is(input, textarea, select, .input-shell) {
+  border: 0 !important;
+  color: #111113 !important;
+  background: #f7f7f9 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] :is(input, textarea)::placeholder {
+  color: #9a9aa1 !important;
+}
+
+html[data-theme="light"] .activity-screen .activity-task-list {
+  background: #ffffff !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+html[data-theme="light"] .activity-screen .activity-task-card,
+html[data-theme="light"] .activity-screen .activity-task-card:hover {
+  position: relative;
+  border: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .activity-screen .activity-task-card + .activity-task-card::before {
+  position: absolute;
+  top: 0;
+  right: 18px;
+  left: 78px;
+  height: 1px;
+  background: rgba(60, 60, 67, 0.12);
+  content: "";
+}
+
+html[data-theme="light"] .activity-screen :is(
+  .activity-preview-row,
+  .activity-preview-row:first-child,
+  .activity-preview-row:nth-child(2),
+  .activity-preview-row:nth-child(3),
+  .activity-sponsor-card,
+  .activity-leader-row,
+  .activity-leader-row.is-medal
+) {
+  border: 0 !important;
+  background: #f7f7f9 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .activity-screen .activity-leaderboard {
+  border: 0 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+html[data-theme="light"] .activity-screen .activity-user-summary > .activity-summary-item + .activity-summary-item::before {
+  border: 0 !important;
+  background: rgba(60, 60, 67, 0.12) !important;
+}
+
+html[data-theme="light"] .activity-screen .activity-task-progress-track {
+  border: 0 !important;
+  background: #e9e9ee !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .activity-screen .activity-task-progress-track i {
+  background: #0a84ff !important;
+}
+
+html[data-theme="light"] .activity-screen :is(
+  .activity-task-status.is-complete,
+  .activity-sponsor-check.is-complete
+) {
+  border: 0 !important;
+  color: #34c759 !important;
+  background: rgba(52, 199, 89, 0.12) !important;
+}
+
+html[data-theme="light"] .reviews-screen .filter-row {
+  border: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .support-screen .faq-list {
+  border: 0 !important;
+  background: #ffffff !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+html[data-theme="light"] .support-screen .faq-item {
+  position: relative;
+  border: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .support-screen .faq-item + .faq-item::before {
+  position: absolute;
+  top: 0;
+  right: 18px;
+  left: 18px;
+  height: 1px;
+  background: rgba(60, 60, 67, 0.12);
+  content: "";
+}
+
+html[data-theme="light"] .support-screen .faq-chevron {
+  border: 0 !important;
+  color: #9a9aa1 !important;
+  background: #f1f1f4 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .modal-backdrop {
+  background: rgba(0, 0, 0, 0.28) !important;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+html[data-theme="light"] .close-button {
+  border: 0 !important;
+  color: #73737a !important;
+  background: #f1f1f4 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .toast {
+  border: 0 !important;
+  color: #111113 !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  background-image: none !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+html[data-theme="light"] .bottom-nav {
+  border: 0 !important;
+  color: #9a9aa1;
+  background: rgba(255, 255, 255, 0.84) !important;
+  background-image: none !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(112%) !important;
+  backdrop-filter: blur(20px) saturate(112%) !important;
+}
+
+html[data-theme="light"] .bottom-nav::after {
+  border: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .bottom-nav .nav-item {
+  color: #9a9aa1 !important;
+}
+
+html[data-theme="light"] .bottom-nav .nav-item.is-active {
+  color: #0a84ff !important;
+}
+
+html[data-theme="light"] .bottom-nav .nav-liquid-indicator,
+html[data-theme="light"] .bottom-nav .nav-liquid-indicator::before {
+  border: 0 !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .bottom-nav .nav-liquid-indicator::after {
+  display: none !important;
+}
+
+html[data-theme="light"] :focus-visible {
+  outline-color: #0a84ff !important;
+}
+
+@media (max-width: 390px) {
+  html[data-theme="light"] .activity-screen .activity-task-card + .activity-task-card::before {
+    left: 68px;
+  }
+}
+
+/* v306: deeper graphite dark theme based on the selected Telegram reference. */
+html[data-theme="dark"] {
+  --bg: #0d0d0f;
+  --bg-blue: #0d0d0f;
+  background: #0d0d0f;
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] .app-shell,
+html[data-theme="dark"] .activity-screen {
+  background: #0d0d0f !important;
+  background-image: none !important;
+}
+
+html[data-theme="dark"] .topbar :is(
+  .header-brand-pill,
+  .header-pill,
+  .back-button
+),
+html[data-theme="dark"] .bottom-nav {
+  background: rgba(28, 28, 30, 0.68) !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: blur(16px) saturate(106%) !important;
+  backdrop-filter: blur(16px) saturate(106%) !important;
+}
+
+/* v307: keep game-card chevrons standalone, without a capsule background. */
+html[data-theme="dark"] .project-card .project-card-chevron,
+html[data-theme="dark"] .project-card:not(.project-card-add) .project-card-chevron {
+  border: 0 !important;
+  color: #f2f2f7 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* v309: use the same standalone white navigation chevron across the dark theme. */
+html[data-theme="dark"] :is(
+  .select-card .select-chevron,
+  .server-button .select-chevron,
+  .profile-screen .profile-menu .select-chevron,
+  .support-screen .faq-chevron
+) {
+  border: 0 !important;
+  color: #f2f2f7 !important;
+  background: transparent !important;
+  background-image: none !important;
   box-shadow: none !important;
 }
