@@ -17310,3 +17310,192 @@ html[data-theme="dark"] :is(
   background-image: none !important;
   box-shadow: none !important;
 }
+
+/* v311: softly separate the light-theme glass navigation from pale content. */
+html[data-theme="light"] .topbar :is(
+  .header-brand-pill,
+  .header-pill,
+  .header-orders-button,
+  .header-profile-button,
+  .back-button,
+  .icon-button
+) {
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.08) !important;
+}
+
+html[data-theme="light"] .bottom-nav {
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* v312: clearer neutral liquid glass and a complete theme contrast pass. */
+html[data-theme="light"] .topbar :is(
+  .header-brand-pill,
+  .header-pill,
+  .header-orders-button,
+  .header-profile-button,
+  .back-button,
+  .icon-button
+) {
+  border: 0 !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  background-image: none !important;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.11) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(118%) !important;
+  backdrop-filter: blur(22px) saturate(118%) !important;
+}
+
+html[data-theme="light"] .bottom-nav {
+  border: 0 !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  background-image: none !important;
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.11) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(118%) !important;
+  backdrop-filter: blur(24px) saturate(118%) !important;
+}
+
+html[data-theme="dark"] .topbar :is(
+  .header-brand-pill,
+  .header-pill,
+  .header-orders-button,
+  .header-profile-button,
+  .back-button,
+  .icon-button
+) {
+  border: 0 !important;
+  background: rgba(44, 44, 46, 0.82) !important;
+  background-image: none !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.38) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(110%) !important;
+  backdrop-filter: blur(22px) saturate(110%) !important;
+}
+
+html[data-theme="dark"] .bottom-nav {
+  border: 0 !important;
+  background: rgba(44, 44, 46, 0.82) !important;
+  background-image: none !important;
+  box-shadow: 0 -6px 26px rgba(0, 0, 0, 0.4) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(110%) !important;
+  backdrop-filter: blur(24px) saturate(110%) !important;
+}
+
+/* The order tab uses the same blue active treatment as every other tab. */
+html[data-theme="light"] .bottom-nav .nav-order.is-active,
+html[data-theme="light"] .bottom-nav .nav-order.is-active .nav-icon {
+  color: #0a84ff !important;
+}
+
+/* Hover feedback changes only the label colour, never the pale chip surface. */
+@media (hover: hover) and (pointer: fine) {
+  html[data-theme="light"] .reviews-screen .filter-chip:not(.is-active):hover {
+    border: 0 !important;
+    color: #0a84ff !important;
+    background: #f7f7f9 !important;
+    background-image: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Neutral primary text that was still inheriting the old blue theme palette. */
+html[data-theme="light"] :is(
+  .profile-auth-copy h2,
+  .profile-screen .stat-card strong,
+  .server-button strong,
+  .order-flow .selected-game-card .summary-copy strong,
+  .order-flow .delivery-method-copy strong,
+  .order-flow .price-box > strong,
+  .order-flow .inline-note strong,
+  .reviews-page-state strong,
+  .activity-loading-card h2,
+  .activity-auth-card h1,
+  .sell-contact-modal .sell-contact-button .info-document-copy strong
+) {
+  color: #111113 !important;
+}
+
+html[data-theme="light"] :is(
+  .profile-auth-copy p,
+  .profile-screen .stat-label,
+  .orders-screen .orders-empty-state p,
+  .support-screen .legal-card p,
+  .server-number,
+  .order-flow .selected-game-card .summary-copy span,
+  .order-flow .form-field label,
+  .order-flow .form-field .field-label,
+  .order-flow .amount-unit,
+  .order-flow .amount-speed-note,
+  .order-flow .delivery-method-help,
+  .order-flow .price-details > span,
+  .order-flow .price-details > small,
+  .order-flow .inline-note,
+  .activity-loading-card p,
+  .activity-auth-card p,
+  .sell-contact-modal .modal-head p,
+  .sell-contact-modal .sell-contact-button .info-document-copy small
+) {
+  color: #73737a !important;
+}
+
+html[data-theme="light"] :is(
+  .order-flow .summary-tag,
+  .sell-contact-modal .sell-contact-button .info-document-arrow
+) {
+  color: #0a84ff !important;
+}
+
+/* Equivalent neutral text treatment for the graphite theme. */
+html[data-theme="dark"] :is(
+  .profile-auth-copy h2,
+  .profile-screen .stat-card strong,
+  .server-button strong,
+  .order-flow .selected-game-card .summary-copy strong,
+  .order-flow .delivery-method-copy strong,
+  .order-flow .price-box > strong,
+  .order-flow .inline-note strong,
+  .reviews-page-state strong,
+  .activity-loading-card h2,
+  .activity-auth-card h1,
+  .sell-contact-modal .sell-contact-button .info-document-copy strong
+) {
+  color: #f2f2f7 !important;
+}
+
+html[data-theme="dark"] :is(
+  .profile-auth-copy p,
+  .profile-screen .stat-label,
+  .orders-screen .orders-empty-state p,
+  .support-screen .legal-card p,
+  .server-number,
+  .order-flow .selected-game-card .summary-copy span,
+  .order-flow .form-field label,
+  .order-flow .form-field .field-label,
+  .order-flow .amount-unit,
+  .order-flow .amount-speed-note,
+  .order-flow .delivery-method-help,
+  .order-flow .price-details > span,
+  .order-flow .price-details > small,
+  .order-flow .inline-note,
+  .activity-loading-card p,
+  .activity-auth-card p,
+  .sell-contact-modal .modal-head p,
+  .sell-contact-modal .sell-contact-button .info-document-copy small
+) {
+  color: #8e8e93 !important;
+}
+
+html[data-theme="dark"] .trust-grid .trust-item span:last-child {
+  color: #f2f2f7 !important;
+}
+
+html[data-theme="dark"] .order-flow .summary-tag {
+  color: #0a84ff !important;
+}
+
+/* Completed labels are flat fills on every theme, without an outline. */
+html #app .activity-screen :is(
+  .activity-task-status.is-complete,
+  .activity-sponsor-check.is-complete
+) {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}

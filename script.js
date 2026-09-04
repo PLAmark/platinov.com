@@ -1612,7 +1612,6 @@ function renderOrders() {
   return `
     <section class="screen orders-screen">
       <header class="screen-header orders-hero">
-        <p class="eyebrow">История</p>
         <h1>Ваши заказы</h1>
         <p>Актуальные статусы заказов на этом устройстве</p>
       </header>
@@ -2107,7 +2106,6 @@ function renderSupport() {
           ${icon("headset", "support-art-headset")}
           ${icon("message-dots", "support-art-message")}
         </span>
-        <span class="online-badge">Менеджер на связи</span>
         <h1>Поддержка 24/7</h1>
         <p class="hero-text">Поможем оформить заказ, выбрать способ получения и решить вопрос после оплаты.</p>
         <button class="primary-button" type="button" data-external="support">Написать в Telegram</button>
@@ -2270,7 +2268,6 @@ function renderProfile() {
   return `
     <section class="screen profile-screen">
       <header class="screen-header">
-        <p class="eyebrow">${icon("user")} Аккаунт</p>
         <h1>Профиль</h1>
         <p>Ваши данные и быстрый доступ к сервису</p>
       </header>
