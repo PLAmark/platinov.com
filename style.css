@@ -17590,3 +17590,104 @@ html[data-theme="light"] .reviews-screen .review-detail:nth-child(-n + 2),
 html[data-theme="light"] .reviews-screen .review-meta-row {
   border-color: rgba(60, 60, 67, 0.12) !important;
 }
+
+/* v314: light-theme giveaway modal text contrast. */
+html[data-theme="light"] .giveaway-info-modal .giveaway-rules-list strong {
+  color: #111113 !important;
+  font-weight: 750;
+}
+
+html[data-theme="light"] .giveaway-info-modal .giveaway-prize-row:not(.is-top) > span {
+  color: #73737a !important;
+}
+
+html[data-theme="light"] .giveaway-info-modal .giveaway-prize-row:not(.is-top) > strong {
+  color: #111113 !important;
+}
+
+/* v315: light-theme profile, service, orders and purchase controls. */
+html[data-theme="light"] .profile-screen .profile-copy p,
+html[data-theme="light"] .profile-screen .profile-id {
+  color: #73737a !important;
+}
+
+html[data-theme="light"] .profile-screen .profile-id {
+  background: #f1f1f4 !important;
+}
+
+html[data-theme="light"] .info-screen .info-orb-card {
+  border: 0 !important;
+  color: #111113 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html[data-theme="light"] .info-screen .info-orb-card::before,
+html[data-theme="light"] .info-screen .info-orb-card::after {
+  display: none !important;
+  content: none !important;
+}
+
+html[data-theme="light"] .info-screen .info-orb-copy .eyebrow {
+  display: none !important;
+}
+
+html[data-theme="light"] .info-screen .info-orb-copy h1 {
+  color: #111113 !important;
+}
+
+html[data-theme="light"] .info-screen .info-orb-copy > p:last-child,
+html[data-theme="light"] .info-screen .info-document-copy small {
+  color: #73737a !important;
+}
+
+html[data-theme="light"] .info-screen .info-document-button,
+html[data-theme="light"] .info-screen .info-document-button:hover {
+  border: 0 !important;
+  color: #111113 !important;
+  background: #f7f7f9 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .info-screen .info-document-icon {
+  color: #0a84ff !important;
+  background: rgba(10, 132, 255, 0.1) !important;
+}
+
+html[data-theme="light"] .info-screen .info-document-arrow {
+  color: #0a84ff !important;
+}
+
+html[data-theme="light"] .orders-screen .order-id {
+  color: #3c3c43 !important;
+}
+
+html[data-theme="light"] .orders-screen .order-server,
+html[data-theme="light"] .orders-screen .order-bottom > span {
+  color: #73737a !important;
+}
+
+html[data-theme="light"] .order-buy-step .delivery-method.is-active,
+html[data-theme="light"] .order-buy-step .delivery-method.is-active:hover {
+  border: 0 !important;
+  color: #ffffff !important;
+  background: #0a84ff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .order-buy-step .delivery-method.is-active :is(
+  .delivery-method-visual,
+  .delivery-method-copy strong,
+  .delivery-method-state
+) {
+  color: #ffffff !important;
+}
+
+html[data-theme="light"] .activity-screen .activity-preview-row:nth-child(2) .activity-preview-prize {
+  color: #ffd85a !important;
+}
