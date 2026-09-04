@@ -17499,3 +17499,94 @@ html #app .activity-screen :is(
   outline: 0 !important;
   box-shadow: none !important;
 }
+
+/* v313: light-theme activity, review and header contrast fixes. */
+html[data-theme="light"] .activity-screen .activity-summary-item.is-points .activity-summary-icon {
+  border: 0 !important;
+  color: #0a84ff !important;
+  background: rgba(10, 132, 255, 0.1) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .activity-screen .activity-preview-row:not(:nth-child(2)) .activity-preview-prize {
+  border-color: rgba(10, 132, 255, 0.3) !important;
+  color: #0a84ff !important;
+  background: rgba(10, 132, 255, 0.06) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .activity-screen .activity-preview-row:nth-child(2) .activity-preview-prize {
+  border-color: rgba(190, 139, 0, 0.42) !important;
+  color: #9a6b00 !important;
+  background: rgba(255, 191, 0, 0.1) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .giveaway-info-modal .modal-head p {
+  color: #73737a !important;
+}
+
+html[data-theme="light"] .topbar .back-button,
+html[data-theme="light"] .topbar .back-button .ui-icon {
+  color: #111113 !important;
+  filter: none !important;
+}
+
+html[data-theme="light"] .topbar .header-orders-icon,
+html[data-theme="light"] .topbar .header-orders-icon .ui-icon {
+  color: #111113 !important;
+  filter: none !important;
+}
+
+html[data-theme="light"] .reviews-screen .review-card,
+html[data-theme="light"] .reviews-screen .review-card:hover {
+  border: 0 !important;
+  color: #111113 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+html[data-theme="light"] .reviews-screen :is(
+  .review-order strong,
+  .review-text,
+  .review-detail strong
+) {
+  color: #111113 !important;
+}
+
+html[data-theme="light"] .reviews-screen .review-card p.review-text {
+  color: #111113 !important;
+}
+
+html[data-theme="light"] .reviews-screen :is(
+  .review-detail span,
+  .review-meta-row,
+  .source-badge
+) {
+  color: #73737a !important;
+}
+
+html[data-theme="light"] .reviews-screen .review-details {
+  border: 0 !important;
+  background: #f1f1f4 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .reviews-screen .review-detail {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+html[data-theme="light"] .reviews-screen .review-detail:nth-child(odd) {
+  border-right-color: rgba(60, 60, 67, 0.12) !important;
+}
+
+html[data-theme="light"] .reviews-screen .review-detail:nth-child(-n + 2),
+html[data-theme="light"] .reviews-screen .review-meta-row {
+  border-color: rgba(60, 60, 67, 0.12) !important;
+}
