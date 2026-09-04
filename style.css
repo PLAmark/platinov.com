@@ -17691,3 +17691,18 @@ html[data-theme="light"] .order-buy-step .delivery-method.is-active :is(
 html[data-theme="light"] .activity-screen .activity-preview-row:nth-child(2) .activity-preview-prize {
   color: #ffd85a !important;
 }
+
+/* v316: reference-matched prize capsules in the light top-three card. */
+html[data-theme="light"] .activity-screen .activity-preview-row:not(:nth-child(2)) .activity-preview-prize {
+  border-color: rgba(60, 60, 67, 0.34) !important;
+  color: #5f6368 !important;
+  background: rgba(60, 60, 67, 0.06) !important;
+  background-image: none !important;
+}
+
+html[data-theme="light"] .activity-screen .activity-preview-row:nth-child(2) .activity-preview-prize {
+  border-color: rgba(163, 106, 0, 0.5) !important;
+  color: #a36a00 !important;
+  background: #fff4cc !important;
+  background-image: none !important;
+}
