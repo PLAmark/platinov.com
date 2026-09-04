@@ -17706,3 +17706,40 @@ html[data-theme="light"] .activity-screen .activity-preview-row:nth-child(2) .ac
   background: #fff4cc !important;
   background-image: none !important;
 }
+
+/* v317: fully opaque bottom-navigation icons in the light theme. */
+html[data-theme="light"] .bottom-nav .nav-item .nav-icon,
+html[data-theme="light"] .bottom-nav .nav-item .nav-icon .ui-icon {
+  opacity: 1 !important;
+  stroke-opacity: 1 !important;
+  fill-opacity: 1 !important;
+}
+
+html[data-theme="light"] .bottom-nav .nav-item:not(.is-active) .nav-icon {
+  color: #636366 !important;
+}
+
+html[data-theme="light"] .bottom-nav .nav-item.is-active .nav-icon,
+html[data-theme="light"] .bottom-nav .nav-order.is-active .nav-icon {
+  color: #0a84ff !important;
+}
+
+/* v318: slightly larger bottom-navigation labels in every theme. */
+.bottom-nav .nav-item > span:last-child {
+  font-size: 9px;
+}
+
+/* v319: restore the trust watermark and neutralize order metadata in graphite. */
+html[data-theme="dark"] .trust-grid .trust-item,
+html[data-theme="dark"] .trust-grid .trust-item:hover {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+html[data-theme="dark"] .orders-screen :is(
+  .order-id,
+  .order-server,
+  .order-bottom > span
+) {
+  color: #8e8e93 !important;
+}
