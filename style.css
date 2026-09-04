@@ -17743,3 +17743,21 @@ html[data-theme="dark"] .orders-screen :is(
 ) {
   color: #8e8e93 !important;
 }
+
+/* v320: subtly dim the decorative watermarks in the graphite theme. */
+html[data-theme="dark"] .trust-grid > .trust-watermark {
+  opacity: 0.06;
+}
+
+html[data-theme="dark"] .rating-panel > .rating-watermark {
+  opacity: 0.055;
+}
+
+/* v321: give the neutral decorative watermarks a little more contrast in light mode. */
+html[data-theme="light"] .trust-grid > .trust-watermark {
+  opacity: 0.09;
+}
+
+html[data-theme="light"] .rating-panel > .rating-watermark {
+  opacity: 0.085;
+}
