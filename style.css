@@ -17761,3 +17761,138 @@ html[data-theme="light"] .trust-grid > .trust-watermark {
 html[data-theme="light"] .rating-panel > .rating-watermark {
   opacity: 0.085;
 }
+
+/* v324: neutral surfaces and readable copy inside dark review cards. */
+html[data-theme="dark"] .reviews-screen .review-card p.review-text {
+  color: #e5e5ea !important;
+}
+
+html[data-theme="dark"] .reviews-screen :is(
+  .review-detail span,
+  .review-meta-row,
+  .source-badge
+) {
+  color: #aeaeb2 !important;
+}
+
+html[data-theme="dark"] .reviews-screen .review-details {
+  border: 0 !important;
+  background: #2c2c2e !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] .reviews-screen .review-detail {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+html[data-theme="dark"] .reviews-screen .review-detail:nth-child(odd) {
+  border-right-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html[data-theme="dark"] .reviews-screen .review-detail:nth-child(-n + 2),
+html[data-theme="dark"] .reviews-screen .review-meta-row {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* v326: keep the giveaway details info glyph neutral in light and dark themes. */
+html[data-theme="light"] .activity-info-button .ui-icon:first-child,
+html[data-theme="dark"] .activity-info-button .ui-icon:first-child {
+  color: #8e8e93 !important;
+}
+
+/* v327: quick day/night switch in the floating header. */
+.topbar .header-theme-toggle {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+}
+
+.topbar .header-theme-toggle .ui-icon {
+  width: 19px;
+  height: 19px;
+}
+
+html[data-theme="light"] .topbar .header-theme-toggle {
+  color: #3c3c43 !important;
+}
+
+html[data-theme="dark"] .topbar .header-theme-toggle {
+  color: #f2f2f7 !important;
+}
+
+@media (max-width: 370px) {
+  .topbar .header-theme-toggle {
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
+    flex-basis: 40px;
+  }
+}
+
+/* v322: attach the referral explainer to its task title. */
+/* v323: improve light-theme referral modal contrast without changing its layout. */
+html[data-theme="light"] #modalRoot .active-referral-info-modal .modal-head p {
+  color: #73737a;
+}
+
+html[data-theme="light"] #modalRoot .active-referral-step > span {
+  color: #0068cc;
+  background: #e6f1ff;
+}
+
+html[data-theme="light"] #modalRoot .active-referral-step.is-result > span {
+  color: #147d43;
+  background: #e2f3e9;
+}
+
+.activity-screen .activity-task-titleline {
+  display: block;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.22;
+}
+
+.activity-screen .activity-task-titleline > strong {
+  display: inline;
+  min-width: 0;
+}
+
+.activity-screen .activity-task-titleline > .activity-referral-info-button {
+  display: inline-grid;
+  width: 20px;
+  height: 20px;
+  margin: -2px 0 0 3px;
+  vertical-align: middle;
+  border: 0 !important;
+  color: #78ccff;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.activity-screen .activity-task-titleline > .activity-referral-info-button .ui-icon {
+  width: 14px;
+  height: 14px;
+}
+
+html[data-theme="light"] .activity-screen .activity-task-titleline > .activity-referral-info-button {
+  color: #0a84ff;
+}
+
+html[data-theme="dark"] .activity-screen .activity-task-titleline > .activity-referral-info-button {
+  color: #c7c7cc !important;
+}
+
+@media (max-width: 560px) {
+  .activity-screen .activity-task-titleline {
+    font-size: 13px;
+    line-height: 1.25;
+  }
+}

@@ -200,7 +200,8 @@ const PROJECTS = [
     color: "orange",
     logo: "gta5rp.png",
     amountStep: 1,
-    defaultAmount: 1,
+    minPurchaseAmount: 2,
+    defaultAmount: 2,
     quickAmounts: [10, 20, 50, 100],
     tariffs: [{ from: 1, price: 1000 }]
   },
@@ -349,7 +350,7 @@ function isDarkTheme() {
 
 function getTheme() {
   const theme = document.documentElement.dataset.theme;
-  return theme === "dark" || theme === "light" ? theme : "blue";
+  return theme === "dark" ? "dark" : "light";
 }
 
 function isLightTheme() {
@@ -358,23 +359,29 @@ function isLightTheme() {
 
 function getThemeLabel(theme = getTheme()) {
   if (theme === "dark") return "Тёмная";
-  if (theme === "light") return "Светлая";
-  return "Голубая";
+  return "Светлая";
 }
 
 function getThemeDescription(theme = getTheme()) {
   if (theme === "dark") return "Тёмная · Telegram Dark";
-  if (theme === "light") return "Светлая · Telegram Light";
-  return "Голубая · По умолчанию";
+  return "Светлая · Telegram Light";
+}
+
+function syncHeaderThemeToggle() {
+  const button = document.querySelector("[data-theme-toggle]");
+  if (!button) return;
+  const targetIsLight = isDarkTheme();
+  const label = targetIsLight ? "Включить светлую тему" : "Включить тёмную тему";
+  button.setAttribute("aria-label", label);
+  button.setAttribute("title", label);
+  button.querySelector("use")?.setAttribute("href", targetIsLight ? "#icon-sun" : "#icon-moon");
 }
 
 function syncTelegramThemeColors() {
   const theme = getTheme();
   const colors = theme === "dark"
     ? { header: "#0D0D0F", background: "#0D0D0F", bottom: "#1C1C1E" }
-    : theme === "light"
-      ? { header: "#F2F2F7", background: "#F2F2F7", bottom: "#FFFFFF" }
-      : { header: "#2A9FF0", background: "#2A9FF0", bottom: "#235FD8" };
+    : { header: "#F2F2F7", background: "#F2F2F7", bottom: "#FFFFFF" };
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", colors.header);
   if (!tg) return;
   try {
@@ -387,26 +394,21 @@ function syncTelegramThemeColors() {
 }
 
 function setTheme(theme) {
-  const nextTheme = theme === "dark" || theme === "light" ? theme : "blue";
-  if (nextTheme === "dark" || nextTheme === "light") {
-    document.documentElement.dataset.theme = nextTheme;
-  } else {
-    delete document.documentElement.dataset.theme;
-  }
+  const nextTheme = theme === "dark" ? "dark" : "light";
+  document.documentElement.dataset.theme = nextTheme;
   try {
     localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
   } catch {
     // The selected theme still applies for the current session.
   }
-  const themeColor = nextTheme === "dark" ? "#0D0D0F" : nextTheme === "light" ? "#F2F2F7" : "#2A9FF0";
+  const themeColor = nextTheme === "dark" ? "#0D0D0F" : "#F2F2F7";
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", themeColor);
   syncTelegramThemeColors();
+  syncHeaderThemeToggle();
 }
 
 function getNextTheme() {
-  const themes = ["blue", "dark", "light"];
-  const currentIndex = themes.indexOf(getTheme());
-  return themes[(currentIndex + 1) % themes.length];
+  return isDarkTheme() ? "light" : "dark";
 }
 let modalLockedScrollY = 0;
 
@@ -1397,9 +1399,10 @@ function renderPurchaseForm() {
             <label for="buyAmount">${wording.amountLabel}</label>
             <div class="amount-wrap">
               <input class="field-control" id="buyAmount" name="amount" type="number" required
-                min="${project.amountStep}" step="${project.amountStep}" value="${defaultAmount}">
+                min="${project.minPurchaseAmount ?? project.amountStep}" step="${project.amountStep}" value="${defaultAmount}">
               <span class="amount-unit">${escapeHTML(project.unit)}</span>
             </div>
+            ${project.minPurchaseAmount ? `<small class="muted">Минимальная покупка — ${project.minPurchaseAmount} ${escapeHTML(project.unit)}</small>` : ""}
           </div>
           <div class="field-group form-field">
             <label for="moneyAmount">Сумма оплаты</label>
@@ -1794,7 +1797,7 @@ function activityAvatar(player) {
   `;
 }
 
-function activityTaskCard({ iconName, title, text, points, status, action = "", copyAddon = "", complete = false, progress = null }) {
+function activityTaskCard({ iconName, title, text, points, status, action = "", titleAddon = "", complete = false, progress = null }) {
   const progressCurrent = Math.max(0, Number(progress?.current) || 0);
   const progressTotal = Math.max(1, Number(progress?.total) || 1);
   const progressPercent = Math.min(100, Math.round((progressCurrent / progressTotal) * 100));
@@ -1810,8 +1813,8 @@ function activityTaskCard({ iconName, title, text, points, status, action = "", 
     <article class="activity-task-card">
       <span class="activity-task-icon">${icon(iconName)}</span>
       <span class="activity-task-copy">
-        <strong>${escapeHTML(title)}</strong>
-        <span class="activity-task-subline"><small>${escapeHTML(text)}</small>${copyAddon}</span>
+        <span class="activity-task-titleline"><strong>${escapeHTML(title)}</strong>${titleAddon}</span>
+        <small>${escapeHTML(text)}</small>
       </span>
       <span class="activity-task-points">+${escapeHTML(points)}</span>
       ${taskAction}
@@ -2041,7 +2044,7 @@ function renderRaffle() {
             title: "Пригласить активного пользователя",
             text: `${Number(activity.referrals?.active || 0)} активных из ${Number(activity.referrals?.invited || 0)} приглашённых`,
             points: tasks.referral?.points || 200,
-            copyAddon: `<button class="activity-referral-info-button" type="button" data-active-referral-info aria-label="Как пользователь становится активным">${icon("info")}</button>`,
+            titleAddon: `<button class="activity-referral-info-button" type="button" data-active-referral-info aria-label="Как пользователь становится активным">${icon("info")}</button>`,
             action: `<button class="activity-task-button" type="button" data-copy-activity-referral>Ссылка</button>`
           })}
         </div>
@@ -2802,7 +2805,7 @@ function renderPromoStatus(data) {
 function schedulePromoQuote(project, amount, promoCode) {
   invalidatePromoQuote();
   const normalizedCode = normalizePromoCode(promoCode);
-  if (!project || !Number.isFinite(amount) || amount <= 0) return;
+  if (!project || !Number.isFinite(amount) || amount <= 0 || amount < (project.minPurchaseAmount ?? 0)) return;
 
   const promoStatus = document.getElementById("promoStatus");
   if (!tg?.initData) {
@@ -3456,7 +3459,7 @@ function startDelayedReactionClaim(url, button) {
 }
 
 document.addEventListener("click", (event) => {
-  const themeButton = event.target.closest("[data-theme-cycle]");
+  const themeButton = event.target.closest("[data-theme-cycle], [data-theme-toggle]");
   if (themeButton) {
     setTheme(getNextTheme());
     haptic("light");
@@ -3847,6 +3850,7 @@ if (normalizePublicPath() !== "/" && directPublicRoute) {
 applyPaymentReturnRoute();
 syncBrowserRoute(state.route, "replace");
 renderHeaderProfile();
+syncHeaderThemeToggle();
 render();
 void reconcilePaymentReturn();
 loadSiteConfig();
