@@ -51,6 +51,7 @@ let reviewsLoadSequence = 0;
 let lastAnimatedRoute = "";
 const REACTION_CLAIM_DUE_STORAGE_KEY_PREFIX = "platinov-reaction-claim-due-v3";
 const REPOST_POST_OPEN_STORAGE_KEY_PREFIX = "platinov-repost-post-open-v1";
+const ACTIVITY_REPOST_POST_URL = "https://t.me/platinov_shop/235";
 const TELEGRAM_AVATAR_PALETTES = [
   ["#e56f6f", "#c94f62"],
   ["#f2a04b", "#e47735"],
@@ -1925,7 +1926,7 @@ function renderRaffle() {
   const previewLeaders = [leaderboard[1], leaderboard[0], leaderboard[2]].filter(Boolean);
   const streakDays = Math.max(0, Number(activity.streak || 0));
   const repostTask = tasks.daily_repost || {};
-  const repostPostUrl = String(repostTask.post_url || "").trim();
+  const repostPostUrl = ACTIVITY_REPOST_POST_URL;
   const repostPostOpened = hasOpenedActivityRepost(repostTask);
 
   return `

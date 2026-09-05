@@ -18009,3 +18009,29 @@ html[data-theme="light"] .project-card[data-project="matreshka-rp"]::after {
     opacity: 0.21 !important;
   }
 }
+
+/* v335: the pale source artwork also needs tonal contrast on white cards. */
+html[data-theme="light"] .project-card[data-project="gta-5-rp"]::after,
+html[data-theme="light"] .project-card[data-project="matreshka-rp"]::after {
+  opacity: 0.22 !important;
+  filter: saturate(1.08) contrast(1.12) !important;
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] .project-card[data-project="gta-5-rp"]:hover::after,
+  html[data-theme="light"] .project-card[data-project="matreshka-rp"]:hover::after {
+    opacity: 0.28 !important;
+  }
+}
+
+/* v335: add 15% contrast to every background game logo in light mode. */
+html[data-theme="light"] .project-card::after {
+  filter: saturate(0.85) contrast(1.15) !important;
+}
+
+/* v336: strengthen selected background logos by another 20%; MATRESHKA stays unchanged. */
+html[data-theme="light"] .project-card[data-project="black-russia"]::after,
+html[data-theme="light"] .project-card[data-project="gta-5-rp"]::after,
+html[data-theme="light"] .project-card[data-project="standoff-2"]::after {
+  filter: saturate(0.85) contrast(1.38) !important;
+}
