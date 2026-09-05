@@ -17954,3 +17954,58 @@ html[data-theme="light"] .project-grid .project-card:not(.project-card-add):not(
   background-image: none !important;
   box-shadow: none !important;
 }
+
+/* v330: pure-white action and server choices on the light page surface. */
+html[data-theme="light"] .order-action-step .order-action-card,
+html[data-theme="light"] .order-action-step .order-action-card:hover,
+html[data-theme="light"] .order-server-step .server-button,
+html[data-theme="light"] .order-server-step .server-button:hover {
+  border: 0 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* v331: remove the remaining circular stripe from the home hero in both themes. */
+html[data-theme="light"] .hero::before,
+html[data-theme="light"] .hero::after,
+html[data-theme="dark"] .hero::before,
+html[data-theme="dark"] .hero::after {
+  display: none !important;
+  border: 0 !important;
+  background: none !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  content: none !important;
+}
+
+/* v332: equally visible, fully neutral support watermark in both themes. */
+html[data-theme="light"] .support-screen .support-hero-art,
+html[data-theme="dark"] .support-screen .support-hero-art {
+  color: #8e8e93 !important;
+  opacity: 0.16 !important;
+}
+
+/* v333: increase light-theme game background artwork visibility by 20%. */
+html[data-theme="light"] .project-card::after {
+  opacity: 0.12 !important;
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] .project-card:hover::after {
+    opacity: 0.18 !important;
+  }
+}
+
+/* v334: give the paler GTA 5 RP and MATRESHKA RP artwork a little more presence. */
+html[data-theme="light"] .project-card[data-project="gta-5-rp"]::after,
+html[data-theme="light"] .project-card[data-project="matreshka-rp"]::after {
+  opacity: 0.15 !important;
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] .project-card[data-project="gta-5-rp"]:hover::after,
+  html[data-theme="light"] .project-card[data-project="matreshka-rp"]:hover::after {
+    opacity: 0.21 !important;
+  }
+}
