@@ -18058,3 +18058,24 @@ html[data-theme="light"] .project-card[data-project="matreshka-rp"]::after {
     filter: saturate(1.08) contrast(1.12) !important;
   }
 }
+
+/* v341: make selected light-theme background logos 25% more visible; keep hover unchanged. */
+html[data-theme="light"] .project-card[data-project="black-russia"]::after,
+html[data-theme="light"] .project-card[data-project="standoff-2"]::after {
+  opacity: 0.15 !important;
+}
+
+html[data-theme="light"] .project-card[data-project="gta-5-rp"]::after {
+  opacity: 0.275 !important;
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] .project-card[data-project="black-russia"]:hover::after,
+  html[data-theme="light"] .project-card[data-project="standoff-2"]:hover::after {
+    opacity: 0.18 !important;
+  }
+
+  html[data-theme="light"] .project-card[data-project="gta-5-rp"]:hover::after {
+    opacity: 0.28 !important;
+  }
+}
