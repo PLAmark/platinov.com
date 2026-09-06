@@ -2327,9 +2327,9 @@ function renderProfile() {
           <span class="select-copy"><strong>История заказов</strong><small>Покупки и их статусы</small></span>
           <span class="select-chevron">${icon("chevron-right")}</span>
         </button>
-        <button class="select-card" type="button" data-copy-referral>
+        <button class="select-card" type="button" data-open-referral-bot>
           <span class="select-icon">${icon("arrow-up-right")}</span>
-          <span class="select-copy"><strong>Реферальная ссылка</strong><small>Скопировать ссылку-приглашение</small></span>
+          <span class="select-copy"><strong>Реферальная ссылка</strong><small>Открыть бота по ссылке-приглашению</small></span>
           <span class="select-chevron">${icon("chevron-right")}</span>
         </button>
         <button class="select-card" type="button" data-external="support">
@@ -3698,7 +3698,7 @@ document.addEventListener("click", (event) => {
     return;
   }
 
-  if (event.target.closest("[data-copy-referral]")) {
+  if (event.target.closest("[data-open-referral-bot]")) {
     const user = getTelegramUser();
     if (!user.isAuthenticated) {
       openExternal(TELEGRAM_AUTH_URL);
@@ -3706,11 +3706,11 @@ document.addEventListener("click", (event) => {
       haptic();
       return;
     }
-    const referral = `${window.location.origin}${window.location.pathname}?ref=${encodeURIComponent(user.id)}`;
-    navigator.clipboard?.writeText(referral)
-      .then(() => showToast("Реферальная ссылка скопирована"))
-      .catch(() => showToast("Ссылка: " + referral));
+    const referral = `https://t.me/PlatinovBot?start=ref_${encodeURIComponent(user.id)}`;
+    openExternal(referral);
+    showToast("Открываем Telegram-бота");
     haptic();
+    return;
   }
 });
 

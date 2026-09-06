@@ -18035,3 +18035,26 @@ html[data-theme="light"] .project-card[data-project="gta-5-rp"]::after,
 html[data-theme="light"] .project-card[data-project="standoff-2"]::after {
   filter: saturate(0.85) contrast(1.38) !important;
 }
+
+/* v338: add 25% normal-state contrast in light mode; preserve the old hover rendering. */
+html[data-theme="light"] .project-card[data-project="black-russia"]::after,
+html[data-theme="light"] .project-card[data-project="gta-5-rp"]::after,
+html[data-theme="light"] .project-card[data-project="standoff-2"]::after {
+  filter: saturate(0.85) contrast(1.725) !important;
+}
+
+html[data-theme="light"] .project-card[data-project="matreshka-rp"]::after {
+  filter: saturate(1.08) contrast(1.4) !important;
+}
+
+@media (hover: hover) {
+  html[data-theme="light"] .project-card[data-project="black-russia"]:hover::after,
+  html[data-theme="light"] .project-card[data-project="gta-5-rp"]:hover::after,
+  html[data-theme="light"] .project-card[data-project="standoff-2"]:hover::after {
+    filter: saturate(0.85) contrast(1.38) !important;
+  }
+
+  html[data-theme="light"] .project-card[data-project="matreshka-rp"]:hover::after {
+    filter: saturate(1.08) contrast(1.12) !important;
+  }
+}
