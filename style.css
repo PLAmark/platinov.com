@@ -18079,3 +18079,8 @@ html[data-theme="light"] .project-card[data-project="gta-5-rp"]::after {
     opacity: 0.28 !important;
   }
 }
+
+/* v342: keep the calculated STANDOFF 2 listing amount readable on white. */
+html[data-theme="light"] #standoffListingAmount {
+  color: #111113 !important;
+}
