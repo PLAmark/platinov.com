@@ -18084,3 +18084,17 @@ html[data-theme="light"] .project-card[data-project="gta-5-rp"]::after {
 html[data-theme="light"] #standoffListingAmount {
   color: #111113 !important;
 }
+
+/* v343: slightly deeper neutral page background in the light theme. */
+html[data-theme="light"] {
+  --bg: #efeff4;
+  --bg-blue: #efeff4;
+  background: #efeff4 !important;
+}
+
+html[data-theme="light"] body,
+html[data-theme="light"] .app-shell,
+html[data-theme="light"] .screen,
+html[data-theme="light"] .activity-screen {
+  background: #efeff4 !important;
+}

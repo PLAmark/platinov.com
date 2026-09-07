@@ -382,7 +382,7 @@ function syncTelegramThemeColors() {
   const theme = getTheme();
   const colors = theme === "dark"
     ? { header: "#0D0D0F", background: "#0D0D0F", bottom: "#1C1C1E" }
-    : { header: "#F2F2F7", background: "#F2F2F7", bottom: "#FFFFFF" };
+    : { header: "#EFEFF4", background: "#EFEFF4", bottom: "#FFFFFF" };
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", colors.header);
   if (!tg) return;
   try {
