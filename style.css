@@ -16041,7 +16041,7 @@ html[data-theme="dark"] .project-card,
 html[data-theme="dark"] .project-card:not(.project-card-add) {
   border-color: transparent !important;
   color: #f2f2f7 !important;
-  background: #242426 !important;
+  background: #1c1c1e !important;
   background-image: none !important;
   box-shadow: none !important;
 }
@@ -17141,6 +17141,33 @@ html[data-theme="light"] .activity-screen .activity-task-progress-track {
 
 html[data-theme="light"] .activity-screen .activity-task-progress-track i {
   background: #0a84ff !important;
+}
+
+/* v344: keep the seven-day streak counter readable in the light theme. */
+html[data-theme="light"] .activity-screen .activity-task-progress > strong {
+  color: #111113 !important;
+}
+
+/* v346: neutral, high-contrast leaderboard metadata in the dark theme. */
+html[data-theme="dark"] .activity-screen .activity-player-points {
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .activity-screen .activity-prize small {
+  color: #8e8e93 !important;
+}
+
+/* v347: every leaderboard row uses the same dark surface. */
+html[data-theme="dark"] .activity-screen .activity-leader-row,
+html[data-theme="dark"] .activity-screen .activity-leader-row.is-medal {
+  background: #242426 !important;
+  background-image: none !important;
+}
+
+/* v348: remove the top glint from the selected bottom-navigation glass. */
+html[data-theme="dark"] .bottom-nav .nav-liquid-indicator::after {
+  display: none !important;
+  content: none !important;
 }
 
 html[data-theme="light"] .activity-screen :is(

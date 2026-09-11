@@ -264,6 +264,61 @@ PROJECTS.forEach((project) => {
 // Reviews are published only by the backend after moderation.
 const REVIEWS = [];
 
+const LOCAL_PREVIEW_MODE = ["127.0.0.1", "localhost"].includes(window.location.hostname)
+  && new URLSearchParams(window.location.search).get("demo") === "1";
+const LOCAL_PREVIEW_USER = {
+  name: "Тестовый пользователь",
+  username: "@platinov_preview",
+  id: 7144732293,
+  initial: "Т",
+  photoUrl: null,
+  isAuthenticated: true
+};
+const LOCAL_PREVIEW_ACTIVITY = {
+  ok: true,
+  current_user: {
+    user_id: LOCAL_PREVIEW_USER.id,
+    display_name: LOCAL_PREVIEW_USER.name,
+    username: LOCAL_PREVIEW_USER.username,
+    points: 2000,
+    rank: 4
+  },
+  streak: 4,
+  season: { seconds_left: 604800 },
+  main_channel: { url: "https://t.me/platinov_shop" },
+  referrals: { active: 1, invited: 3 },
+  tasks: {
+    daily_login: { points: 100, claimed: true },
+    seven_day_streak: { points: 300, progress: 4 },
+    comment: { points: 300, claimed: false },
+    reaction: { points: 100, claimed: false },
+    daily_repost: { points: 300, claimed: false, claim_key: "preview" },
+    referral: { points: 200 },
+    sponsors: [
+      { id: "preview-sponsor", title: "PLATINOV SHOP", url: "https://t.me/platinov_shop", points: 500, claimed: true }
+    ]
+  },
+  prizes: [
+    { rank: 1, label: "10кк виртов" },
+    { rank: 2, label: "8кк виртов" },
+    { rank: 3, label: "6кк виртов" },
+    { rank: 4, label: "4кк виртов" },
+    { rank: 5, label: "4кк виртов" },
+    { rank: 6, label: "3кк виртов" },
+    { rank: 7, label: "3кк виртов" },
+    { rank: 8, label: "2кк виртов" },
+    { rank: 9, label: "2кк виртов" },
+    { rank: 10, label: "2кк виртов" }
+  ],
+  leaderboard: [
+    { rank: 1, user_id: 101, display_name: "Oyadje", username: "@oyadje", points: 4400 },
+    { rank: 2, user_id: 102, display_name: "kapilyar", username: "@kapilyar", points: 4300 },
+    { rank: 3, user_id: 103, display_name: ". LA", username: "@la", points: 3200 },
+    { rank: 4, user_id: LOCAL_PREVIEW_USER.id, display_name: LOCAL_PREVIEW_USER.name, username: LOCAL_PREVIEW_USER.username, points: 2000 },
+    { rank: 5, user_id: 105, display_name: "Игрок 5", username: "@player5", points: 1800 }
+  ]
+};
+
 const state = {
   route: "home",
   history: [],
@@ -281,7 +336,7 @@ const state = {
   serverSearch: "",
   apiReviews: [],
   apiOrders: null,
-  activity: null,
+  activity: LOCAL_PREVIEW_MODE ? LOCAL_PREVIEW_ACTIVITY : null,
   activityError: "",
   paymentReturnNotice: null,
   paymentReturnRequest: null,
@@ -2135,6 +2190,7 @@ function renderSupport() {
 }
 
 function getTelegramUser() {
+  if (LOCAL_PREVIEW_MODE) return { ...LOCAL_PREVIEW_USER };
   const user = tg?.initDataUnsafe?.user;
   if (user) {
     return {
@@ -3345,6 +3401,12 @@ async function reportReferralVisit() {
 }
 
 async function loadActivity(force = false) {
+  if (LOCAL_PREVIEW_MODE) {
+    state.activity = LOCAL_PREVIEW_ACTIVITY;
+    state.activityError = "";
+    if (state.route === "raffle") render();
+    return;
+  }
   if (!API_BASE_URL || !tg?.initData || activityLoading) return;
   if (state.activity && !force) return;
   activityLoading = true;
