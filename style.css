@@ -18086,6 +18086,101 @@ html[data-theme="light"] .project-card[data-project="matreshka-rp"]::after {
   }
 }
 
+/* v352: current/previous activity leaderboard switch. */
+.activity-screen .activity-leaderboard-section {
+  scroll-margin-top: 74px;
+}
+
+.activity-leaderboard-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0 0 10px;
+  padding: 4px;
+  border-radius: 16px;
+}
+
+.activity-leaderboard-tab {
+  min-width: 0;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 12px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 780;
+  cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.activity-leaderboard-tab.is-active {
+  color: #ffffff;
+  background: #0a84ff;
+}
+
+.activity-previous-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 2px 10px;
+  font-size: 11px;
+  font-weight: 680;
+}
+
+.activity-previous-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #34c759;
+}
+
+.activity-previous-status .ui-icon {
+  width: 14px;
+  height: 14px;
+}
+
+html[data-theme="light"] .activity-leaderboard-tabs {
+  color: #636366;
+  background: #ffffff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+html[data-theme="dark"] .activity-leaderboard-tabs {
+  color: #c7c7cc;
+  background: #1c1c1e;
+}
+
+html[data-theme="dark"] .activity-screen .activity-leader-row,
+html[data-theme="dark"] .activity-screen .activity-leader-row + .activity-leader-row,
+html[data-theme="dark"] .activity-screen .activity-leader-row.is-medal {
+  background: #242426 !important;
+  background-image: none !important;
+}
+
+html[data-theme="light"] .activity-previous-summary {
+  color: #636366;
+}
+
+html[data-theme="dark"] .activity-previous-summary {
+  color: #8e8e93;
+}
+
+@media (max-width: 360px) {
+  .activity-leaderboard-tab {
+    padding-inline: 8px;
+    font-size: 12px;
+  }
+
+  .activity-previous-summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+}
+
 /* v341: make selected light-theme background logos 25% more visible; keep hover unchanged. */
 html[data-theme="light"] .project-card[data-project="black-russia"]::after,
 html[data-theme="light"] .project-card[data-project="standoff-2"]::after {

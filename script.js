@@ -284,7 +284,29 @@ const LOCAL_PREVIEW_ACTIVITY = {
     rank: 4
   },
   streak: 4,
-  season: { seconds_left: 604800 },
+  season: {
+    key: "2026-09-14",
+    starts_at: "2026-09-13T21:00:00Z",
+    ends_at: "2026-09-27T21:00:00Z",
+    seconds_left: 604800
+  },
+  previous_season: {
+    key: "2026-08-31",
+    starts_at: "2026-08-30T21:00:00Z",
+    ends_at: "2026-09-13T21:00:00Z",
+    leaderboard: [
+      { rank: 1, user_id: 201, display_name: "Viktor", username: "@viktor", points: 7800 },
+      { rank: 2, user_id: 202, display_name: "Marina", username: "@marina", points: 7350 },
+      { rank: 3, user_id: 203, display_name: "Nikita", username: "@nikita", points: 6900 },
+      { rank: 4, user_id: 204, display_name: "Алексей", username: "@alexey", points: 6200 },
+      { rank: 5, user_id: 205, display_name: "Игрок 5", username: "@player5", points: 5750 },
+      { rank: 6, user_id: 206, display_name: "Игрок 6", username: "@player6", points: 5300 },
+      { rank: 7, user_id: 207, display_name: "Игрок 7", username: "@player7", points: 4900 },
+      { rank: 8, user_id: 208, display_name: "Игрок 8", username: "@player8", points: 4550 },
+      { rank: 9, user_id: 209, display_name: "Игрок 9", username: "@player9", points: 4200 },
+      { rank: 10, user_id: 210, display_name: "Игрок 10", username: "@player10", points: 3900 }
+    ]
+  },
   main_channel: { url: "https://t.me/platinov_shop" },
   referrals: { active: 1, invited: 3 },
   tasks: {
@@ -337,6 +359,7 @@ const state = {
   apiReviews: [],
   apiOrders: null,
   activity: LOCAL_PREVIEW_MODE ? LOCAL_PREVIEW_ACTIVITY : null,
+  activityLeaderboardView: "current",
   activityError: "",
   paymentReturnNotice: null,
   paymentReturnRequest: null,
@@ -1833,6 +1856,29 @@ function activityDayWord(value = 0) {
   return "дней";
 }
 
+function activitySeasonPeriod(season = {}) {
+  const keyParts = String(season.key || "")
+    .split("-")
+    .map((value) => Number(value));
+  let firstDay;
+  let lastDay;
+  if (keyParts.length === 3 && keyParts.every(Number.isFinite)) {
+    firstDay = new Date(Date.UTC(keyParts[0], keyParts[1] - 1, keyParts[2]));
+    lastDay = new Date(firstDay.getTime() + 13 * 86400000);
+  } else {
+    firstDay = new Date(season.starts_at || "");
+    lastDay = new Date(new Date(season.ends_at || "").getTime() - 86400000);
+  }
+  if (Number.isNaN(firstDay.getTime()) || Number.isNaN(lastDay.getTime())) return "";
+  const format = new Intl.DateTimeFormat("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "UTC"
+  });
+  return `${format.format(firstDay)} — ${format.format(lastDay)}`;
+}
+
 function activityInitials(name) {
   return getUserInitials(name) || "P";
 }
@@ -1978,6 +2024,12 @@ function renderRaffle() {
   const channelUrl = activity.main_channel?.url || TELEGRAM_BUY_URL;
   const sponsorTasks = Array.isArray(tasks.sponsors) ? tasks.sponsors : [];
   const leaderboard = Array.isArray(activity.leaderboard) ? activity.leaderboard : [];
+  const previousSeason = activity.previous_season || {};
+  const previousLeaderboard = Array.isArray(previousSeason.leaderboard)
+    ? previousSeason.leaderboard.slice(0, 10)
+    : [];
+  const isPreviousLeaderboard = state.activityLeaderboardView === "previous";
+  const displayedLeaderboard = isPreviousLeaderboard ? previousLeaderboard : leaderboard;
   const previewLeaders = [leaderboard[1], leaderboard[0], leaderboard[2]].filter(Boolean);
   const streakDays = Math.max(0, Number(activity.streak || 0));
   const repostTask = tasks.daily_repost || {};
@@ -2135,18 +2187,34 @@ function renderRaffle() {
           <div><h2>Рейтинг розыгрыша</h2></div>
           <span class="activity-top-prize">${icon("gift")} 10 призов</span>
         </div>
+        <div class="activity-leaderboard-tabs" role="tablist" aria-label="Период рейтинга">
+          <button class="activity-leaderboard-tab${isPreviousLeaderboard ? "" : " is-active"}" type="button"
+            role="tab" aria-selected="${isPreviousLeaderboard ? "false" : "true"}" data-activity-leaderboard-view="current">
+            Текущий топ
+          </button>
+          <button class="activity-leaderboard-tab${isPreviousLeaderboard ? " is-active" : ""}" type="button"
+            role="tab" aria-selected="${isPreviousLeaderboard ? "true" : "false"}" data-activity-leaderboard-view="previous">
+            Прошлый топ
+          </button>
+        </div>
+        ${isPreviousLeaderboard ? `
+          <div class="activity-previous-summary">
+            <span class="activity-previous-status">${icon("check")} Розыгрыш завершён</span>
+            ${activitySeasonPeriod(previousSeason) ? `<span>${escapeHTML(activitySeasonPeriod(previousSeason))}</span>` : ""}
+          </div>
+        ` : ""}
         <div class="activity-leaderboard glass-card">
           <div class="activity-leader-head"><span>Место и участник</span><span>Баллы</span><span>Награда</span></div>
-          ${leaderboard.length ? leaderboard.map((player) =>
-            activityLeaderboardRow(player, prizes, current.user_id)
+          ${displayedLeaderboard.length ? displayedLeaderboard.map((player) =>
+            activityLeaderboardRow(player, prizes, isPreviousLeaderboard ? null : current.user_id)
           ).join("") : `
             <div class="activity-empty-board">
-              <strong>Рейтинг только начинается</strong>
-              <p>Выполните первое задание и займите верхнюю строчку.</p>
+              <strong>${isPreviousLeaderboard ? "Прошлый розыгрыш без участников" : "Рейтинг только начинается"}</strong>
+              <p>${isPreviousLeaderboard ? "В завершённом периоде никто не набрал баллы." : "Выполните первое задание и займите верхнюю строчку."}</p>
             </div>
           `}
         </div>
-        ${current.rank > 100 ? `
+        ${!isPreviousLeaderboard && current.rank > 100 ? `
           <div class="activity-current-outside glass-card">
             <span>Ваше текущее место</span>
             ${activityLeaderboardRow(current, prizes, current.user_id)}
@@ -3583,6 +3651,18 @@ document.addEventListener("click", (event) => {
       block: "start"
     });
     haptic();
+    return;
+  }
+
+  const leaderboardViewButton = event.target.closest("[data-activity-leaderboard-view]");
+  if (leaderboardViewButton) {
+    const view = leaderboardViewButton.dataset.activityLeaderboardView;
+    if (view === "current" || view === "previous") {
+      state.activityLeaderboardView = view;
+      render();
+      document.getElementById("activity-full-leaderboard")?.scrollIntoView({ block: "start" });
+      haptic();
+    }
     return;
   }
 
