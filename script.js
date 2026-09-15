@@ -2535,6 +2535,10 @@ function openGiveawayInfoModal() {
             <div><strong>Выполняйте ежедневные задания</strong><p>Баллы активности начисляются за задания в разделе «Розыгрыш» и определяют место участника в рейтинге.</p></div>
           </article>
           <article class="giveaway-info-item">
+            <span class="giveaway-info-icon">${icon("arrow-up-right")}</span>
+            <div><strong>Куда можно делать репосты</strong><p>Репосты засчитываются в личных чатах и тематических группах по BLACK RUSSIA, STANDOFF 2, MATRESHKA RP и Majestic RP.</p></div>
+          </article>
+          <article class="giveaway-info-item">
             <span class="giveaway-info-icon">${icon("message-square")}</span>
             <div><strong>Подписывайтесь на каналы спонсоров</strong><p>Каждая подписка в блоке «Каналы спонсоров» — отдельное задание. Откройте канал, подпишитесь, затем вернитесь в приложение и нажмите «Проверить», чтобы получить баллы.</p></div>
           </article>
