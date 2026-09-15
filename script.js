@@ -2137,7 +2137,7 @@ function renderRaffle() {
           ${activityTaskCard({
             iconName: "arrow-up-right",
             title: "Репост минимум в 10 чатов",
-            text: "Одно начисление в сутки по вашей отметке",
+            text: "Одно начисление в сутки. Репосты засчитываются только в личные чаты или тематические группы по BLACK RUSSIA, STANDOFF 2, MATRESHKA RP и Majestic RP",
             points: repostTask.points || 300,
             action: repostTask.claimed
               ? `<span class="activity-task-status is-complete">Получено</span>`
