@@ -246,7 +246,7 @@ const SERVERS = {
     "IVANOVO", "STAVROPOL", "SMOLENSK", "PSKOV", "BRYANSK", "OREL", "YAROSLAVL", "BARNAUL",
     "LIPETSK", "ULYANOVSK", "YAKUTSK", "TAMBOV", "BRATSK", "ASTRAKHAN", "CHITA", "KOSTROMA",
     "VLADIMIR", "KALUGA", "NOVGOROD", "TAGANROG", "VOLOGDA", "TVER", "TOMSK", "IZHEVSK", "SURGUT",
-    "PODOLSK", "MAGADAN", "CHEREPOVETS", "NORILSK"
+    "PODOLSK", "MAGADAN", "CHEREPOVETS", "NORILSK", "ASTANA"
   ],
   "gta-5-rp": [
     "Downtown", "StrawBerry", "VineWood", "BlackBerry", "Insquad", "Sunrise", "Richman", "Eclipse",
