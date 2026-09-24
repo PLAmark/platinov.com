@@ -18,6 +18,7 @@ const PAYMENT_PLACEHOLDER_ENABLED = false;
 const SELLING_ENABLED = true;
 const SITE_ROOT = window.location.protocol === "file:" ? "" : "/";
 const THEME_STORAGE_KEY = "platinov-theme-v1";
+const THEME_OVERRIDE_STORAGE_KEY = "platinov-theme-override-v1";
 
 function siteAsset(path) {
   return `${SITE_ROOT}${String(path).replace(/^\/+/, "")}`;
@@ -446,6 +447,23 @@ function getThemeDescription(theme = getTheme()) {
   return "Светлая · Telegram Light";
 }
 
+function normalizeTheme(theme) {
+  return theme === "dark" ? "dark" : "light";
+}
+
+function getManualThemeOverride() {
+  try {
+    if (localStorage.getItem(THEME_OVERRIDE_STORAGE_KEY) !== "manual") return null;
+    return normalizeTheme(localStorage.getItem(THEME_STORAGE_KEY));
+  } catch {
+    return null;
+  }
+}
+
+function getTelegramTheme() {
+  return tg?.colorScheme === "dark" ? "dark" : "light";
+}
+
 function syncHeaderThemeToggle() {
   const button = document.querySelector("[data-theme-toggle]");
   if (!button) return;
@@ -472,18 +490,27 @@ function syncTelegramThemeColors() {
   }
 }
 
-function setTheme(theme) {
-  const nextTheme = theme === "dark" ? "dark" : "light";
+function setTheme(theme, { persist = true } = {}) {
+  const nextTheme = normalizeTheme(theme);
   document.documentElement.dataset.theme = nextTheme;
-  try {
-    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-  } catch {
-    // The selected theme still applies for the current session.
+  if (persist) {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+      localStorage.setItem(THEME_OVERRIDE_STORAGE_KEY, "manual");
+    } catch {
+      // The selected theme still applies for the current session.
+    }
   }
   const themeColor = nextTheme === "dark" ? "#0D0D0F" : "#F2F2F7";
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", themeColor);
   syncTelegramThemeColors();
   syncHeaderThemeToggle();
+}
+
+function syncThemeWithTelegram() {
+  // A user's explicit choice always wins and survives page reloads.
+  if (getManualThemeOverride()) return;
+  setTheme(getTelegramTheme(), { persist: false });
 }
 
 function getNextTheme() {
@@ -3943,11 +3970,16 @@ document.addEventListener("keydown", (event) => {
 });
 
 function initializeTelegram() {
-  syncTelegramThemeColors();
-  if (!tg) return;
+  if (!tg) {
+    syncTelegramThemeColors();
+    return;
+  }
   tg.ready();
+  syncThemeWithTelegram();
+  syncTelegramThemeColors();
   tg.expand();
   if (tg.isVersionAtLeast?.("7.7")) tg.disableVerticalSwipes?.();
+  tg.onEvent?.("themeChanged", syncThemeWithTelegram);
 }
 
 async function checkAccess() {

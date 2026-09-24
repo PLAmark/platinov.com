@@ -10,13 +10,15 @@
   <script>
     try {
       const savedTheme = localStorage.getItem("platinov-theme-v1");
-      const initialTheme = savedTheme === "dark" ? "dark" : "light";
+      const isManualTheme = localStorage.getItem("platinov-theme-override-v1") === "manual";
+      // Old versions stored the automatic default too. Only an explicit manual
+      // choice is restored here; Telegram's actual theme is applied after its SDK loads.
+      const initialTheme = isManualTheme && savedTheme === "dark" ? "dark" : "light";
       document.documentElement.dataset.theme = initialTheme;
-      if (savedTheme !== initialTheme) localStorage.setItem("platinov-theme-v1", initialTheme);
     } catch (_) {}
   </script>
   <link rel="icon" href="favicon.ico">
-  <link rel="stylesheet" href="style.css?v=356">
+  <link rel="stylesheet" href="style.css?v=357">
 </head>
 <body>
   <svg class="icon-sprite" aria-hidden="true">
@@ -217,6 +219,6 @@
   <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="script.js?v=356"></script>
+  <script src="script.js?v=357"></script>
 </body>
 </html>
