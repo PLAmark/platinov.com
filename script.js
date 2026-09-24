@@ -19,6 +19,8 @@ const SELLING_ENABLED = true;
 const SITE_ROOT = window.location.protocol === "file:" ? "" : "/";
 const THEME_STORAGE_KEY = "platinov-theme-v1";
 const THEME_OVERRIDE_STORAGE_KEY = "platinov-theme-override-v1";
+const THEME_CHOICE_STORAGE_KEY = "platinov-theme-choice-v2";
+const TELEGRAM_THEME_STORAGE_KEY = "platinov_theme";
 
 function siteAsset(path) {
   return `${SITE_ROOT}${String(path).replace(/^\/+/, "")}`;
@@ -451,17 +453,95 @@ function normalizeTheme(theme) {
   return theme === "dark" ? "dark" : "light";
 }
 
-function getManualThemeOverride() {
+function readLocalThemePreference() {
   try {
+    const theme = localStorage.getItem(THEME_CHOICE_STORAGE_KEY);
+    if (theme === "dark" || theme === "light") return theme;
     if (localStorage.getItem(THEME_OVERRIDE_STORAGE_KEY) !== "manual") return null;
-    return normalizeTheme(localStorage.getItem(THEME_STORAGE_KEY));
+    const previousTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    return previousTheme === "dark" || previousTheme === "light" ? previousTheme : null;
   } catch {
     return null;
   }
 }
 
+let manualTheme = readLocalThemePreference();
+let themeSelectionRevision = 0;
+
+function getManualThemeOverride() {
+  return manualTheme;
+}
+
 function getTelegramTheme() {
   return tg?.colorScheme === "dark" ? "dark" : "light";
+}
+
+function cacheThemePreference(theme) {
+  try {
+    localStorage.setItem(THEME_CHOICE_STORAGE_KEY, theme);
+  } catch {
+    // Telegram storage can still retain the preference if WebView storage is unavailable.
+  }
+}
+
+function saveTelegramThemePreference(theme) {
+  if (!tg?.initData) return;
+  try {
+    tg.CloudStorage?.setItem?.(TELEGRAM_THEME_STORAGE_KEY, theme);
+  } catch (error) {
+    console.warn("Cloud theme storage unavailable", error);
+  }
+  try {
+    tg.DeviceStorage?.setItem?.(TELEGRAM_THEME_STORAGE_KEY, theme);
+  } catch (error) {
+    console.warn("Device theme storage unavailable", error);
+  }
+}
+
+function loadTelegramThemePreference() {
+  if (!tg?.initData) return;
+  const requestedRevision = themeSelectionRevision;
+  const isCurrent = () => requestedRevision === themeSelectionRevision;
+  const applyStoredTheme = (theme) => {
+    if (!isCurrent() || (theme !== "dark" && theme !== "light")) return false;
+    manualTheme = theme;
+    cacheThemePreference(theme);
+    setTheme(theme, { persist: false });
+    return true;
+  };
+  const readDevice = (saveToCloud = false) => {
+    if (typeof tg.DeviceStorage?.getItem !== "function") {
+      if (saveToCloud && manualTheme && isCurrent()) saveTelegramThemePreference(manualTheme);
+      return;
+    }
+    try {
+      tg.DeviceStorage.getItem(TELEGRAM_THEME_STORAGE_KEY, (error, theme) => {
+        if (!isCurrent()) return;
+        if (!error && applyStoredTheme(theme)) {
+          if (saveToCloud) saveTelegramThemePreference(theme);
+        } else if (saveToCloud && manualTheme) {
+          saveTelegramThemePreference(manualTheme);
+        }
+      });
+    } catch (error) {
+      console.warn("Device theme storage unavailable", error);
+      if (saveToCloud && manualTheme && isCurrent()) saveTelegramThemePreference(manualTheme);
+    }
+  };
+  if (typeof tg.CloudStorage?.getItem !== "function") {
+    readDevice();
+    return;
+  }
+  try {
+    tg.CloudStorage.getItem(TELEGRAM_THEME_STORAGE_KEY, (error, theme) => {
+      if (!isCurrent()) return;
+      if (!error && applyStoredTheme(theme)) return;
+      readDevice(!error);
+    });
+  } catch (error) {
+    console.warn("Cloud theme storage unavailable", error);
+    readDevice();
+  }
 }
 
 function syncHeaderThemeToggle() {
@@ -494,15 +574,11 @@ function setTheme(theme, { persist = true } = {}) {
   const nextTheme = normalizeTheme(theme);
   document.documentElement.dataset.theme = nextTheme;
   if (persist) {
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-      localStorage.setItem(THEME_OVERRIDE_STORAGE_KEY, "manual");
-    } catch {
-      // The selected theme still applies for the current session.
-    }
+    themeSelectionRevision += 1;
+    manualTheme = nextTheme;
+    cacheThemePreference(nextTheme);
+    saveTelegramThemePreference(nextTheme);
   }
-  const themeColor = nextTheme === "dark" ? "#0D0D0F" : "#F2F2F7";
-  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", themeColor);
   syncTelegramThemeColors();
   syncHeaderThemeToggle();
 }
@@ -3970,13 +4046,15 @@ document.addEventListener("keydown", (event) => {
 });
 
 function initializeTelegram() {
+  if (manualTheme) setTheme(manualTheme, { persist: false });
+  else syncThemeWithTelegram();
   if (!tg) {
     syncTelegramThemeColors();
     return;
   }
   tg.ready();
-  syncThemeWithTelegram();
   syncTelegramThemeColors();
+  loadTelegramThemePreference();
   tg.expand();
   if (tg.isVersionAtLeast?.("7.7")) tg.disableVerticalSwipes?.();
   tg.onEvent?.("themeChanged", syncThemeWithTelegram);
