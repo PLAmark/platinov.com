@@ -18442,3 +18442,22 @@ html[data-theme="dark"] #app .support-screen .faq-list {
 html[data-theme="light"] #app .support-screen .faq-item + .faq-item::before {
   background: rgba(60, 60, 67, 0.12);
 }
+
+/* v370: dark home only — quieter page and four uniform game cards. */
+html[data-theme="dark"]:has(.project-grid-home),
+html[data-theme="dark"] body:has(.project-grid-home),
+html[data-theme="dark"] .app-shell:has(.project-grid-home),
+html[data-theme="dark"] #app:has(.project-grid-home),
+html[data-theme="dark"] #app > .screen:has(.project-grid-home) {
+  background: #171719 !important;
+  background-image: none !important;
+}
+
+html[data-theme="dark"] .project-grid-home .project-card:not(.project-card-add),
+html[data-theme="dark"] .project-grid-home .project-card:not(.project-card-add):hover,
+html[data-theme="dark"] .project-grid-home .project-card:not(.project-card-add).is-selected {
+  border-color: transparent !important;
+  background: #222224 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
