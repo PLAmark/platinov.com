@@ -18386,3 +18386,25 @@ html[data-theme="dark"] .project-card:not(.project-card-add):is(:hover, .is-sele
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
+
+/* v368: selecting a game should not repaint or outline its card. */
+html[data-theme="light"] .project-card:not(.project-card-add).is-selected,
+html[data-theme="light"] .project-card:not(.project-card-add).is-selected:hover {
+  border: 0 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] .project-card:not(.project-card-add).is-selected,
+html[data-theme="dark"] .project-card:not(.project-card-add).is-selected:hover {
+  border-color: transparent !important;
+  background: #242426 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] .project-card:not(.project-card-add).is-selected::after {
+  opacity: 0.22;
+  filter: saturate(0.92) contrast(1.05);
+}
