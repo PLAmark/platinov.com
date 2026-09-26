@@ -288,15 +288,27 @@ const LOCAL_PREVIEW_ACTIVITY = {
   },
   streak: 4,
   season: {
-    key: "2026-09-14",
-    starts_at: "2026-09-13T21:00:00Z",
-    ends_at: "2026-09-27T21:00:00Z",
+    key: "2026-09-28",
+    starts_at: "2026-09-27T21:00:00Z",
+    ends_at: "2026-10-11T21:00:00Z",
     seconds_left: 604800
   },
   previous_season: {
-    key: "2026-08-31",
-    starts_at: "2026-08-30T21:00:00Z",
-    ends_at: "2026-09-13T21:00:00Z",
+    key: "2026-09-14",
+    starts_at: "2026-09-13T21:00:00Z",
+    ends_at: "2026-09-27T21:00:00Z",
+    prizes: [
+      { rank: 1, label: "10кк виртов" },
+      { rank: 2, label: "8кк виртов" },
+      { rank: 3, label: "6кк виртов" },
+      { rank: 4, label: "4кк виртов" },
+      { rank: 5, label: "3кк виртов" },
+      { rank: 6, label: "2кк виртов" },
+      { rank: 7, label: "2кк виртов" },
+      { rank: 8, label: "2кк виртов" },
+      { rank: 9, label: "2кк виртов" },
+      { rank: 10, label: "2кк виртов" }
+    ],
     leaderboard: [
       { rank: 1, user_id: 201, display_name: "Viktor", username: "@viktor", points: 7800 },
       { rank: 2, user_id: 202, display_name: "Marina", username: "@marina", points: 7350 },
@@ -324,16 +336,11 @@ const LOCAL_PREVIEW_ACTIVITY = {
     ]
   },
   prizes: [
-    { rank: 1, label: "10кк виртов" },
-    { rank: 2, label: "8кк виртов" },
-    { rank: 3, label: "6кк виртов" },
-    { rank: 4, label: "4кк виртов" },
-    { rank: 5, label: "4кк виртов" },
-    { rank: 6, label: "3кк виртов" },
-    { rank: 7, label: "3кк виртов" },
-    { rank: 8, label: "2кк виртов" },
-    { rank: 9, label: "2кк виртов" },
-    { rank: 10, label: "2кк виртов" }
+    { rank: 1, label: "15кк виртов" },
+    { rank: 2, label: "10кк виртов" },
+    { rank: 3, label: "7кк виртов" },
+    { rank: 4, label: "5кк виртов" },
+    { rank: 5, label: "4кк виртов" }
   ],
   leaderboard: [
     { rank: 1, user_id: 101, display_name: "Oyadje", username: "@oyadje", points: 4400 },
@@ -2128,6 +2135,7 @@ function renderRaffle() {
   const sponsorTasks = Array.isArray(tasks.sponsors) ? tasks.sponsors : [];
   const leaderboard = Array.isArray(activity.leaderboard) ? activity.leaderboard : [];
   const previousSeason = activity.previous_season || {};
+  const previousPrizes = Array.isArray(previousSeason.prizes) ? previousSeason.prizes : prizes;
   const previousLeaderboard = Array.isArray(previousSeason.leaderboard)
     ? previousSeason.leaderboard.slice(0, 10)
     : [];
@@ -2288,7 +2296,7 @@ function renderRaffle() {
       <section class="section activity-leaderboard-section" id="activity-full-leaderboard">
         <div class="section-heading activity-section-heading">
           <div><h2>Рейтинг розыгрыша</h2></div>
-          <span class="activity-top-prize">${icon("gift")} 10 призов</span>
+          <span class="activity-top-prize">${icon("gift")} ${prizes.length} призов</span>
         </div>
         <div class="activity-leaderboard-tabs" role="tablist" aria-label="Период рейтинга">
           <button class="activity-leaderboard-tab${isPreviousLeaderboard ? "" : " is-active"}" type="button"
@@ -2309,7 +2317,7 @@ function renderRaffle() {
         <div class="activity-leaderboard glass-card">
           <div class="activity-leader-head"><span>Место и участник</span><span>Баллы</span><span>Награда</span></div>
           ${displayedLeaderboard.length ? displayedLeaderboard.map((player) =>
-            activityLeaderboardRow(player, prizes, isPreviousLeaderboard ? null : current.user_id)
+            activityLeaderboardRow(player, isPreviousLeaderboard ? previousPrizes : prizes, isPreviousLeaderboard ? null : current.user_id)
           ).join("") : `
             <div class="activity-empty-board">
               <strong>${isPreviousLeaderboard ? "Прошлый розыгрыш без участников" : "Рейтинг только начинается"}</strong>
@@ -2614,7 +2622,7 @@ function openResourcesModal() {
 function openGiveawayInfoModal() {
   const prizes = Array.isArray(state.activity?.prizes) ? state.activity.prizes : [];
   const orderedPrizes = [...prizes]
-    .filter((prize) => Number(prize.rank) >= 1 && Number(prize.rank) <= 10)
+    .filter((prize) => Number(prize.rank) >= 1)
     .sort((left, right) => Number(left.rank) - Number(right.rank));
 
   modalRoot.innerHTML = `
@@ -2647,7 +2655,7 @@ function openGiveawayInfoModal() {
           </article>
           <article class="giveaway-info-item">
             <span class="giveaway-info-icon">${icon("trophy")}</span>
-            <div><strong>Призы получают участники топ-10</strong><p>Чем больше баллов набрано к завершению розыгрыша, тем выше место участника и его награда.</p></div>
+            <div><strong>Призы получают участники топ-${orderedPrizes.length}</strong><p>Чем больше баллов набрано к завершению розыгрыша, тем выше место участника и его награда.</p></div>
           </article>
         </div>
 
