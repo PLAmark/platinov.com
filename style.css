@@ -18234,3 +18234,60 @@ html[data-theme="light"] .activity-screen {
 .profile-screen .profile-menu .select-card {
   border-radius: 26px;
 }
+
+/* v361: use one soft rectangular corner language across the Mini App. */
+#app :is(
+  .hero,
+  .glass-card,
+  .project-card,
+  .review-card,
+  .order-card,
+  .bonus-card,
+  .legal-card,
+  .faq-item,
+  .trust-grid,
+  .rating-panel,
+  .activity-task-list,
+  .activity-sponsor-card,
+  .info-orb-card,
+  .order-step-header
+) {
+  border-radius: 28px;
+}
+
+#app :is(.select-card, .server-button, .activity-leader-row) {
+  border-radius: 24px;
+}
+
+#app .order-flow :is(.selected-game-card, .order-action-card) {
+  border-radius: 26px;
+}
+
+#app .order-flow .server-search .search-input {
+  border-radius: 24px;
+}
+
+#app :is(.hero-actions, .reviews-actions, .rating-panel) :is(.primary-button, .secondary-button, .ghost-button) {
+  border-radius: 18px;
+}
+
+#app .filter-chip {
+  border-radius: 16px;
+}
+
+#app .activity-leaderboard-tabs {
+  border-radius: 22px;
+}
+
+#app .activity-leaderboard-tab {
+  border-radius: 18px;
+}
+
+/* Keep smaller profile cards distinct and the menu rows short of pill shape. */
+#app .profile-screen .stats-grid .stat-card {
+  border-radius: 24px;
+}
+
+#app .profile-screen .profile-menu .select-card {
+  border-radius: 26px;
+}
