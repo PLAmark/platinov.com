@@ -18362,3 +18362,27 @@ html[data-theme="light"] .order-flow :is(
 html[data-theme="light"] #app .order-flow .server-row .server-number {
   background: #ececf0 !important;
 }
+
+/* v366: lift dark game cards and their background artwork slightly. */
+html[data-theme="dark"] .project-card:not(.project-card-add) {
+  background: #242426 !important;
+}
+
+html[data-theme="dark"] .project-card:not(.project-card-add).is-selected {
+  background: #303032 !important;
+}
+
+html[data-theme="dark"] .project-card:not(.project-card-add)::after {
+  opacity: 0.22;
+}
+
+html[data-theme="dark"] .project-card:not(.project-card-add):is(:hover, .is-selected)::after {
+  opacity: 0.26;
+}
+
+/* v367: a lighter, tidier weight for the two-digit server numbers. */
+#app .order-flow .server-row .server-number {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
