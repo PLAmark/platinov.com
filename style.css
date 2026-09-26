@@ -18327,3 +18327,14 @@ html[data-theme="light"] :is(input, textarea, select, .input-shell):focus {
 html[data-theme="light"] :is(input, textarea)::placeholder {
   color: #747680 !important;
 }
+
+/* v364: make server numbers easier to read in a neutral square. */
+#app .order-flow .server-row .server-number {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+html[data-theme="light"] #app .order-flow .server-row .server-number {
+  color: #50525a !important;
+  background: #e4e5eb !important;
+}
