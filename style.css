@@ -18472,3 +18472,14 @@ html[data-theme="dark"] .activity-screen {
   background: #171719 !important;
   background-image: none !important;
 }
+
+/* v372: lift only the two home information surfaces in dark mode. */
+html[data-theme="dark"] #app > .screen:has(.project-grid-home) .hero {
+  background: #232325 !important;
+  background-image: none !important;
+}
+
+html[data-theme="dark"] #app > .screen:has(.project-grid-home) .trust-grid {
+  background: #202022 !important;
+  background-image: none !important;
+}
