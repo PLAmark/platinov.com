@@ -18291,3 +18291,39 @@ html[data-theme="light"] .activity-screen {
 #app .profile-screen .profile-menu .select-card {
   border-radius: 26px;
 }
+
+/* v362: finish the same corner treatment on support, resources, legal and orders. */
+#app :is(.orders-hero, .support-screen .faq-list, .info-orb-card),
+#modalRoot .modal-sheet {
+  border-radius: 28px;
+}
+
+#app .info-document-button,
+#modalRoot .resource-link-button {
+  border-radius: 24px;
+}
+
+#app .support-screen :is(.primary-button, .legal-card .ghost-button) {
+  border-radius: 18px;
+}
+
+/* v363: clearer borderless entry fields on white cards. */
+html[data-theme="light"] :is(input, textarea, select, .input-shell) {
+  border: 0 !important;
+  outline: 0;
+  color: #111113 !important;
+  background: #e4e5eb !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] :is(input, textarea, select, .input-shell):focus {
+  border: 0 !important;
+  outline: 0;
+  background: #dce7f4 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] :is(input, textarea)::placeholder {
+  color: #747680 !important;
+}
