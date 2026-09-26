@@ -18461,3 +18461,14 @@ html[data-theme="dark"] .project-grid-home .project-card:not(.project-card-add).
   background-image: none !important;
   box-shadow: none !important;
 }
+
+/* v371: the same page background across every dark-theme route. */
+html[data-theme="dark"],
+html[data-theme="dark"] body,
+html[data-theme="dark"] .app-shell,
+html[data-theme="dark"] #app,
+html[data-theme="dark"] #app > .screen,
+html[data-theme="dark"] .activity-screen {
+  background: #171719 !important;
+  background-image: none !important;
+}
