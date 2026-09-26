@@ -18338,3 +18338,27 @@ html[data-theme="light"] #app .order-flow .server-row .server-number {
   color: #50525a !important;
   background: #e4e5eb !important;
 }
+
+/* v365: one softer gray for borderless fields and secondary order surfaces. */
+html[data-theme="light"] :is(input, textarea, select, .input-shell) {
+  background: #ececf0 !important;
+}
+
+html[data-theme="light"] .order-flow :is(
+  .amount-preset:not(.is-active),
+  .order-summary,
+  .inline-note,
+  .delivery-methods,
+  .delivery-method:not(.is-active),
+  .segmented,
+  .segment-button:not(.is-active)
+) {
+  border: 0 !important;
+  background: #ececf0 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] #app .order-flow .server-row .server-number {
+  background: #ececf0 !important;
+}
