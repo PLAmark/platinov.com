@@ -18408,3 +18408,37 @@ html[data-theme="dark"] .project-card:not(.project-card-add).is-selected::after 
   opacity: 0.22;
   filter: saturate(0.92) contrast(1.05);
 }
+
+/* v369: FAQ is one grouped card, not four rounded cards over blue glass. */
+html[data-theme="dark"] #app .support-screen .faq-list {
+  border: 0 !important;
+  background: #1c1c1e !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+#app .support-screen .faq-item,
+#app .support-screen .faq-item[open],
+#app .support-screen .faq-item:hover {
+  position: relative;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+#app .support-screen .faq-item + .faq-item::before {
+  position: absolute;
+  top: 0;
+  right: 16px;
+  left: 16px;
+  height: 1px;
+  background: #38383a;
+  content: "";
+  pointer-events: none;
+}
+
+html[data-theme="light"] #app .support-screen .faq-item + .faq-item::before {
+  background: rgba(60, 60, 67, 0.12);
+}
