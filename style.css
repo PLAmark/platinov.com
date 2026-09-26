@@ -18220,3 +18220,17 @@ html[data-theme="light"] .screen,
 html[data-theme="light"] .activity-screen {
   background: #efeff4 !important;
 }
+
+/* v360: Telegram-like profile card corners without pill-shaped rows. */
+.profile-screen .screen-header,
+.profile-screen .profile-card {
+  border-radius: 28px;
+}
+
+.profile-screen .stats-grid .stat-card {
+  border-radius: 24px;
+}
+
+.profile-screen .profile-menu .select-card {
+  border-radius: 26px;
+}
