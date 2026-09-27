@@ -18503,3 +18503,41 @@ html[data-theme="dark"] #app > .screen:has(.project-grid-home) .trust-grid {
   background: #202226 !important;
   background-image: none !important;
 }
+
+/* v375: neutral gray for the two dark home surfaces. */
+html[data-theme="dark"] #app > .screen:has(.project-grid-home) .hero {
+  background: #232323 !important;
+  background-image: none !important;
+}
+html[data-theme="dark"] #app > .screen:has(.project-grid-home) .trust-grid {
+  background: #202020 !important;
+  background-image: none !important;
+}
+
+/* v376: match the page background's two-step blue channel offset. */
+html[data-theme="dark"] #app > .screen:has(.project-grid-home) .hero {
+  background: #232325 !important;
+  background-image: none !important;
+}
+html[data-theme="dark"] #app > .screen:has(.project-grid-home) .trust-grid {
+  background: #202022 !important;
+  background-image: none !important;
+}
+
+/* v377: match the trust surface to the adjacent rating card. */
+html[data-theme="dark"] #app > .screen:has(.project-grid-home) .trust-grid {
+  background: #1c1c1e !important;
+  background-image: none !important;
+}
+
+/* v378: match the home hero to the trust and rating surfaces. */
+html[data-theme="dark"] #app > .screen:has(.project-grid-home) .hero {
+  background: #1c1c1e !important;
+  background-image: none !important;
+}
+
+/* v379: unify only the three featured home surfaces in dark mode. */
+html[data-theme="dark"] #app > .screen:has(.project-grid-home) :is(.hero, .trust-grid, .rating-panel) {
+  background: #242426 !important;
+  background-image: none !important;
+}
