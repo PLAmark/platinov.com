@@ -18541,3 +18541,36 @@ html[data-theme="dark"] #app > .screen:has(.project-grid-home) :is(.hero, .trust
   background: #242426 !important;
   background-image: none !important;
 }
+
+/* v380: gently brighten only GTA 5 RP and STANDOFF 2 background artwork. */
+html[data-theme="dark"] .project-card[data-project="gta-5-rp"]::after,
+html[data-theme="dark"] .project-card[data-project="standoff-2"]::after {
+  opacity: 0.25;
+}
+
+html[data-theme="dark"] .project-card[data-project="gta-5-rp"]:is(:hover, .is-selected)::after,
+html[data-theme="dark"] .project-card[data-project="standoff-2"]:is(:hover, .is-selected)::after {
+  opacity: 0.29;
+}
+
+/* The STANDOFF 2 foreground logo grows by 10% from its 150% card size. */
+#app .project-card[data-project="standoff-2"] .project-logo img {
+  width: 165%;
+  height: 165%;
+}
+
+/* v382: compensate for transparent padding in the STANDOFF 2 logo on order steps. */
+#app .order-flow .selected-game-card .project-logo.project-blue img {
+  width: 220%;
+  height: 220%;
+  max-width: none;
+}
+
+/* v383: match sponsor actions to the rounded task buttons; flatten the prize count. */
+#app .activity-screen .activity-sponsor-open {
+  border-radius: 999px;
+}
+
+html[data-theme="dark"] #app .activity-screen .activity-top-prize {
+  border: 0 !important;
+}
