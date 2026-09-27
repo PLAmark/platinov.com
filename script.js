@@ -2230,7 +2230,7 @@ function renderRaffle() {
           ${activityTaskCard({
             iconName: "message-square",
             title: "Комментарий под последним постом",
-            text: "Не более одного комментария на публикацию",
+            text: "Засчитывает комментарий от 3 символов",
             points: tasks.comment?.points || 300,
             action: tasks.comment?.claimed
               ? `<span class="activity-task-status is-complete">Получено</span>`
