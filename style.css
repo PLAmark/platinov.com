@@ -18599,3 +18599,10 @@ html .bottom-nav .nav-order.is-active {
   height: 56px;
   min-height: 56px;
 }
+
+/* v387: use one softer, uniform selected-tab surface in dark mode. */
+html[data-theme="dark"] .bottom-nav .nav-liquid-indicator,
+html[data-theme="dark"] .bottom-nav .nav-liquid-indicator::before {
+  background: rgba(255, 255, 255, 0.04) !important;
+  background-image: none !important;
+}
