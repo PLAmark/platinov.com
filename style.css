@@ -18580,7 +18580,7 @@ html .bottom-nav {
   width: min(calc(100% - 40px), 700px);
   height: 64px;
   min-height: 64px;
-  bottom: calc(2px + var(--bottom-dock-safe));
+  bottom: calc(7px + var(--bottom-dock-safe));
   padding: 4px;
   border-radius: 32px;
 }
