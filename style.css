@@ -18574,3 +18574,28 @@ html[data-theme="dark"] .project-card[data-project="standoff-2"]:is(:hover, .is-
 html[data-theme="dark"] #app .activity-screen .activity-top-prize {
   border: 0 !important;
 }
+
+/* v384: make the floating navigation slightly taller and less edge-to-edge. */
+html .bottom-nav {
+  width: min(calc(100% - 40px), 700px);
+  height: 64px;
+  min-height: 64px;
+  bottom: calc(2px + var(--bottom-dock-safe));
+  padding: 4px;
+  border-radius: 32px;
+}
+
+html .bottom-nav .nav-item,
+html .bottom-nav .nav-order,
+html .bottom-nav .nav-order:not(.is-active),
+html .bottom-nav .nav-order.is-active {
+  height: 56px;
+  min-height: 56px;
+}
+
+/* v385: keep the selected navigation item level with its neighbours. */
+html .bottom-nav .nav-item.is-active,
+html .bottom-nav .nav-order.is-active {
+  height: 56px;
+  min-height: 56px;
+}
