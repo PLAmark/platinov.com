@@ -18493,3 +18493,13 @@ html[data-theme="dark"] #app > .screen:has(.project-grid-home) .trust-grid {
   background: #202020 !important;
   background-image: none !important;
 }
+
+/* v374: subtly cool the two home surfaces without changing other cards. */
+html[data-theme="dark"] #app > .screen:has(.project-grid-home) .hero {
+  background: #24262A !important;
+  background-image: none !important;
+}
+html[data-theme="dark"] #app > .screen:has(.project-grid-home) .trust-grid {
+  background: #202226 !important;
+  background-image: none !important;
+}
