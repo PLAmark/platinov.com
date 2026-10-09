@@ -46,6 +46,7 @@ function writeSessionJSON(key, value) {
   } catch { /* Memory-only operation still works in restricted WebViews. */ }
 }
 let browserTelegramUser = readSessionJSON(BROWSER_USER_KEY);
+let browserRefreshPromise = null;
 let botLoginContext = null;
 class BrowserLoginRequired extends Error {}
 let apiAccessToken = (() => {
@@ -127,7 +128,7 @@ function setApiAccessToken(token) {
 async function authenticateApi(force = false) {
   if (!API_BASE_URL) return "";
   if (!force && apiAccessToken) return apiAccessToken;
-  if (!tg?.initData) throw new BrowserLoginRequired("Войдите через нашего бота");
+  if (!tg?.initData) return refreshBrowserSession();
 
   const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/auth/telegram`, {
     method: "POST",
@@ -146,6 +147,73 @@ async function authenticateApi(force = false) {
   }
   setApiAccessToken(data.access_token);
   return apiAccessToken;
+}
+
+async function refreshBrowserSession() {
+  if (browserRefreshPromise) return browserRefreshPromise;
+  browserRefreshPromise = (async () => {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 12000);
+    try {
+      const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/auth/browser/refresh`, {
+        method: "POST", credentials: "include", cache: "no-store", signal: controller.signal
+      });
+      const data = await response.json().catch(() => ({}));
+      if (response.status === 401) {
+        setApiAccessToken("");
+        throw new BrowserLoginRequired("Войдите через нашего бота");
+      }
+      if (!response.ok || !data.access_token || !data.user) {
+        throw new Error(data.error || "Не удалось восстановить вход. Попробуйте ещё раз.");
+      }
+      setApiAccessToken(data.access_token);
+      browserTelegramUser = data.user;
+      writeSessionJSON(BROWSER_USER_KEY, data.user);
+      renderHeaderProfile();
+      return apiAccessToken;
+    } finally { window.clearTimeout(timer); }
+  })().finally(() => { browserRefreshPromise = null; });
+  return browserRefreshPromise;
+}
+
+async function restoreSavedBrowserSession() {
+  if (tg?.initData || apiAccessToken || !API_BASE_URL) return;
+  try {
+    await refreshBrowserSession();
+    void hydrateTelegramAvatar();
+    if (state.route === "buy") updatePrice();
+    if (state.route === "profile") render();
+    if (state.route === "orders" || state.route === "profile") await loadRemoteOrders();
+    if (state.route === "profile") render();
+    if (state.route === "raffle") await loadActivity();
+  } catch (error) {
+    if (!(error instanceof BrowserLoginRequired)) console.warn("Browser session restore failed", error);
+  }
+}
+
+async function logoutBrowserSession(button) {
+  if (button) button.disabled = true;
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), 12000);
+  try {
+    const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/auth/browser/logout`, {
+      method: "POST", credentials: "include", cache: "no-store", signal: controller.signal
+    });
+    if (!response.ok) throw new Error("Не удалось выйти. Попробуйте ещё раз.");
+    cancelBotLogin();
+    setApiAccessToken("");
+    writeSessionJSON(CHECKOUT_DRAFT_KEY, null);
+    state.apiOrders = null;
+    state.activity = null;
+    if (telegramAvatarObjectUrl) URL.revokeObjectURL(telegramAvatarObjectUrl);
+    telegramAvatarObjectUrl = "";
+    renderHeaderProfile();
+    render();
+    showToast("Вы вышли из аккаунта");
+  } catch (error) {
+    showToast(error.message || "Не удалось выйти. Попробуйте ещё раз.");
+    if (button) button.disabled = false;
+  } finally { window.clearTimeout(timer); }
 }
 
 async function apiRequest(path, options = {}, allowRetry = true) {
@@ -2602,6 +2670,12 @@ function renderProfile() {
           <span class="select-copy"><strong>О сервисе и условия</strong><small>Доставка, возврат и документы</small></span>
           <span class="select-chevron">${icon("chevron-right")}</span>
         </button>
+        ${!tg?.initData && apiAccessToken && browserTelegramUser ? `
+        <button class="select-card" type="button" data-browser-logout>
+          <span class="select-icon">${icon("x")}</span>
+          <span class="select-copy"><strong>Выйти из аккаунта</strong><small>Завершить сохранённый вход в этом браузере</small></span>
+          <span class="select-chevron">${icon("chevron-right")}</span>
+        </button>` : ""}
       </div>
     </section>
   `;
@@ -2924,7 +2998,7 @@ async function botLoginRequest(path, body) {
   try {
     const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/auth/bot/${path}`, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body), signal: controller.signal, cache: "no-store"
+      body: JSON.stringify(body), signal: controller.signal, cache: "no-store", credentials: "include"
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.ok) {
@@ -2972,7 +3046,7 @@ async function openBotLogin(form = null) {
         <a class="primary-button" data-bot-login-link hidden target="_blank" rel="noopener noreferrer">Открыть нашего бота ${icon("arrow-up-right")}</a>
         <button class="secondary-button" type="button" data-bot-login-retry hidden>Получить новую ссылку</button>
         <button class="primary-button" type="button" data-bot-login-continue hidden>${form ? "Продолжить оплату" : "Продолжить"}</button>
-        <small>Подтверждайте только свой запрос. Пароль и код входа Telegram не нужны.</small>
+        <small>Вход сохраняется на 100 дней в этом браузере. Подтверждайте только свой запрос. Пароль и код входа Telegram не нужны.</small>
       </section>
     </div>`;
   modalRoot.querySelector(".close-button")?.focus({ preventScroll: true });
@@ -3488,10 +3562,6 @@ async function submitPurchase(form) {
 
   const submitButton = form.querySelector('[type="submit"]');
   if (submitButton.disabled) return;
-  if (API_BASE_URL && !tg?.initData && !apiAccessToken) {
-    void openBotLogin(form);
-    return;
-  }
   submitButton.disabled = true;
   submitButton.textContent = "Создаём заказ…";
   const paymentWindow = preparePaymentWindow();
@@ -4147,6 +4217,12 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  const logoutButton = event.target.closest("[data-browser-logout]");
+  if (logoutButton) {
+    void logoutBrowserSession(logoutButton);
+    return;
+  }
+
   if (event.target.closest("[data-copy-referral-bot]")) {
     const user = getTelegramUser();
     if (!user.isAuthenticated) {
@@ -4342,6 +4418,7 @@ renderHeaderProfile();
 syncHeaderThemeToggle();
 render();
 if (!tg?.initData && resumedLogin && state.route === "buy") void openBotLogin(document.getElementById("buyForm"));
+if (!resumedLogin) void restoreSavedBrowserSession();
 void reconcilePaymentReturn();
 loadSiteConfig();
 scheduleMoscowMidnightRefresh();
