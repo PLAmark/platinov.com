@@ -18606,3 +18606,22 @@ html[data-theme="dark"] .bottom-nav .nav-liquid-indicator::before {
   background: rgba(255, 255, 255, 0.04) !important;
   background-image: none !important;
 }
+
+/* v390: browser login sheet only; existing screens and themes are unchanged. */
+.bot-login-modal [hidden] { display: none !important; }
+.bot-login-modal { display: grid; gap: 14px; }
+.bot-login-modal .modal-head { margin-bottom: 0; }
+.bot-login-modal p { margin: 0; color: var(--muted); line-height: 1.5; }
+.bot-login-modal small { color: var(--muted); line-height: 1.5; }
+.bot-login-modal .primary-button,
+.bot-login-modal .secondary-button { width: 100%; }
+.bot-login-modal a.primary-button { text-decoration: none; }
+.bot-login-code {
+  display: grid; gap: 8px; padding: 16px; border-radius: 18px;
+  background: var(--surface-soft, rgba(127, 127, 127, 0.12)); text-align: center;
+}
+.bot-login-code span { color: var(--muted); font-size: 13px; }
+.bot-login-code strong { font-size: 30px; font-weight: 600; letter-spacing: 0.16em; }
+.bot-login-modal { border: 0; background-image: none; }
+html[data-theme="dark"] .bot-login-modal { background: #242426; }
+html[data-theme="light"] .bot-login-modal { background: #fff; }

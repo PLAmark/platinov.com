@@ -32,6 +32,22 @@ const REVIEW_ENDPOINTS = {
 };
 const REVIEWS_PAGE_SIZE = 15;
 const API_SESSION_STORAGE_KEY = "platinov-api-access-token";
+const BROWSER_USER_KEY = "platinov-browser-user-v1";
+const BOT_LOGIN_KEY = "platinov-bot-login-v1";
+const CHECKOUT_DRAFT_KEY = "platinov-checkout-draft-v1";
+function readSessionJSON(key) {
+  try { return JSON.parse(window.sessionStorage.getItem(key) || "null"); }
+  catch { return null; }
+}
+function writeSessionJSON(key, value) {
+  try {
+    if (value === null) window.sessionStorage.removeItem(key);
+    else window.sessionStorage.setItem(key, JSON.stringify(value));
+  } catch { /* Memory-only operation still works in restricted WebViews. */ }
+}
+let browserTelegramUser = readSessionJSON(BROWSER_USER_KEY);
+let botLoginContext = null;
+class BrowserLoginRequired extends Error {}
 let apiAccessToken = (() => {
   try {
     return window.sessionStorage.getItem(API_SESSION_STORAGE_KEY) || "";
@@ -93,6 +109,10 @@ function getReferralId() {
 
 function setApiAccessToken(token) {
   apiAccessToken = token || "";
+  if (!apiAccessToken) {
+    browserTelegramUser = null;
+    writeSessionJSON(BROWSER_USER_KEY, null);
+  }
   try {
     if (apiAccessToken) {
       window.sessionStorage.setItem(API_SESSION_STORAGE_KEY, apiAccessToken);
@@ -107,7 +127,7 @@ function setApiAccessToken(token) {
 async function authenticateApi(force = false) {
   if (!API_BASE_URL) return "";
   if (!force && apiAccessToken) return apiAccessToken;
-  if (!tg?.initData) throw new Error("Откройте приложение через Telegram");
+  if (!tg?.initData) throw new BrowserLoginRequired("Войдите через нашего бота");
 
   const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/auth/telegram`, {
     method: "POST",
@@ -147,9 +167,9 @@ async function apiRequest(path, options = {}, allowRetry = true) {
 }
 
 async function loadTelegramAvatar() {
-  const directPhotoUrl = tg?.initDataUnsafe?.user?.photo_url || "";
+  const directPhotoUrl = tg?.initDataUnsafe?.user?.photo_url || browserTelegramUser?.photo_url || "";
   if (telegramAvatarObjectUrl) return telegramAvatarObjectUrl;
-  if (!API_BASE_URL || !tg?.initData) return directPhotoUrl;
+  if (!API_BASE_URL || (!tg?.initData && !apiAccessToken)) return directPhotoUrl;
   if (telegramAvatarLoadPromise) return telegramAvatarLoadPromise;
 
   telegramAvatarLoadPromise = (async () => {
@@ -2069,7 +2089,7 @@ function activityPreviewRow(player, prizes) {
 }
 
 function activityRepostStorageKey(task = {}) {
-  const userId = Number(tg?.initDataUnsafe?.user?.id || 0);
+  const userId = Number(tg?.initDataUnsafe?.user?.id || browserTelegramUser?.id || 0);
   const claimKey = String(task.claim_key || "current");
   return `${REPOST_POST_OPEN_STORAGE_KEY_PREFIX}:${userId}:${claimKey}`;
 }
@@ -2370,7 +2390,7 @@ function renderSupport() {
 
 function getTelegramUser() {
   if (LOCAL_PREVIEW_MODE) return { ...LOCAL_PREVIEW_USER };
-  const user = tg?.initDataUnsafe?.user;
+  const user = tg?.initDataUnsafe?.user || (apiAccessToken ? browserTelegramUser : null);
   if (user) {
     return {
       name: [user.first_name, user.last_name].filter(Boolean).join(" ") || "Пользователь Telegram",
@@ -2427,7 +2447,7 @@ function telegramAvatarInitialClass(initials) {
 
 function getHeaderProfileData() {
   const siteUser = window.PLATINOV_SITE_USER || null;
-  const telegramUser = tg?.initDataUnsafe?.user || null;
+  const telegramUser = tg?.initDataUnsafe?.user || (apiAccessToken ? browserTelegramUser : null);
   const siteName = siteUser?.name || [siteUser?.firstName, siteUser?.lastName].filter(Boolean).join(" ");
   const telegramName = telegramUser
     ? [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(" ")
@@ -2525,7 +2545,7 @@ function renderProfile() {
             <span class="profile-auth-icon">${icon("user")}</span>
             <div class="profile-auth-copy">
               <h2>Авторизуйтесь через Telegram</h2>
-              <p>Откройте mini-app в Telegram, чтобы загрузить ваш профиль.</p>
+              <p>Подтвердите вход в нашем боте, чтобы загрузить ваш профиль.</p>
             </div>
             <button class="primary-button profile-auth-button" type="button" data-external="telegram-auth">
               <span>Авторизоваться через Telegram</span>
@@ -2873,7 +2893,165 @@ async function openReviewModal() {
 }
 
 function closeModal() {
+  cancelBotLogin();
   modalRoot.innerHTML = "";
+}
+
+function saveCheckoutDraft(form) {
+  const values = {};
+  for (const name of ["nickname", "bank_account", "amount", "promo"]) {
+    if (form.elements[name]) values[name] = form.elements[name].value;
+  }
+  writeSessionJSON(CHECKOUT_DRAFT_KEY, { values, selectedProjectId: state.selectedProjectId,
+    selectedServer: state.selectedServer, deliveryType: state.deliveryType, savedAt: Date.now() });
+}
+
+function restoreCheckoutFields() {
+  const draft = readSessionJSON(CHECKOUT_DRAFT_KEY);
+  const form = document.getElementById("buyForm");
+  if (!form || !draft || draft.selectedProjectId !== state.selectedProjectId ||
+      JSON.stringify(draft.selectedServer) !== JSON.stringify(state.selectedServer) ||
+      Date.now() - draft.savedAt > 30 * 60 * 1000) return;
+  for (const [name, value] of Object.entries(draft.values || {})) {
+    if (form.elements[name]) form.elements[name].value = value;
+  }
+  updatePrice();
+}
+
+async function botLoginRequest(path, body) {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 12000);
+  try {
+    const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/auth/bot/${path}`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body), signal: controller.signal, cache: "no-store"
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) {
+      const error = new Error(data.error || "Не удалось связаться с сервером входа");
+      error.retryAfter = response.status === 429 ? Number(response.headers.get("Retry-After") || 30) : 0;
+      throw error;
+    }
+    return data;
+  } finally { window.clearTimeout(timeout); }
+}
+
+function cancelBotLogin() {
+  const context = botLoginContext;
+  if (!context) return;
+  botLoginContext = null;
+  window.clearTimeout(context.timer);
+  writeSessionJSON(BOT_LOGIN_KEY, null);
+  if (context.login && !context.confirmed) {
+    void botLoginRequest("cancel", context.login).catch(() => {});
+  }
+}
+
+function botLoginStatus(text, retry = false) {
+  const node = document.getElementById("botLoginStatus");
+  if (node) node.textContent = text;
+  const button = modalRoot.querySelector("[data-bot-login-retry]");
+  if (button) button.hidden = !retry;
+}
+
+async function openBotLogin(form = null) {
+  if (botLoginContext) return;
+  if (form) saveCheckoutDraft(form);
+  const context = { form, login: null, timer: 0, inFlight: false, confirmed: false };
+  botLoginContext = context;
+  modalRoot.innerHTML = `
+    <div class="modal-backdrop" data-close-modal>
+      <section class="modal-sheet bot-login-modal" role="dialog" aria-modal="true" aria-labelledby="botLoginTitle">
+        <div class="modal-head">
+          <div><p class="eyebrow">Безопасный вход</p><h2 id="botLoginTitle">Войти через Telegram</h2></div>
+          <button class="close-button" type="button" data-close-modal aria-label="Закрыть">${icon("x")}</button>
+        </div>
+        <p>Откройте нашего бота и нажмите «Подтвердить вход». Затем вернитесь в эту вкладку — данные заказа сохранятся.</p>
+        <div class="bot-login-code" hidden><span>Сравните код в боте и на сайте</span><strong id="botLoginCode"></strong></div>
+        <p class="bot-login-status" id="botLoginStatus" role="status" aria-live="polite">Подготавливаем ссылку…</p>
+        <a class="primary-button" data-bot-login-link hidden target="_blank" rel="noopener noreferrer">Открыть нашего бота ${icon("arrow-up-right")}</a>
+        <button class="secondary-button" type="button" data-bot-login-retry hidden>Получить новую ссылку</button>
+        <button class="primary-button" type="button" data-bot-login-continue hidden>${form ? "Продолжить оплату" : "Продолжить"}</button>
+        <small>Подтверждайте только свой запрос. Пароль и код входа Telegram не нужны.</small>
+      </section>
+    </div>`;
+  modalRoot.querySelector(".close-button")?.focus({ preventScroll: true });
+  try {
+    const saved = readSessionJSON(BOT_LOGIN_KEY);
+    const login = saved?.expires_at * 1000 > Date.now() ? saved : await botLoginRequest("start", {
+      referrer_id: getReferralId() || null, visitor_key: getReferralVisitorKey()
+    });
+    if (botLoginContext !== context) {
+      void botLoginRequest("cancel", login).catch(() => {});
+      return;
+    }
+    const url = new URL(login.bot_url);
+    if (url.origin !== "https://t.me" || !url.searchParams.get("start")?.startsWith("webauth_")) {
+      throw new Error("Сервер вернул некорректную ссылку входа");
+    }
+    context.login = login;
+    writeSessionJSON(BOT_LOGIN_KEY, login);
+    document.getElementById("botLoginCode").textContent = login.display_code;
+    modalRoot.querySelector(".bot-login-code").hidden = false;
+    const link = modalRoot.querySelector("[data-bot-login-link]");
+    link.href = url.href;
+    link.hidden = false;
+    botLoginStatus("Ждём подтверждения в боте. Ссылка действует 5 минут.");
+    context.timer = window.setTimeout(() => void pollBotLogin(), 2000);
+  } catch (error) {
+    if (botLoginContext !== context) return;
+    botLoginStatus(error.message || "Не удалось начать вход. Попробуйте ещё раз.", true);
+  }
+}
+
+async function pollBotLogin() {
+  const context = botLoginContext;
+  if (!context?.login || context.confirmed || context.inFlight) return;
+  window.clearTimeout(context.timer);
+  if (!document.getElementById("botLoginTitle")) { cancelBotLogin(); return; }
+  if (context.login.expires_at * 1000 <= Date.now()) {
+    botLoginStatus("Ссылка устарела. Получите новую — данные заказа сохранены.", true);
+    modalRoot.querySelector("[data-bot-login-link]").hidden = true;
+    writeSessionJSON(BOT_LOGIN_KEY, null);
+    return;
+  }
+  if (document.hidden) {
+    context.timer = window.setTimeout(() => void pollBotLogin(), 3000);
+    return;
+  }
+  context.inFlight = true;
+  let delay = 2500;
+  try {
+    const data = await botLoginRequest("status", context.login);
+    if (botLoginContext !== context) return;
+    if (data.status === "confirmed" && data.access_token && data.user) {
+      setApiAccessToken(data.access_token);
+      browserTelegramUser = data.user;
+      writeSessionJSON(BROWSER_USER_KEY, data.user);
+      writeSessionJSON(BOT_LOGIN_KEY, null);
+      context.confirmed = true;
+      renderHeaderProfile();
+      void hydrateTelegramAvatar();
+      botLoginStatus("Вход подтверждён. Можно продолжить оформление.");
+      modalRoot.querySelector("[data-bot-login-link]").hidden = true;
+      modalRoot.querySelector("[data-bot-login-continue]").hidden = false;
+      if (context.form) updatePrice();
+      return;
+    }
+    if (["expired", "denied", "cancelled", "consumed"].includes(data.status)) {
+      botLoginStatus(data.status === "denied" ? "Вход отменён в боте. Можно запросить новую ссылку." :
+        "Запрос входа завершён. Получите новую ссылку.", true);
+      modalRoot.querySelector("[data-bot-login-link]").hidden = true;
+      writeSessionJSON(BOT_LOGIN_KEY, null);
+      return;
+    }
+    botLoginStatus("Ждём подтверждения в боте. После подтверждения вернитесь сюда.");
+  } catch (error) {
+    if (botLoginContext !== context) return;
+    delay = error.retryAfter ? Math.max(5000, error.retryAfter * 1000) : 5000;
+    botLoginStatus("Связь прервалась. Проверяем вход повторно — данные заказа сохранены.");
+  } finally { context.inFlight = false; }
+  if (botLoginContext === context) context.timer = window.setTimeout(() => void pollBotLogin(), delay);
 }
 
 function animateRenderedScreen() {
@@ -2916,6 +3094,7 @@ function render() {
   // Remove a potentially heavy previous list before building the next screen.
   app.replaceChildren();
   app.innerHTML = renderer();
+  if (state.route === "buy") restoreCheckoutFields();
   syncActivityTaskCountdown();
   animateRenderedScreen();
   setActiveNav(state.route);
@@ -3048,10 +3227,10 @@ function schedulePromoQuote(project, amount, promoCode) {
   if (!project || !Number.isFinite(amount) || amount <= 0 || amount < (project.minPurchaseAmount ?? 0)) return;
 
   const promoStatus = document.getElementById("promoStatus");
-  if (!tg?.initData) {
+  if (!tg?.initData && !apiAccessToken) {
     if (promoStatus) {
       if (normalizedCode) {
-        promoStatus.textContent = "Проверка промокода доступна при открытии через Telegram";
+        promoStatus.textContent = "Промокод проверим после входа через нашего бота";
         promoStatus.className = "promo-status is-warning";
       }
     }
@@ -3308,6 +3487,11 @@ async function submitPurchase(form) {
   }
 
   const submitButton = form.querySelector('[type="submit"]');
+  if (submitButton.disabled) return;
+  if (API_BASE_URL && !tg?.initData && !apiAccessToken) {
+    void openBotLogin(form);
+    return;
+  }
   submitButton.disabled = true;
   submitButton.textContent = "Создаём заказ…";
   const paymentWindow = preparePaymentWindow();
@@ -3348,6 +3532,7 @@ async function submitPurchase(form) {
       date: new Date().toLocaleDateString("ru-RU")
     });
     setStoredJSON("alexey-store-orders", orders);
+    writeSessionJSON(CHECKOUT_DRAFT_KEY, null);
     haptic("medium");
     if (paymentUrl) {
       state.history = [];
@@ -3367,10 +3552,11 @@ async function submitPurchase(form) {
     }
   } catch (error) {
     closePreparedPaymentWindow(paymentWindow);
-    console.error(error);
-    showToast(`Не удалось создать заказ: ${error.message}`);
+    if (!(error instanceof BrowserLoginRequired)) console.error(error);
     submitButton.disabled = false;
     submitButton.innerHTML = `<span class="payment-button-label">Оплатить ${formatMoney(price.total)}</span><span class="button-arrow">${icon("arrow-right")}</span>`;
+    if (error instanceof BrowserLoginRequired) void openBotLogin(form);
+    else showToast(`Не удалось создать заказ: ${error.message}`);
   }
 }
 
@@ -3591,7 +3777,7 @@ async function loadActivity(force = false) {
     if (state.route === "raffle") render();
     return;
   }
-  if (!API_BASE_URL || !tg?.initData || activityLoading) return;
+  if (!API_BASE_URL || (!tg?.initData && !apiAccessToken) || activityLoading) return;
   if (state.activity && !force) return;
   activityLoading = true;
   state.activityError = "";
@@ -3617,7 +3803,7 @@ function scheduleMoscowMidnightRefresh() {
   const delay = Math.max(1000, nextMoscowMidnight(now) - now + 1500);
   moscowRefreshTimer = window.setTimeout(async () => {
     await loadSiteConfig();
-    if (tg?.initData) await loadActivity(true);
+    if (tg?.initData || apiAccessToken) await loadActivity(true);
     scheduleMoscowMidnightRefresh();
   }, delay);
 }
@@ -3646,7 +3832,7 @@ async function claimActivityTask(type, sponsorId = "") {
 }
 
 function getPendingReactionClaimDue() {
-  const storageKey = `${REACTION_CLAIM_DUE_STORAGE_KEY_PREFIX}:${Number(tg?.initDataUnsafe?.user?.id || 0)}`;
+  const storageKey = `${REACTION_CLAIM_DUE_STORAGE_KEY_PREFIX}:${Number(tg?.initDataUnsafe?.user?.id || browserTelegramUser?.id || 0)}`;
   try {
     const due = Number(window.localStorage.getItem(storageKey));
     pendingReactionClaimDue = Number.isFinite(due) && due > 0 ? due : 0;
@@ -3657,7 +3843,7 @@ function getPendingReactionClaimDue() {
 }
 
 function setPendingReactionClaimDue(due) {
-  const storageKey = `${REACTION_CLAIM_DUE_STORAGE_KEY_PREFIX}:${Number(tg?.initDataUnsafe?.user?.id || 0)}`;
+  const storageKey = `${REACTION_CLAIM_DUE_STORAGE_KEY_PREFIX}:${Number(tg?.initDataUnsafe?.user?.id || browserTelegramUser?.id || 0)}`;
   pendingReactionClaimDue = due > 0 ? due : 0;
   try {
     if (due > 0) {
@@ -3945,6 +4131,11 @@ document.addEventListener("click", (event) => {
 
   const externalButton = event.target.closest("[data-external]");
   if (externalButton) {
+    if (externalButton.dataset.external === "telegram-auth" &&
+        externalButton.classList.contains("profile-auth-button") && !tg?.initData) {
+      void openBotLogin();
+      return;
+    }
     const urls = {
       support: SUPPORT_URL,
       "telegram-auth": TELEGRAM_AUTH_URL,
@@ -4003,6 +4194,28 @@ app.addEventListener("submit", (event) => {
 });
 
 modalRoot.addEventListener("click", (event) => {
+  if (event.target.closest("[data-bot-login-retry]")) {
+    const form = botLoginContext?.form || null;
+    cancelBotLogin();
+    void openBotLogin(form);
+    return;
+  }
+  if (event.target.closest("[data-bot-login-continue]")) {
+    const checkoutRequested = Boolean(botLoginContext?.form);
+    if (!botLoginContext?.confirmed) return;
+    closeModal();
+    // Site-config/price hydration may replace the form while the login is open.
+    // Resolve its current DOM node; the draft is restored by render().
+    const form = document.getElementById("buyForm");
+    if (checkoutRequested && form) void submitPurchase(form);
+    else {
+      render();
+      if (state.route === "profile") void loadRemoteOrders().then(() => {
+        if (state.route === "profile") render();
+      });
+    }
+    return;
+  }
   if (
     event.target.matches(".modal-backdrop") ||
     event.target.closest("button[data-close-modal]") ||
@@ -4070,7 +4283,7 @@ function initializeTelegram() {
 }
 
 async function checkAccess() {
-  if (!API_BASE_URL || !tg?.initData) return;
+  if (!API_BASE_URL || (!tg?.initData && !apiAccessToken)) return;
   try {
     const response = await apiRequest("/api/access", {
       method: "POST",
@@ -4115,10 +4328,20 @@ if (normalizePublicPath() !== "/" && directPublicRoute) {
   state.history = [];
 }
 applyPaymentReturnRoute();
+const resumedLogin = readSessionJSON(BOT_LOGIN_KEY);
+const resumedDraft = readSessionJSON(CHECKOUT_DRAFT_KEY);
+if (!tg?.initData && resumedLogin && resumedDraft && !state.paymentReturnRequest &&
+    Date.now() - resumedDraft.savedAt < 30 * 60 * 1000) {
+  state.selectedProjectId = resumedDraft.selectedProjectId;
+  state.selectedServer = resumedDraft.selectedServer;
+  state.deliveryType = resumedDraft.deliveryType;
+  state.route = "buy";
+}
 syncBrowserRoute(state.route, "replace");
 renderHeaderProfile();
 syncHeaderThemeToggle();
 render();
+if (!tg?.initData && resumedLogin && state.route === "buy") void openBotLogin(document.getElementById("buyForm"));
 void reconcilePaymentReturn();
 loadSiteConfig();
 scheduleMoscowMidnightRefresh();
@@ -4141,7 +4364,7 @@ schedulePendingReactionClaim();
 async function refreshActivityAfterReturn() {
   if (document.hidden) return;
   await finishPendingReactionClaim();
-  if (state.route === "raffle" && tg?.initData) {
+  if (state.route === "raffle" && (tg?.initData || apiAccessToken)) {
     await loadActivity(true);
   }
   schedulePendingReactionClaim();
@@ -4149,9 +4372,11 @@ async function refreshActivityAfterReturn() {
 
 document.addEventListener("visibilitychange", () => {
   syncActivityTaskCountdown();
+  if (!document.hidden) void pollBotLogin();
   if (!document.hidden) void refreshActivityAfterReturn();
 });
 window.addEventListener?.("focus", () => void refreshActivityAfterReturn());
+window.addEventListener?.("focus", () => void pollBotLogin());
 window.addEventListener?.("pageshow", () => void refreshActivityAfterReturn());
 tg?.onEvent?.("activated", () => void refreshActivityAfterReturn());
 
