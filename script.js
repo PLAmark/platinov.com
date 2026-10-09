@@ -1630,7 +1630,7 @@ function renderPurchaseForm() {
         </div>
         <div class="field-group form-field">
           <label for="buyPromo">Промокод</label>
-          <input class="field-control" id="buyPromo" name="promo" maxlength="30"
+          <input class="field-control" id="buyPromo" name="promo" maxlength="32"
             autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Если есть">
           <div class="promo-status" id="promoStatus"></div>
         </div>
@@ -3075,6 +3075,7 @@ async function requestPromoQuote(project, amount, promoCode, requestId) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         game: project.name,
+        server: getOrderServerLabel(project, state.selectedServer),
         amount_kk: Number(amount.toFixed(2)),
         promo: promoCode
       })
